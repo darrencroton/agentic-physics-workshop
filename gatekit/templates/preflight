@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+"""Workshop preflight.
+
+./preflight          check the machine is ready (anyone)
+./preflight --setup  create .venv and install requirements.txt (humans, once)
+"""
+
+import json
+import os
+import subprocess
+import sys
+
+ROOT = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, os.path.join(ROOT, ".gatekit"))
+
+VENV_PY = os.path.join(ROOT, ".venv", "bin", "python")
+SETUP_PYTHON = "__SETUP_PYTHON__"
+
+results = []
+
+
+def report(ok, label, detail=""):
+    results.append(ok)
+    mark = "ok  " if ok else "FAIL"
+    print("[%s] %s%s" % (mark, label, (": " + detail) if detail else ""))
+    return ok
+
+
+def run(cmd, **kw):
+    return subprocess.run(cmd, capture_output=True, text=True, **kw)
+
+
+def pinned_requirements():
+    pins = {}
+    try:
+        with open(os.path.join(ROOT, "requirements.txt"), encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if line and not line.startswith("#") and "==" in line:
+                    name, version = line.split("==", 1)
+                    pins[name.strip().lower()] = version.strip()
+    except OSError:
+        pass
+    return pins
+
+
+def check_python():
+    report(sys.version_info >= (3, 9), "python3 on PATH is %d.%d (need 3.9+)"
+           % sys.version_info[:2])
+
+
+def check_venv():
+    if not report(os.path.exists(VENV_PY), ".venv present",
+                  "" if os.path.exists(VENV_PY) else
+                  "run ./preflight --setup once"):
+        return
+    pins = pinned_requirements()
+    code = ("import importlib.metadata as m, sys, json\n"
+            "out = {}\n"
+            "for n in sys.argv[1:]:\n"
+            "    try:\n"
+            "        out[n] = m.version(n)\n"
+            "    except Exception:\n"
+            "        out[n] = None\n"
+            "print(json.dumps(out))\n")
+    proc = run([VENV_PY, "-c", code] + list(pins))
+    found = json.loads(proc.stdout or "{}") if proc.returncode == 0 else {}
+    for name, version in pins.items():
+        have = found.get(name)
+        report(have == version, "%s %s" % (name, version),
+               "" if have == version else "found %s" % have)
+    proc = run([VENV_PY, "-c", "import sys; print(sys.version.split()[0])"])
+    report(proc.returncode == 0, ".venv python %s" % proc.stdout.strip())
+
+
+def check_git():
+    name = run(["git", "config", "user.name"], cwd=ROOT).stdout.strip()
+    email = run(["git", "config", "user.email"], cwd=ROOT).stdout.strip()
+    report(bool(name and email), "git identity",
+           "%s <%s>" % (name, email) if name and email else
+           "set with git config --global user.name / user.email")
+    tag = run(["git", "tag", "-l", "start"], cwd=ROOT).stdout.strip()
+    report(tag == "start", "git tag 'start' present")
+
+
+def check_hooks():
+    hooks_dir = os.path.join(ROOT, ".claude", "hooks")
+    for name in sorted(os.listdir(hooks_dir)) if os.path.isdir(hooks_dir) else []:
+        if not name.endswith(".py"):
+            continue
+        proc = run([sys.executable, "-m", "py_compile",
+                    os.path.join(hooks_dir, name)])
+        report(proc.returncode == 0, "hook compiles: %s" % name,
+               proc.stderr.strip().splitlines()[-1] if proc.returncode else "")
+    settings = os.path.join(ROOT, ".claude", "settings.json")
+    try:
+        with open(settings, encoding="utf-8") as fh:
+            data = json.load(fh)
+        events = sorted(data.get("hooks", {}))
+        report(bool(events), "settings.json hooks: %s" % ", ".join(events))
+        report("model" in data, "settings.json model: %s" % data.get("model"))
+    except (OSError, ValueError) as exc:
+        report(False, "settings.json readable", str(exc))
+    env = dict(os.environ, CLAUDE_PROJECT_DIR=ROOT)
+    probe = json.dumps({"tool_name": "Read", "tool_input":
+                        {"file_path": ".vault/level1.pack"}})
+    proc = run([sys.executable, os.path.join(hooks_dir, "guard.py")],
+               input=probe, env=env)
+    blocked = '"deny"' in proc.stdout
+    report(blocked, "guard denies a .vault read")
+
+
+def check_state():
+    try:
+        from gatekit import manifest as mf, state as st
+        manifest = mf.load_root_manifest(ROOT)
+        report(True, "manifest: %s" % manifest["title"])
+        state = st.load_state(ROOT)
+        report(state["exercise"] == manifest["exercise"],
+               "state.json at level %d" % state["level"])
+    except Exception as exc:
+        report(False, "manifest/state", "%s (try ./gate reset)" % exc)
+    proc = run([sys.executable, os.path.join(ROOT, "gate"), "status"], cwd=ROOT)
+    report(proc.returncode == 0, "./gate status runs",
+           proc.stderr.strip() if proc.returncode else "")
+
+
+def check_tty():
+    proc = run([sys.executable, os.path.join(ROOT, "gate"), "hint"], cwd=ROOT,
+               stdin=subprocess.DEVNULL)
+    report(proc.returncode == 3 and "humans" in proc.stderr,
+           "TTY detection: ./gate hint refuses without a terminal")
+    report(sys.stdin.isatty() and sys.stdout.isatty(),
+           "this window is a terminal (use it as the gate terminal)")
+
+
+def check_exercise():
+    hook = os.path.join(ROOT, ".gatekit", "preflight_extra.py")
+    if os.path.exists(hook):
+        proc = run([VENV_PY if os.path.exists(VENV_PY) else sys.executable,
+                    hook], cwd=ROOT)
+        for line in proc.stdout.splitlines():
+            print(line)
+        report(proc.returncode == 0, "exercise-specific checks")
+
+
+def setup():
+    python = SETUP_PYTHON if os.path.exists(SETUP_PYTHON) else "python3"
+    print("Creating .venv with %s" % python)
+    proc = subprocess.run([python, "-m", "venv", os.path.join(ROOT, ".venv")])
+    if proc.returncode != 0:
+        print("venv creation failed")
+        return 1
+    proc = subprocess.run([VENV_PY, "-m", "pip", "install", "-q", "-r",
+                           os.path.join(ROOT, "requirements.txt")])
+    if proc.returncode != 0:
+        print("pip install failed")
+        return 1
+    print("Done. Now run ./preflight")
+    return 0
+
+
+def main(argv):
+    if "--setup" in argv:
+        return setup()
+    check_python()
+    check_venv()
+    check_git()
+    check_hooks()
+    check_state()
+    check_tty()
+    check_exercise()
+    print()
+    if all(results):
+        print("Preflight passed. Reminder: open `claude` in this folder once "
+              "and accept the workspace trust dialog so the hooks load.")
+        return 0
+    print("Preflight found %d problem(s)." % results.count(False))
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

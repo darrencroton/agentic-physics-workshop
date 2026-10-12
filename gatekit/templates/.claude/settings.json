@@ -1,0 +1,96 @@
+{
+  "model": "__MODEL__",
+  "permissions": {
+    "defaultMode": "plan",
+    "deny": [
+      "Read(./.vault/**)",
+      "Read(**/.vault/**)",
+      "Read(./.workshop/**)",
+      "Read(**/.workshop/**)",
+      "Read(./.gatekit/**)",
+      "Read(**/.gatekit/**)",
+      "Read(./.tdd/**)",
+      "Read(./.claude/**)",
+      "Edit(./.vault/**)",
+      "Edit(**/.vault/**)",
+      "Edit(./.workshop/**)",
+      "Edit(./.gatekit/**)",
+      "Edit(./.tdd/**)",
+      "Edit(./.claude/**)",
+      "Edit(./.tdd-tools/**)",
+      "Bash(./gate unlock *)",
+      "Bash(./gate hint *)",
+      "Bash(./gate skip *)",
+      "Bash(./gate reset *)",
+      "Bash(./gate allow-model *)",
+      "Bash(./tdd red *)",
+      "Bash(./tdd green *)",
+      "Bash(./tdd refactor *)",
+      "Bash(./tdd done *)",
+      "Bash(./tdd score *)",
+      "Bash(./tdd new-attempt *)",
+      "Bash(pip *)",
+      "Bash(pip3 *)",
+      "Bash(python3 -m pip *)",
+      "Bash(python -m pip *)",
+      "Bash(uv *)",
+      "Bash(brew *)",
+      "Bash(npm *)",
+      "Bash(conda *)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/model_check.py"],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/teacher_context.py"],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read|Edit|Write|MultiEdit|NotebookEdit|Bash|Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.py"],
+            "timeout": 10,
+            "onFailure": "block"
+          }
+        ]
+      }
+    ],
+    "PreModelSwitch": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/model_lock.py"],
+            "timeout": 10,
+            "onFailure": "block"
+          }
+        ]
+      }
+    ]
+  }
+}
