@@ -138,6 +138,8 @@ class GuardTests(unittest.TestCase):
         self.deny(tool("Bash", command='git commit --allow-empty -m "$(cat .vault/keys.bin)"'), "vault")
         self.deny(tool("Bash", command="git commit -m \"`cat .vault/keys.bin`\""), "vault")
         self.deny(tool("Bash", command='git commit -m "$(perl -e \'open F, q(>.tdd/phase)\')"'))
+        self.deny(tool("Bash", command="git commit --allow-empty -m \"note -m '$(cat .gatekit/tddtool/_pepper.py)'\""), "vault")
+        self.deny(tool("Bash", command="git commit -m 'x' -m \"${X:-$(cat .vault/keys.bin)}\""), "vault")
         os.symlink("..", os.path.join(self.root, "tests", "parent"))
         self.deny(tool("Write", file_path="tests/parent/gate", content="x"))
         self.deny(tool("Write", file_path="tests/parent/.vault/x", content="x"))
