@@ -131,4 +131,4 @@ The first runs the toolkit's unit tests. The second verifies the hidden referenc
 
 ## Licence
 
-Not yet chosen. A public repository without a licence is all rights reserved; pick one before publishing.
+MIT. See `LICENSE`.
