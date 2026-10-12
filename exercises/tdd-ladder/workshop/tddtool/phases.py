@@ -8,6 +8,11 @@ from gatekit import tty
 from tddtool import common as C
 
 MIN_LEVEL_FOR_PHASES = 3
+RESTORE_HINT = (" A new cycle needs a green suite and Claude cannot edit src/ or "
+                "tests/ with no cycle open. In the gate terminal, restore the last "
+                "good version (git log --oneline, then git checkout <commit> -- "
+                "src tests and git commit -m restore) or delete the offending "
+                "test file with git rm and commit.")
 
 
 def _say(text=""):
@@ -29,16 +34,17 @@ def _all_pass(root, label):
         raise C.TddError("pytest ran but no run record appeared in "
                          ".tdd/runs.jsonl. Is pytest.ini intact?")
     passed, failed, skipped, errors = C.summarise_run(record)
+    hint = RESTORE_HINT if label.startswith("entry check for RED") else ""
     if errors:
-        raise C.TddError("the suite does not even collect: %s"
-                         % ", ".join("%s (%s)" % (e["nodeid"], e["exc_type"])
-                                     for e in errors))
+        raise C.TddError("the suite does not even collect: %s.%s"
+                         % (", ".join("%s (%s)" % (e["nodeid"], e["exc_type"])
+                                      for e in errors), hint))
     if failed:
-        raise C.TddError("%d test(s) fail: %s" % (
-            len(failed), ", ".join(sorted(failed))))
+        raise C.TddError("%d test(s) fail: %s.%s" % (
+            len(failed), ", ".join(sorted(failed)), hint))
     if skipped:
         raise C.TddError("%d test(s) are skipped. Skips count as failures "
-                         "here: %s" % (len(skipped), ", ".join(skipped)))
+                         "here: %s.%s" % (len(skipped), ", ".join(skipped), hint))
     if code not in (0, 5):
         raise C.TddError("pytest exited with code %d; the run did not complete "
                          "cleanly." % code)

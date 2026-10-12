@@ -24,14 +24,29 @@ Hands off the code: humans read, think, discuss and type prompts. All code chang
 
 1. **Claude window (large):** Claude Code runs here. Only the Driver types in it.
 2. **Gate terminal:** a separate terminal for the humans. Everything starting `./gate` or `./tdd` (apart from the read-only ones) is typed here. Claude never types there.
+3. **Plan mode:** the Claude session starts in plan mode (read-only planning). Press `Shift+Tab` until it says plan mode is off before asking for runs or edits.
 
 ## Level 0: just build it (about 5 minutes)
 
+### Where we are
+
+This is the starting line. You will do what most of us do with an AI assistant: ask for the feature in one sentence and accept what comes back. Nothing is wrong with Claude here. The point is to find out, with a scorecard, how much it decided for you without asking.
+
+The scorecard has three numbers:
+
+- **Acceptance tests:** a hidden set of 12 checks that say what the client really wanted. Passing them means the function does the job.
+- **Mutants:** copies of a correct solution, each with one small deliberate bug (there are 16). Your tests "kill" a mutant if they fail on it. Few kills means your tests would not notice a real bug.
+- **False alarms:** tests of yours that fail on a correct solution. That means the test itself is wrong.
+
+At Level 0 there may be no tests at all, so expect a poor score. That is the baseline the rest of the hour improves on. The lesson: the agent cannot define "correct" for you.
+
+### What to do
+
 1. In the Claude window, paste the client's request exactly as written above. Add nothing.
 2. Accept what Claude gives you. Do not correct it or ask for tests.
-3. Run `make plot` and look at the result in `results/hz_binned.png`.
+3. Run `make plot` and look at the result in `results/hz_binned.png`. Each run also keeps a copy named for the level (`results/hz_binned_L0.png` now), so you can compare plots from different levels later.
 4. In the gate terminal, run `./tdd score` and read the scorecard.
-5. In the gate terminal, run `./gate unlock`. It will ask how many client acceptance tests passed, then one reflection question.
+5. In the gate terminal, run `./gate unlock`. It will ask how many client acceptance tests passed, then one reflection question. It then saves your work on a branch and gives you a fresh starting stub for Level 1 automatically.
 
 Do not polish. Score it and move on.
 
@@ -39,10 +54,11 @@ Do not polish. Score it and move on.
 
 | Command | Where | What it does |
 |---|---|---|
-| `make plot` | Claude window or gate terminal | Writes `results/hz_binned.png` |
+| `make plot` | Claude window or gate terminal | Writes `results/hz_binned.png`, plus a copy `results/hz_binned_L<level>.png` for each level |
 | `make test` | Claude window or gate terminal | Runs the test suite |
 | `./tdd score` | Gate terminal | Prints your scorecard and records it |
 | `./tdd ladder` | Gate terminal | Shows your recorded scores by level |
+| `./tdd new-attempt` | Gate terminal | Saves your work on a branch and resets the code and tests to the stub (the unlock does this for you at Levels 1 and 3; use it to restart a level) |
 | `./tdd status` | Either | Shows the level, phase and last score |
 | `./gate status` | Either | Shows level, persona, minutes on level, hints used |
 | `./gate unlock` | Gate terminal | Checks your work, asks the gate question, opens the next level |

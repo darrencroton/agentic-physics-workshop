@@ -166,11 +166,15 @@ def format_score(result, mutants_spec=None):
     if result.get("acceptance_error"):
         lines.append("  (%s)" % result["acceptance_error"])
     lines.append("MUTANTS KILLED  %d/%d" % (result["killed"], result["mutants_total"]))
+    lines.append("  (a mutant is a correct solution with one deliberate bug; "
+                 "killed means your tests failed on it)")
     if result["survivors"]:
         lines.append("  surviving mutants violate: %s"
                      % ", ".join(_spec_counts(result)))
     lines.append("FALSE ALARMS    %d of your %d tests fail on a correct implementation"
                  % (len(result["false_alarms"]), result["test_count"]))
+    lines.append("  (a false alarm is a test that fails on a correct solution, "
+                 "so the test itself is wrong)")
     if result.get("collection_error"):
         lines.append("  your suite did not fully run on a correct implementation: %s"
                      % result["collection_error"])

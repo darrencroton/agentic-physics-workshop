@@ -2,6 +2,7 @@
   "exercise": "tdd-ladder",
   "title": "The TDD Ladder",
   "tool": "tddtool",
+  "human_only": {"tdd": ["red", "green", "refactor", "done", "abort", "score", "new-attempt"]},
   "models": {"default": "haiku", "allowed": ["haiku"]},
   "levels": [
     {
@@ -9,6 +10,7 @@
       "gate": {
         "type": "verified",
         "condition": "tdd.score_recorded_at_level",
+        "post_unlock": "tdd.start_from_stub",
         "questions": [
           {"id": "acceptance_count", "kind": "numeric", "decimals": 0,
            "prompt": "How many client acceptance tests passed? (from ./tdd score)",

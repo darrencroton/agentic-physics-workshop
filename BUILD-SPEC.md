@@ -309,8 +309,8 @@ This lets `tdd` report "red never observed" at Level 1, and validates "failing f
 
 | Transition | Condition | Graded question | Logged reflection |
 |---|---|---|---|
-| 0 → 1 | Score recorded at L0 | Acceptance count = last recorded count | Two silent decisions |
-| 1 → 2 | `new-attempt` done at L1 and a score recorded at L1 | — | Red ever seen (y/n); oracle source (a–d) |
+| 0 → 1 | Score recorded at L0. The unlock then runs `new-attempt` itself (facilitator feedback; see `docs/DECISIONS.md`) | Acceptance count = last recorded count | Two silent decisions |
+| 1 → 2 | A score recorded at L1 after the latest fresh attempt (made automatically on unlock, or by `./tdd new-attempt`) | — | Red ever seen (y/n); oracle source (a–d) |
 | 2 → 3 | `SPEC.md` has ≥ 6 numbered decisions; `src/` and `tests/` unchanged during L2 | — | *After* unlock, once `CLIENT_SPEC.md` is visible: "How many of the client's 10 decisions did your SPEC address?" (0–10) |
 | 3 → 4 | ≥ 5 cycles valid per 5.3; last score has 0 false alarms and ≥ 9/16 killed | A spec ID among the last survivors, or `none` if 16/16 | — |
 | 4 → 5 | Last score ≥ 14/16, 0 false alarms; own suite runtime < 10 s | numeric 0.0090–0.0096 | — |

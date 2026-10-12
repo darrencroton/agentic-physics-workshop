@@ -150,6 +150,8 @@ def level0(repo):
     repo.install_sample("l0_naive")
     repo.run(["make", "plot"])
     check(os.path.exists(os.path.join(repo.root, "results", "hz_binned.png")), "make plot wrote the PNG")
+    check(os.path.exists(os.path.join(repo.root, "results", "hz_binned_L0.png")),
+          "make plot also kept results/hz_binned_L0.png")
     acc, killed, fa, _, _ = repo.score()
     check(4 <= acc <= 9, "L0 acceptance in band 4-9", str(acc))
     check(killed <= 6, "L0 kills <= 6", str(killed))
@@ -158,6 +160,8 @@ def level0(repo):
     code, out = repo.gate("unlock", answers=[("acceptance tests passed?", str(acc)),
                                              ("nobody asked you about.", "edges; empty bins")])
     check(code == 0 and "Level 1 unlocked" in out, "L0 -> L1 unlock", out[-300:])
+    check("Level 1 starts from the stub" in out and "attempt-L1-" in out,
+          "unlock says it started a fresh attempt (automatic new-attempt)")
     check(os.path.exists(os.path.join(repo.root, "BRIEF.md")), "BRIEF.md written")
     with open(os.path.join(repo.root, "LOG.md")) as fh:
         check("edges; empty bins" in fh.read(), "reflection logged to LOG.md")
@@ -165,17 +169,26 @@ def level0(repo):
 
 def level1(repo):
     section("Level 1: use TDD, please")
-    code, out = repo.gate("unlock")
-    check(code == 1 and "new-attempt" in out, "unlock refused before new-attempt")
-    code, out = repo.tdd("new-attempt")
-    check(code == 0 and "attempt-L1-" in out, "./tdd new-attempt", out[-300:])
-    check(repo.is_stub(), "binning.py restored to the stub")
-    check(sorted(os.listdir(os.path.join(repo.root, "tests"))) == ["__init__.py"], "tests/ emptied")
+    check(repo.is_stub(), "binning.py already restored to the stub by the L0 unlock")
+    check(sorted(os.listdir(os.path.join(repo.root, "tests"))) == ["__init__.py"], "tests/ already emptied")
     check("attempt-L1-" in repo.git("branch", "--list", "attempt-L1-*"), "attempt branch exists")
+    branch = repo.git("branch", "--list", "attempt-L1-*", "--format=%(refname:short)").split()[0]
+    check("NotImplementedError" not in repo.git("show", branch + ":src/hzbin/binning.py"),
+          "Level 0 work is saved on the attempt branch")
+    code, out = repo.gate("unlock")
+    check(code == 1 and "no score recorded since the fresh attempt" in out,
+          "unlock refused before a score at Level 1")
+    code, out = repo.tdd("new-attempt")
+    check(code == 0 and "attempt-L1-" in out, "./tdd new-attempt still works as a manual restart", out[-300:])
+    check(repo.is_stub(), "binning.py is the stub after the manual restart")
     # Claude-style: tests and code land together; first run is green.
     repo.install_sample("l1_tests_after")
     repo.run([os.path.join(repo.root, "tdd"), "test"], ok_codes=(0, 1))
-    repo.commit_all("L1: tests written after the code")
+    # Level 1 work is left uncommitted, as a literal-persona group would leave it.
+    repo.run(["make", "plot"])
+    check(os.path.exists(os.path.join(repo.root, "results", "hz_binned_L1.png"))
+          and os.path.exists(os.path.join(repo.root, "results", "hz_binned_L0.png")),
+          "make plot at Level 1 kept both hz_binned_L0.png and hz_binned_L1.png")
     runs = [json.loads(line) for line in open(os.path.join(repo.root, ".tdd", "runs.jsonl"))]
     newest = runs[-1]
     failed = [n for n, t in newest["tests"].items() if t["outcome"] != "passed"]
@@ -200,7 +213,21 @@ def level2(repo):
         fh.write("\n# sneaky edit\n")
     code, out = repo.gate("unlock")
     check(code == 1 and "changed during Level 2" in out, "unlock refused after a src edit")
-    repo.git("checkout", "--", "src")
+    flat = out.replace("\r\n", " ").replace("\n", " ")
+    level2_commit = repo.state()["records"]["tdd"]["tree_hash"].get("level2_commit")
+    check(bool(level2_commit) and not repo.is_stub(), "Level 2 snapshot is a commit holding the Level 1 work")
+    advice = "To fix: restore with git checkout %s -- src/hzbin/binning.py" % level2_commit[:10]
+    check(advice in flat, "refusal names the Level 2 commit, the changed file and how to restore it", flat[-300:])
+    repo.git("checkout", level2_commit[:10], "--", "src/hzbin/binning.py")
+    check(repo.git("diff", level2_commit, "--", "src", "tests") == "",
+          "following the advice restores src/ and tests/ to the Level 2 snapshot")
+    check(not repo.is_stub(), "restored binning.py is the Level 1 code, not the stub")
+    with open(os.path.join(repo.root, "tests", "test_stray.py"), "w") as fh:
+        fh.write("def test_x():\n    pass\n")
+    code, out = repo.gate("unlock")
+    check(code == 1 and "delete the new file(s): tests/test_stray.py" in out.replace("\r\n", " ").replace("\n", " "),
+          "refusal names a stray new file")
+    os.unlink(os.path.join(repo.root, "tests", "test_stray.py"))
     code, out = repo.gate("unlock", answers=[("(0-10)", "6")])
     check(code == 0 and "Level 3 unlocked" in out, "L2 -> L3 unlock", out[-400:])
     check("CLIENT_SPEC.md is now in the repo" in out, "pre-reflection note shown before the question")

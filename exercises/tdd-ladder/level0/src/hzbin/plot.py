@@ -1,4 +1,5 @@
 """Plot the H(z) data and its binned weighted means."""
+import json
 from pathlib import Path
 
 import matplotlib
@@ -19,8 +20,17 @@ def fiducial(z, h0=H0_FID, om=OM_FID):
     return h0 * np.sqrt(om * (1.0 + z) ** 3 + 1.0 - om)
 
 
+def workshop_level(state_path=".workshop/state.json"):
+    """Level from the workshop state file, or 0 if it cannot be read."""
+    try:
+        with open(state_path, encoding="utf-8") as fh:
+            return int(json.load(fh)["level"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return 0
+
+
 def main(data_path="data/hz_mock.csv", out_path="results/hz_binned.png"):
-    """Write the H(z) plot to results/hz_binned.png."""
+    """Write the H(z) plot, plus a copy named for the current level."""
     z, h, sigma = load_hz(data_path)
     fig, ax = plt.subplots(figsize=(7, 4.5))
     ax.errorbar(z, h, yerr=sigma, fmt="o", ms=3, color="0.55",
@@ -42,8 +52,14 @@ def main(data_path="data/hz_mock.csv", out_path="results/hz_binned.png"):
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=150, bbox_inches="tight")
-    plt.close(fig)
     print(f"Wrote {out}")
+    backup = out.with_name(f"{out.stem}_L{workshop_level()}{out.suffix}")
+    try:
+        fig.savefig(backup, dpi=150, bbox_inches="tight")
+        print(f"Wrote {backup} (kept for comparing levels)")
+    except OSError as exc:
+        print(f"Note: could not write {backup}: {exc}")
+    plt.close(fig)
 
 
 if __name__ == "__main__":

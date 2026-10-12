@@ -2,7 +2,11 @@
 
 **Target time:** 8 minutes. **Persona in force:** `coach`, with phase rules still on.
 
-Example tests check points. Physics gives you properties. Add tests that would catch whole classes of error. Keep using the red, green, refactor cycle.
+## Where we are
+
+At Level 3 you wrote example tests ("these inputs, this number"). Each checks only a few points, so some mutants (deliberately buggy copies of a correct solution) usually survive. Physics gives you something stronger: rules that hold for any input. A **property test** checks such a rule, for example that shuffling the data must not change the answer. One property test can kill a whole class of bug.
+
+You still use red, green, refactor, with Claude as coach and the humans owning the phases and numbers. Use fixed seeds in random tests, and justify tolerances with a binomial argument, not by feel.
 
 ## What to do
 
@@ -28,4 +32,4 @@ Example tests check points. Physics gives you properties. Add tests that would c
 
 ## Opening the gate
 
-In the gate terminal, run `./gate unlock`. It needs your latest score to show at least 14/16 killed and 0 false alarms, and your own suite to run in under 10 seconds. It then asks: for a coverage test with 2,500 independent bin-trials and true coverage 0.683, what is the standard deviation of the measured coverage fraction?
+In the gate terminal, run `./gate unlock`. It needs your latest score to show at least 14/16 mutants killed and 0 false alarms (none of your tests failing on a correct solution), and your own suite to run in under 10 seconds. It then asks: for a coverage test with 2,500 independent bin-trials and true coverage 0.683, what is the standard deviation of the measured coverage fraction?

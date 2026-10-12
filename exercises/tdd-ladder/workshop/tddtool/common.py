@@ -141,25 +141,39 @@ def tests_changed_since(root, commit):
     return sorted(set(changed))
 
 
-def tree_hash(root, *paths):
-    """Content hash of all files under the given paths."""
-    digest = hashlib.sha256()
+def _tree_files(root, paths):
+    """Sorted file paths under the given paths, skipping bytecode."""
+    files = []
     for base in paths:
         full = os.path.join(root, base)
         if os.path.isfile(full):
-            files = [full]
-        else:
-            files = []
-            for dirpath, dirnames, filenames in os.walk(full):
-                dirnames[:] = sorted(d for d in dirnames if d != "__pycache__")
-                files += [os.path.join(dirpath, f) for f in sorted(filenames)
-                          if not f.endswith(".pyc")]
-        for path in files:
-            digest.update(os.path.relpath(path, root).encode("utf-8") + b"\0")
-            with open(path, "rb") as fh:
-                digest.update(fh.read())
-            digest.update(b"\0")
+            files.append(full)
+            continue
+        for dirpath, dirnames, filenames in os.walk(full):
+            dirnames[:] = sorted(d for d in dirnames if d != "__pycache__")
+            files += [os.path.join(dirpath, f) for f in sorted(filenames)
+                      if not f.endswith(".pyc")]
+    return files
+
+
+def tree_hash(root, *paths):
+    """Content hash of all files under the given paths."""
+    digest = hashlib.sha256()
+    for path in _tree_files(root, paths):
+        digest.update(os.path.relpath(path, root).encode("utf-8") + b"\0")
+        with open(path, "rb") as fh:
+            digest.update(fh.read())
+        digest.update(b"\0")
     return digest.hexdigest()
+
+
+def tree_files(root, *paths):
+    """Map of relative file path to content hash under the given paths."""
+    result = {}
+    for path in _tree_files(root, paths):
+        with open(path, "rb") as fh:
+            result[os.path.relpath(path, root)] = hashlib.sha256(fh.read()).hexdigest()
+    return result
 
 
 # ----------------------------------------------------------------- pytest
