@@ -35,6 +35,9 @@ def _say(text=""):
 
 def _load(root):
     manifest = mf.load_root_manifest(root)
+    if not os.path.exists(st.state_path(root)):
+        reset_workshop(root, manifest)
+        _say("Initialised workshop state at level 0.")
     state = st.load_state(root)
     if state["exercise"] != manifest["exercise"]:
         raise GateError("state belongs to a different exercise; run ./gate reset")

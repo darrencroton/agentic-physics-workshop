@@ -5,7 +5,7 @@ Private. Contains gate answers and spoilers. Never copy into `dist/`.
 ## 1. Build and set up (once per machine)
 
 ```zsh
-cd ~/Local/ai-project-session
+cd <this repository>
 python3 tools/build.py tdd-ladder --master-passphrase-file ~/.config/workshop/master-passphrase --keep-venv
 cd dist/tdd-ladder
 ./preflight --setup      # only if .venv is missing; creates .venv with /opt/homebrew/bin/python3.13 and installs the pins
@@ -21,8 +21,8 @@ The master passphrase is in `~/.config/workshop/master-passphrase`. You type it 
 
 | Window | Command | Who types |
 |---|---|---|
-| Claude (large) | `cd ~/Local/ai-project-session/dist/tdd-ladder && claude` | the Driver |
-| Gate (small) | `cd ~/Local/ai-project-session/dist/tdd-ladder` then `./gate …` and `./tdd …` | the humans |
+| Claude (large) | `cd dist/tdd-ladder && claude` | the Driver |
+| Gate (small) | `cd dist/tdd-ladder` in a fresh Terminal window (not one opened from Claude Code), then `./gate …` and `./tdd …` | the humans |
 
 The session starts in plan mode on Haiku. `Shift+Tab` leaves plan mode. `/model` to anything but Haiku is refused by the hook until you grant a power-up with `./gate allow-model sonnet`.
 
@@ -103,7 +103,7 @@ Claude (via a subagent) writes mutants of the group's own `binning.py`; the grou
 ## 5. Reset between runs
 
 ```zsh
-cd ~/Local/ai-project-session/dist/tdd-ladder
+cd dist/tdd-ladder
 ./gate reset                       # confirms, wipes .workshop/ and .tdd/, removes BRIEF.md and CLIENT_SPEC.md
 git reset --hard start && git clean -fd     # restores the stub and empty tests; keeps .venv
 git branch | grep attempt- | xargs -n1 git branch -D   # optional: drop the attempt branches
@@ -116,9 +116,10 @@ A full rebuild (`tools/build.py … --keep-venv`) also works and gives fresh pac
 The participant repo is self-contained and must not include this file or `exercises/`. Either:
 
 ```zsh
-cd ~/Local/ai-project-session/dist/tdd-ladder
+cd dist/tdd-ladder
 git bundle create ~/Desktop/tdd-ladder.bundle --all      # hand over the bundle
 # leader: git clone tdd-ladder.bundle tdd-ladder && cd tdd-ladder && ./preflight --setup && ./preflight
+# (preflight creates the level-0 state on first run; .workshop/ is not in git)
 ```
 
 or push `dist/tdd-ladder` to a private remote. Leaders need Python 3.11+ (preflight uses the path baked in at build time, `/opt/homebrew/bin/python3.13`; otherwise `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`), git, and Claude Code 2.1.295 or later (the hooks use `onFailure: "block"`).

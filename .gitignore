@@ -2,3 +2,6 @@ dist/
 **/.venv/
 .DS_Store
 .orchestrator/
+.ruff_cache/
+*.pyc
+__pycache__/

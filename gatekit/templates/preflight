@@ -112,9 +112,12 @@ def check_hooks():
 
 def check_state():
     try:
-        from gatekit import manifest as mf, state as st
+        from gatekit import cli, manifest as mf, state as st
         manifest = mf.load_root_manifest(ROOT)
         report(True, "manifest: %s" % manifest["title"])
+        if not os.path.exists(st.state_path(ROOT)):
+            cli.reset_workshop(ROOT, manifest)
+            print("       (initialised workshop state at level 0)")
         state = st.load_state(ROOT)
         report(state["exercise"] == manifest["exercise"],
                "state.json at level %d" % state["level"])
@@ -148,7 +151,14 @@ def check_exercise():
 
 def setup():
     python = SETUP_PYTHON if os.path.exists(SETUP_PYTHON) else "python3"
-    print("Creating .venv with %s" % python)
+    probe = run([python, "-c", "import sys; print('%d.%d' % sys.version_info[:2])"])
+    version = tuple(int(x) for x in probe.stdout.strip().split(".")) if probe.returncode == 0 else (0, 0)
+    if version < (3, 11):
+        print("Need Python 3.11 or newer to create .venv; %s is %s." % (python, probe.stdout.strip() or "missing"))
+        print("Install Python 3.11+ (for example `brew install python@3.13`) and run:")
+        print("  /path/to/python3.13 -m venv .venv && .venv/bin/pip install -r requirements.txt")
+        return 1
+    print("Creating .venv with %s (%s)" % (python, probe.stdout.strip()))
     proc = subprocess.run([python, "-m", "venv", os.path.join(ROOT, ".venv")])
     if proc.returncode != 0:
         print("venv creation failed")
