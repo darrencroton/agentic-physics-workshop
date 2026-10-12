@@ -1,0 +1,66 @@
+{
+  "M01": {
+    "spec": "S1",
+    "description": "Last bin is half-open: a point exactly at the final edge is dropped (and counted in n_dropped)."
+  },
+  "M02": {
+    "spec": "S1",
+    "description": "Bins are left-open (e_k, e_k+1]: points on interior edges go to the lower bin and a point at e0 is dropped."
+  },
+  "M03": {
+    "spec": "S2",
+    "description": "Out-of-range points are clipped into the first or last bin instead of being dropped; n_dropped is always 0."
+  },
+  "M04": {
+    "spec": "S2",
+    "description": "n_dropped counts only points below the first edge; points above the last edge are excluded but not counted."
+  },
+  "M05": {
+    "spec": "S3",
+    "description": "Weights are 1/sigma instead of 1/sigma^2."
+  },
+  "M06": {
+    "spec": "S3/S4",
+    "description": "Mean is the unweighted arithmetic mean of y in the bin; err still uses the inverse-variance weights."
+  },
+  "M07": {
+    "spec": "S4",
+    "description": "err is the scatter of y in the bin divided by sqrt(n) (zero for a single point) instead of (sum w)^-1/2."
+  },
+  "M08": {
+    "spec": "S4",
+    "description": "err = 1/sum(w): the square root is missing."
+  },
+  "M09": {
+    "spec": "S5",
+    "description": "x_eff is the bin midpoint instead of the weighted mean position."
+  },
+  "M10": {
+    "spec": "S6",
+    "description": "Empty bins return x_eff = mean = err = 0 instead of NaN."
+  },
+  "M11": {
+    "spec": "S7",
+    "description": "Points with non-finite y are silently dropped (not counted in n_dropped); x and sigma are still validated."
+  },
+  "M12": {
+    "spec": "S8",
+    "description": "sigma <= 0 is not rejected; sigma = 0 gives infinite weight (errors silenced)."
+  },
+  "M13": {
+    "spec": "S9",
+    "description": "Unordered or decreasing edges are accepted and sorted internally instead of raising ValueError."
+  },
+  "M14": {
+    "spec": "S10",
+    "description": "Sorts the caller's x, y and sigma arrays in place (by x); results are unchanged but the inputs are modified."
+  },
+  "M15": {
+    "spec": "S10",
+    "description": "When y is float32 the weights and sums are accumulated in float32 instead of float64."
+  },
+  "M16": {
+    "spec": "S1",
+    "description": "Baseline: off-by-one bin index (every point lands in the next bin, the last wraps to the first); any reasonable suite kills it."
+  }
+}

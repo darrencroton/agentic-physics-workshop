@@ -1,0 +1,16 @@
+{
+  "tiers": [
+    {
+      "unlock_after_minutes": 0,
+      "text": "Interview first, decide as a group, then write. What does an error bar on a binned point mean to the person reading the plot?"
+    },
+    {
+      "unlock_after_minutes": 5,
+      "text": "Two classic arguments: is the error the uncertainty of the weighted mean, or the scatter of the points? And what happens to a point sitting exactly on the last edge? Also think about empty bins, bad inputs and what gets returned."
+    },
+    {
+      "unlock_after_minutes": 10,
+      "text": "Make sure SPEC.md has at least six numbered decisions, each stating a clear rule. Cover: bin edge convention including the last edge, out-of-range points, weights, mean and error, x position, empty bins, invalid input and output types. Leave src/ and tests/ alone."
+    }
+  ]
+}

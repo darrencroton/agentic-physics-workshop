@@ -130,8 +130,10 @@ def check_tty():
                stdin=subprocess.DEVNULL)
     report(proc.returncode == 3 and "humans" in proc.stderr,
            "TTY detection: ./gate hint refuses without a terminal")
-    report(sys.stdin.isatty() and sys.stdout.isatty(),
-           "this window is a terminal (use it as the gate terminal)")
+    if sys.stdin.isatty() and sys.stdout.isatty():
+        print("[ok  ] this window is a terminal (use it as the gate terminal)")
+    else:
+        print("[warn] not running in a terminal; run ./preflight from the gate terminal too")
 
 
 def check_exercise():

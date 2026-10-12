@@ -1,0 +1,16 @@
+{
+  "tiers": [
+    {
+      "unlock_after_minutes": 0,
+      "text": "A coverage test needs a justified tolerance, not a feel-good one. What is the spread of a measured fraction?"
+    },
+    {
+      "unlock_after_minutes": 5,
+      "text": "For N independent trials with true coverage p, the standard deviation of the measured fraction is sqrt(p(1-p)/N). Use a bound of about 3 of those. Different properties kill different bug classes: the uniform-sigma limit catches weighting and square-root errors; affine equivariance catches scatter-based errors; the float32 offset test catches precision loss."
+    },
+    {
+      "unlock_after_minutes": 10,
+      "text": "Compute sqrt(0.683 * 0.317 / 2500) by hand: about 0.0093. Use a fixed seed, keep N small enough that the suite runs in under 10 seconds, and recompute the bound if you change N. Check the score for the spec IDs still surviving and pick the property that targets them."
+    }
+  ]
+}

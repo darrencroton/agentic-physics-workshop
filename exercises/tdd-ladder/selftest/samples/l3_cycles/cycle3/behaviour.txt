@@ -1,0 +1,1 @@
+The error on a bin is (sum of weights) to the power -1/2.

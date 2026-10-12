@@ -1,0 +1,1 @@
+Several bins are half-open [e_k, e_k+1) except the last, which is closed.

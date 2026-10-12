@@ -1,0 +1,25 @@
+{
+  "editable": ["LOG.md", "SPEC.md"],
+  "phases": {
+    "none": {
+      "editable": ["LOG.md", "SPEC.md"],
+      "frozen": ["src", "tests"],
+      "message": "No cycle is open. A human starts one with ./tdd red \"<behaviour>\" in the gate terminal; until then src/ and tests/ are frozen."
+    },
+    "red": {
+      "editable": ["tests/**", "LOG.md", "SPEC.md"],
+      "frozen": ["src"],
+      "message": "Phase is RED: write one failing test. src/ is frozen until the humans run ./tdd green."
+    },
+    "green": {
+      "editable": ["src/**", "LOG.md", "SPEC.md"],
+      "frozen": ["tests"],
+      "message": "Tests are frozen in GREEN. If a test is wrong, the group must decide to return to RED."
+    },
+    "refactor": {
+      "editable": ["src/**", "LOG.md", "SPEC.md"],
+      "frozen": ["tests"],
+      "message": "Tests are frozen in REFACTOR. Improve the code; the tests define what must not change."
+    }
+  }
+}

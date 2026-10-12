@@ -1,0 +1,16 @@
+{
+  "tiers": [
+    {
+      "unlock_after_minutes": 0,
+      "text": "Saying 'TDD' is not the same as doing it. When did a test first fail?"
+    },
+    {
+      "unlock_after_minutes": 5,
+      "text": "If tests and code arrived together and the first run was green, red never happened. A test that has never failed might not be able to fail. Also check where each expected number came from."
+    },
+    {
+      "unlock_after_minutes": 10,
+      "text": "Honest answers: red was probably never seen (n), and the numbers probably came from Claude's head or from running the code (b or c). Hand calculation by a human is (a); an independent reference is (d). Remember: you did not ask Claude to wait for you."
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "tiers": [
+    {
+      "unlock_after_minutes": 0,
+      "text": "Before running `./tdd green`, are the new tests committed, and does at least one fail?"
+    },
+    {
+      "unlock_after_minutes": 5,
+      "text": "`./tdd green` needs the failure to be an assertion error or NotImplementedError, not an import or name error. Expected values come from the Sceptic's hand calculation on 2 to 4 points, with exact fractions where you can. No number comes from Claude."
+    },
+    {
+      "unlock_after_minutes": 10,
+      "text": "A good first oracle: two points y = 1 and y = 3 with sigma = 1 and sigma = 1 give mean 2 and err 1/sqrt(2). For unequal sigma, weights are 1/sigma^2; compute them by hand. If a mutant survives, the score names the spec ID (for example S4): write the test for that decision. Mind S1 and S2 near the edges."
+    }
+  ]
+}

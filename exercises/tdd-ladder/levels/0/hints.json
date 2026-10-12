@@ -1,0 +1,16 @@
+{
+  "tiers": [
+    {
+      "unlock_after_minutes": 0,
+      "text": "Look at the plot, then at the score. Which looks more trustworthy, and why?"
+    },
+    {
+      "unlock_after_minutes": 5,
+      "text": "Every question Claude did not ask was answered by default. Scan the function for choices: where do points on a bin edge go, what happens to an empty bin, what does the error bar mean?"
+    },
+    {
+      "unlock_after_minutes": 10,
+      "text": "Read the scorecard for the acceptance count and write it down. For the reflection, pick two choices you can see in the code that nobody discussed, such as the edge convention or what an empty bin returns."
+    }
+  ]
+}

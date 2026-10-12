@@ -392,6 +392,8 @@ def cmd_allow_model(root, args):
     manifest, state = _load(root)
     secret = _master_secret_from_prompt()
     if not _verify_master(root, secret):
+        st.log_failed_attempt(state, "master")
+        st.save_state(root, state)
         raise GateError("That is not the master passphrase.")
     allowed = state.setdefault("allowed_models", [])
     if name not in allowed:
@@ -410,6 +412,16 @@ def reset_workshop(root, manifest=None):
     """Rebuild .workshop/ at level 0 from .gatekit/levels/0."""
     manifest = manifest or mf.load_root_manifest(root)
     workshop = os.path.join(root, st.STATE_DIR)
+    removed = []
+    for entry in manifest["levels"][1:]:
+        targets = set((entry.get("files") or {}).values()) | {"BRIEF.md"}
+        for rel in sorted(targets):
+            path = os.path.join(root, rel)
+            if os.path.isfile(path):
+                os.unlink(path)
+                removed.append(rel)
+    if removed:
+        _say("Removed unlocked files: %s" % ", ".join(sorted(set(removed))))
     shutil.rmtree(workshop, ignore_errors=True)
     os.makedirs(os.path.join(workshop, "levels"), exist_ok=True)
     src = os.path.join(root, ".gatekit", "levels", "0")

@@ -1,0 +1,16 @@
+{
+  "tiers": [
+    {
+      "unlock_after_minutes": 0,
+      "text": "Ask Claude to attack your code, not just agree with it."
+    },
+    {
+      "unlock_after_minutes": 5,
+      "text": "Try: 'Use a subagent to write about ten small mutants of my binning.py as separate copies, run my tests against each, and show the commands and output. Do not touch my real src/.' Then review each survivor by hand."
+    },
+    {
+      "unlock_after_minutes": 10,
+      "text": "Add a `## Mutation report` section to LOG.md listing each mutant, killed or survived, and whether a survivor is a real gap or an equivalent mutant. Then ask Claude which tests are redundant and pick one to delete for the reflection."
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "editable": ["SPEC.md", "LOG.md"],
+  "frozen": ["src", "tests"],
+  "message": "Level 2 is decisions only: no code and no tests. Write the decisions into SPEC.md."
+}

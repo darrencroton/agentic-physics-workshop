@@ -197,6 +197,7 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
         fh.write("\n")
 
     from gatekit import cli
+    sys.path.insert(0, os.path.join(out, ".gatekit"))
     cli.reset_workshop(out, manifest)
     log("wrote .workshop/ at level 0")
 

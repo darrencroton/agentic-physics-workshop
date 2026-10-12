@@ -1,0 +1,4 @@
+{
+  "editable": ["src/**", "tests/**", "LOG.md", "SPEC.md"],
+  "message": "At this level Claude may edit src/, tests/, SPEC.md and LOG.md."
+}

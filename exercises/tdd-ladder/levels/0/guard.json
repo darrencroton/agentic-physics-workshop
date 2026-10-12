@@ -1,0 +1,4 @@
+{
+  "editable": ["src/hzbin/binning.py", "tests/**", "LOG.md"],
+  "message": "At this level Claude may edit only src/hzbin/binning.py, files under tests/, and LOG.md."
+}

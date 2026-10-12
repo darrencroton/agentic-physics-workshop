@@ -1,0 +1,1 @@
+Points outside [e0, en] are excluded and counted in n_dropped.

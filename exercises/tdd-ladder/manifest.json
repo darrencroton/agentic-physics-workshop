@@ -1,0 +1,76 @@
+{
+  "exercise": "tdd-ladder",
+  "title": "The TDD Ladder",
+  "tool": "tddtool",
+  "models": {"default": "haiku", "allowed": ["haiku"]},
+  "levels": [
+    {
+      "id": 0, "title": "Just build it", "persona": "literal", "target_minutes": 5,
+      "gate": {
+        "type": "verified",
+        "condition": "tdd.score_recorded_at_level",
+        "questions": [
+          {"id": "acceptance_count", "kind": "numeric", "decimals": 0,
+           "prompt": "How many client acceptance tests passed? (from ./tdd score)",
+           "validator": "tdd.equals_last_acceptance_count"}
+        ],
+        "reflection": "Name two decisions Claude made that nobody asked you about."
+      }
+    },
+    {
+      "id": 1, "title": "\"Use TDD, please\"", "persona": "literal", "target_minutes": 6,
+      "gate": {
+        "type": "verified",
+        "condition": "tdd.new_attempt_and_score_at_level",
+        "reflections": [
+          "Did any test fail before the implementation existed? (y/n)",
+          "Where did the expected values come from? (a) human hand calculation, (b) Claude's mental arithmetic, (c) running the implementation, (d) independent reference."
+        ],
+        "post_unlock": "tdd.record_tree_hash"
+      }
+    },
+    {
+      "id": 2, "title": "Decide before you test", "persona": "coach", "target_minutes": 10,
+      "gate": {
+        "type": "verified",
+        "condition": "tdd.spec_written_and_code_untouched",
+        "post_unlock": "tdd.start_from_stub",
+        "pre_reflection_note": "CLIENT_SPEC.md is now in the repo. Read it together now, then answer:",
+        "reflection": "How many of the client's 10 decisions did your SPEC address, whatever you chose? (0-10)"
+      }
+    },
+    {
+      "id": 3, "title": "Red, green, refactor, for real", "persona": "coach", "target_minutes": 15,
+      "files": {"BRIEF.md": "BRIEF.md", "CLIENT_SPEC.md": "CLIENT_SPEC.md"},
+      "gate": {
+        "type": "verified",
+        "condition": "tdd.cycles_and_rung4_score",
+        "questions": [
+          {"id": "survivor_spec", "kind": "keyword",
+           "prompt": "Which spec decision (e.g. S4) still has a surviving mutant? Type none if you killed all 16.",
+           "validator": "tdd.spec_id_in_last_survivors"}
+        ]
+      }
+    },
+    {
+      "id": 4, "title": "Think like a physicist", "persona": "coach", "target_minutes": 8,
+      "gate": {
+        "type": "verified",
+        "condition": "tdd.rung5_score",
+        "questions": [
+          {"id": "binomial_sigma", "kind": "numeric", "decimals": 4, "lo": 0.0090, "hi": 0.0096,
+           "prompt": "For a coverage test with 2,500 independent bin-trials and true coverage 0.683, what is the standard deviation of the measured coverage fraction?",
+           "validator": "gate.answer"}
+        ]
+      }
+    },
+    {
+      "id": 5, "title": "Stretch: test the tests", "persona": "collaborator", "target_minutes": 5,
+      "gate": {
+        "type": "verified",
+        "condition": "tdd.mutation_report_in_log",
+        "reflection": "One test you'd delete, and why?"
+      }
+    }
+  ]
+}

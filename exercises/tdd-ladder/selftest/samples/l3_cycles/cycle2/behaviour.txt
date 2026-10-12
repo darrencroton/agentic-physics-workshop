@@ -1,0 +1,1 @@
+Unequal sigma gives the inverse-variance weighted mean (w = 1/sigma^2).

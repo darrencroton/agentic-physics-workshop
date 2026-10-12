@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+"""TDD Ladder tool: status | test | ladder | red | green | refactor | done | score | new-attempt.
+
+Re-executes itself under .venv/bin/python when the venv exists, so pytest
+and numpy are available; stdlib-only commands still work without it.
+"""
+
+import os
+import sys
+
+ROOT = os.path.dirname(os.path.realpath(__file__))
+VENV_PY = os.path.join(ROOT, ".venv", "bin", "python")
+
+if (os.path.exists(VENV_PY)
+        and os.path.realpath(sys.executable) != os.path.realpath(VENV_PY)
+        and not os.environ.get("TDD_NO_REEXEC")):
+    os.execv(VENV_PY, [VENV_PY, os.path.realpath(__file__)] + sys.argv[1:])
+
+sys.path.insert(0, os.path.join(ROOT, ".gatekit"))
+
+from tddtool.cli import main  # noqa: E402
+
+if __name__ == "__main__":
+    sys.exit(main(ROOT, sys.argv[1:]))
