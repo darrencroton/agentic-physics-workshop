@@ -177,9 +177,17 @@ def normalise_command(command):
 
 
 def strip_noise(command):
-    """Drop commit messages and fd redirections, which are not file writes."""
-    text = re.sub(r"(\bgit\s+commit\b[^|;&\n]*?)(\s-[a-zA-Z]*m|\s--message(=|\s))\s*(\"[^\"]*\"|'[^']*')",
-                  r"\1 -m MSG", command)
+    """Drop literal commit messages and fd redirections, which are not writes.
+
+    Only messages without `$` or backticks are dropped, so a command
+    substitution hidden in a message is still inspected.
+    """
+    message = r"(\s-[a-zA-Z]*m|\s--message(=|\s))\s*(\"[^\"$`]*\"|'[^']*')"
+    parts = re.split(r"([|;&]+)", command)
+    for index, part in enumerate(parts):
+        if re.match(r"\s*git\s+commit\b", part):
+            parts[index] = re.sub(message, " -m MSG", part)
+    text = "".join(parts)
     text = re.sub(r"\d*>&\d+", " ", text)
     text = re.sub(r">\s*/dev/null", " ", text)
     text = re.sub(r"python3?\s+-m\s+pytest\b", "pytest", text)

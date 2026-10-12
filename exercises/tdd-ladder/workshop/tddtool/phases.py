@@ -198,7 +198,7 @@ def cmd_abort(root, args):
         C.git(root, "add", "-A", "--", "tests")
         if C.dirty_paths(root, "tests"):
             C.git(root, "-c", "commit.gpgsign=false", "commit", "-q", "-m",
-                  "Abort cycle: restore tests (%s)" % reason)
+                  "Abort cycle: restore tests (%s)" % reason, "--", "tests")
         restored = True
     cycle.update({"aborted": C.now_iso(), "abort_reason": reason, "valid": False,
                   "tests_restored": restored, "level": state.get("level", 0)})
@@ -210,8 +210,8 @@ def cmd_abort(root, args):
         _say("tests/ restored to the state at RED (%s). Start again with "
              "./tdd red." % red_commit[:8])
     else:
-        _say("Tests kept. If any still fail, fix them in a new RED cycle "
-             "(./tdd red), or restore with git checkout %s -- tests."
+        _say("Tests kept. The next ./tdd red needs every test passing; if one "
+             "still fails, restore with git checkout %s -- tests and commit."
              % (red_commit or "HEAD")[:8])
     return 0
 

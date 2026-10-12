@@ -109,6 +109,8 @@ def check_bash(tool_input, editable, frozen_extra, message):
     if not isinstance(command, str) or not command.strip():
         H.deny(EVENT, "Guard could not read the Bash command; failing closed.")
     re = H.re
+    for prefix in {ROOT, os.environ.get("CLAUDE_PROJECT_DIR") or ROOT}:
+        command = command.replace(prefix.rstrip("/") + "/", "")
     command = H.strip_noise(command)
     if H.mentions_secret(command):
         H.deny(EVENT, MSG_SECRET)

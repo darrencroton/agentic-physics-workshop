@@ -95,3 +95,7 @@ Sources: https://code.claude.com/docs/en/hooks, …/hooks-guide, …/permissions
 | L1 "red observed" could count Level 0 runs (Claude) | Window starts at max(level start, last new-attempt). |
 | Uniform-σ row said "exactly" (Claude, risk) | Reworded to "to within floating-point rounding". |
 | Reference stricter than S9 on infinite edges (Codex, residual) | Accepted as is; not exercised by acceptance or mutants. |
+
+## External review panel, round 3 (2026-10-12; verification of round 2)
+
+All round-2 items confirmed resolved by both reviewers. New: a command substitution (`$(…)` or backticks) inside a stripped commit message escaped the secret-path check (Codex serious, Claude moderate). Fixed: only literal messages (no `$` or backtick) are stripped, per `git commit` segment, so multiple `-m` flags also work; absolute repo paths are reduced to relative before matching. Minor: abort's restore commit now has a `tests` pathspec; the "tests kept" message says RED needs a passing suite. Accepted: `/Volumes/data/...`-style clone paths can trip the frozen-path check on Bash writes (clear message, path tools unaffected).
