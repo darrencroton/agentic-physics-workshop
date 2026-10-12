@@ -281,8 +281,37 @@ def level3(repo):
     repo.commit_all("already passing test")
     code, out = repo.tdd("green")
     check(code == 1 and "nothing fails" in out and "abort" in out, "green refuses when nothing fails, suggests abort")
-    code, out = repo.tdd("abort", "already satisfied")
-    check(code == 0 and repo.phase() == "none", "abort closes the cycle")
+    code, out = repo.tdd("abort", "already satisfied", answers=[("Keep the test", "y")])
+    check(code == 0 and repo.phase() == "none", "abort closes the cycle, test kept")
+    check(os.path.exists(os.path.join(repo.root, "tests", "test_already.py")), "kept test still present")
+    # Wrong oracle discovered in GREEN: abort without keeping restores tests/ so RED can restart.
+    code, out = repo.tdd("red", "a behaviour with a wrong oracle")
+    check(code == 0, "red opened for the wrong-oracle case")
+    with open(os.path.join(repo.root, "tests", "test_wrong.py"), "w") as fh:
+        fh.write("from hzbin.binning import binned_weighted_mean\n\n\n"
+                 "def test_wrong_value():\n"
+                 "    assert list(binned_weighted_mean([0.5], [2.0], [1.0], [0.0, 1.0]).mean) == [3.0]\n")
+    repo.commit_all("wrong oracle test")
+    code, out = repo.tdd("green")
+    check(code == 0 and repo.phase() == "green", "green accepted the wrong-oracle test")
+    code, out = repo.tdd("red", "another")
+    check(code == 1 and "already open" in out, "red refused while a cycle is open")
+    code, out = repo.tdd("abort", "wrong oracle", answers=[("Keep the test", "n")])
+    check(code == 0 and "restored" in out and not os.path.exists(os.path.join(repo.root, "tests", "test_wrong.py")),
+          "abort from GREEN restores tests/")
+    check(repo.git("status", "--porcelain", "--", "tests") == "", "restore is committed")
+    code, out = repo.tdd("red", "restart after abort")
+    check(code == 0, "red restarts after the restore")
+    code, out = repo.tdd("abort", "cleanup", answers=[("Keep the test", "y")])
+    check(code == 0, "cleanup abort")
+    # A failing suite at red entry shows which tests fail (not a masked exit code).
+    with open(os.path.join(repo.root, "tests", "test_failing.py"), "w") as fh:
+        fh.write("def test_fails():\n    assert 1 == 2\n")
+    repo.commit_all("failing test")
+    code, out = repo.tdd("red", "something")
+    check(code == 1 and "test_fails" in out and "1 test(s) fail" in out, "red names the failing test")
+    os.unlink(os.path.join(repo.root, "tests", "test_failing.py"))
+    repo.commit_all("remove failing test")
     # A skipped test is refused at the next red.
     with open(os.path.join(repo.root, "tests", "test_skip.py"), "w") as fh:
         fh.write("import pytest\n\n\n@pytest.mark.skip\ndef test_skipped():\n    assert False\n")
@@ -293,7 +322,7 @@ def level3(repo):
     repo.commit_all("remove skipped test")
     cycles = [json.loads(line) for line in open(os.path.join(repo.root, ".tdd", "cycles.jsonl"))]
     check(sum(1 for c in cycles if c["valid"]) == 5, "5 valid cycles recorded")
-    check(sum(1 for c in cycles if not c["valid"]) == 1, "aborted cycle recorded without credit")
+    check(sum(1 for c in cycles if not c["valid"]) == 3, "aborted cycles recorded without credit")
     code, out = repo.gate("unlock")
     check(code == 1 and "no score" in out, "unlock refused without a score")
     # The group's finished Rung-4 suite.

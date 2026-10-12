@@ -26,7 +26,8 @@ def status_lines(root, state):
         lines.append("Valid cycles at this level: %d" % len(C.valid_cycles(root, level)))
     if level in (0, 1):
         attempts = [a for a in C.records(state).get("new_attempts", []) if a.get("level") == level]
-        since = attempts[-1]["ts"] if attempts else ""
+        started = state.get("levels", {}).get(str(level), {}).get("started", "")
+        since = max([started] + [a["ts"] for a in attempts])
         runs = [r for r in C.read_jsonl(root, "runs.jsonl") if r.get("ts", "") >= since]
         red = [r for r in runs if any(t["outcome"] in ("failed", "error") for t in r.get("tests", {}).values())]
         lines.append("Test runs at this level: %d; runs with a failing test: %d (red %s)"

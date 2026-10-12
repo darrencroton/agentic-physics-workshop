@@ -4,6 +4,7 @@ import datetime
 import os
 import shutil
 
+from gatekit import tty
 from tddtool import common as C
 
 MIN_LEVEL_FOR_PHASES = 3
@@ -27,9 +28,6 @@ def _all_pass(root, label):
     if record is None:
         raise C.TddError("pytest ran but no run record appeared in "
                          ".tdd/runs.jsonl. Is pytest.ini intact?")
-    if code not in (0, 5):
-        raise C.TddError("pytest exited with code %d; the run did not complete "
-                         "cleanly." % code)
     passed, failed, skipped, errors = C.summarise_run(record)
     if errors:
         raise C.TddError("the suite does not even collect: %s"
@@ -41,6 +39,9 @@ def _all_pass(root, label):
     if skipped:
         raise C.TddError("%d test(s) are skipped. Skips count as failures "
                          "here: %s" % (len(skipped), ", ".join(skipped)))
+    if code not in (0, 5):
+        raise C.TddError("pytest exited with code %d; the run did not complete "
+                         "cleanly." % code)
     return passed, record
 
 
@@ -75,7 +76,8 @@ def cmd_green(root, args):
     cycle = C.read_cycle(root) or {}
     if cycle.get("src_hash") and cycle["src_hash"] != C.tree_hash(root, "src"):
         raise C.TddError("src/ changed during RED. Only the test changes in "
-                         "RED; restore src/ (git checkout -- src) and try again.")
+                         "RED; restore src/ (git checkout %s -- src, then commit) "
+                         "and try again." % cycle.get("red_commit", "HEAD")[:8])
     dirty = C.dirty_paths(root, "tests")
     if dirty:
         raise C.TddError("tests/ has uncommitted changes (%s). Commit the "
@@ -185,14 +187,32 @@ def cmd_abort(root, args):
         raise C.TddError("no cycle is open.")
     cycle = C.read_cycle(root) or {}
     reason = " ".join(args).strip() or "aborted by the group"
+    red_commit = cycle.get("red_commit")
+    keep = tty.confirm("Keep the test(s) written in this cycle? (No restores "
+                       "tests/ to how it was when RED began)")
+    restored = False
+    if not keep and red_commit:
+        tests_dir = os.path.join(root, "tests")
+        shutil.rmtree(tests_dir, ignore_errors=True)
+        C.git(root, "checkout", red_commit, "--", "tests")
+        C.git(root, "add", "-A", "--", "tests")
+        if C.dirty_paths(root, "tests"):
+            C.git(root, "-c", "commit.gpgsign=false", "commit", "-q", "-m",
+                  "Abort cycle: restore tests (%s)" % reason)
+        restored = True
     cycle.update({"aborted": C.now_iso(), "abort_reason": reason, "valid": False,
-                  "level": state.get("level", 0)})
+                  "tests_restored": restored, "level": state.get("level", 0)})
     C.append_jsonl(root, "cycles.jsonl", cycle)
     C.clear_cycle(root)
     C.write_phase(root, "none")
-    _say("Cycle closed without credit (%s). Files are left as they are; "
-         "commit or restore them, then start the next cycle with ./tdd red."
-         % reason)
+    _say("Cycle closed without credit (%s)." % reason)
+    if restored:
+        _say("tests/ restored to the state at RED (%s). Start again with "
+             "./tdd red." % red_commit[:8])
+    else:
+        _say("Tests kept. If any still fail, fix them in a new RED cycle "
+             "(./tdd red), or restore with git checkout %s -- tests."
+             % (red_commit or "HEAD")[:8])
     return 0
 
 

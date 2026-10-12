@@ -126,8 +126,13 @@ class GuardTests(unittest.TestCase):
                     "python3 -c 'import o''s; print(o)' .gatekit/x"):
             self.deny(tool("Bash", command=cmd))
         for cmd in ("ln -s .. tests/parent", "git diff --no-index --binary tests .",
-                    "cd /tmp && ln -sf /etc/passwd tests/x"):
+                    "cd /tmp && ln -sf /etc/passwd tests/x", "  ln -s .. tests/p", "/bin/ln -s .. tests/p",
+                    "echo x > %s/tdd" % self.root, "cp /tmp/x %s/gate" % self.root,
+                    "cat > %s/README.md << EOF" % self.root, 'python3 -m "pip" install requests',
+                    ".venv/bin/python -m 'pip' install x"):
             self.deny(tool("Bash", command=cmd))
+        self.allow(tool("Bash", command="git commit -m 'Fix .tdd cycle handling'"))
+        self.allow(tool("Bash", command="git commit -am 'use .vault-free approach'"))
         os.symlink("..", os.path.join(self.root, "tests", "parent"))
         self.deny(tool("Write", file_path="tests/parent/gate", content="x"))
         self.deny(tool("Write", file_path="tests/parent/.vault/x", content="x"))
@@ -183,7 +188,8 @@ class GuardPhaseTests(unittest.TestCase):
     def test_green_bash_edit_of_tests_denied(self):
         self.root = fakerepo.make(guard=fakerepo.GUARD_PHASES, phase="green")
         for cmd in ("echo x >> tests/test_a.py", "sed -i '' s/1/2/ tests/test_a.py",
-                    "git checkout -- tests/", "python3 fix.py tests/test_a.py"):
+                    "git checkout -- tests/", "python3 fix.py tests/test_a.py",
+                    "sed -i '' s/1/2/ %s/tests/test_a.py" % self.root):
             _, decision, reason = run_hook(self.root, "guard.py", tool("Bash", command=cmd))
             self.assertEqual(decision, "deny", cmd)
             self.assertIn("GREEN", reason)

@@ -109,9 +109,9 @@ def check_bash(tool_input, editable, frozen_extra, message):
     if not isinstance(command, str) or not command.strip():
         H.deny(EVENT, "Guard could not read the Bash command; failing closed.")
     re = H.re
+    command = H.strip_noise(command)
     if H.mentions_secret(command):
         H.deny(EVENT, MSG_SECRET)
-    command = H.strip_noise(command)
     text = H.normalise_command(command)
     if any(re.search(p, text) for p in H.ALWAYS_DENY):
         H.deny(EVENT, "Symbolic links are not needed today; work in the "

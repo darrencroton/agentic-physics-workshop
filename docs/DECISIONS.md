@@ -80,3 +80,18 @@ Sources: https://code.claude.com/docs/en/hooks, …/hooks-guide, …/permissions
 | M16 labelled `S1` in `mutants.json` (Claude, open question) | Intended: the baseline mutant needs some spec label for the survivor report; S1 is its nearest decision. |
 | Reference rejects infinite edges though S9 does not say so (Codex) | Left as is: S7's "non-finite" rule is read as covering edges; acceptance does not test it. |
 | Level 4 can be completed while staying in RED (Claude) | Accepted: the gate needs only the score; the brief recommends cycles. |
+
+## External review panel, round 2 (2026-10-12; same reviewers, focused on the round-1 diff)
+
+| Finding | Outcome |
+|---|---|
+| `_all_pass` checked the pytest exit code before the failure list, masking every "N tests fail" message (Claude) | Fixed: exit code checked last. Self-test now runs `./tdd red` against a failing suite and checks the test is named. |
+| After `./tdd abort` from GREEN the wrong test stayed in a frozen `tests/`, so RED could not restart (both) | Fixed: abort asks "Keep the test(s)?"; answering no restores `tests/` to the RED commit and commits. Brief 3 and 4 updated. Self-test covers both answers. |
+| Commit messages naming `.tdd`/`.vault` tripped the secret-path check (Codex) | Fixed: commit-message stripping runs first; `-am`-style flags handled. |
+| Absolute paths in Bash writes bypassed the frozen-path check; `/bin/ln` and leading spaces bypassed the `ln` rule (both) | Fixed; regression tests added. |
+| `strip_noise` swallowed `python -m "pip"` (Claude) | Fixed: only `git commit` messages are stripped. |
+| Affine row still credited the wrong mutants; needs abs(a) != 1 (Claude) | Brief 4 and hint 2 corrected: affine kills weighting and square-root errors only. |
+| "src changed during RED" advice could not undo a committed change (Claude) | Message names the RED commit. |
+| L1 "red observed" could count Level 0 runs (Claude) | Window starts at max(level start, last new-attempt). |
+| Uniform-σ row said "exactly" (Claude, risk) | Reworded to "to within floating-point rounding". |
+| Reference stricter than S9 on infinite edges (Codex, residual) | Accepted as is; not exercised by acceptance or mutants. |

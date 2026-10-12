@@ -50,7 +50,7 @@ WRITE_VERBS = (r">{1,2}", r"\btee\b", r"\bsed\s+-[a-zA-Z]*i", r"\bcp\b",
                r"\bos\.(remove|unlink|rename|replace|symlink|link|makedirs|mkdir)\b",
                r"\bpython3?\s+(-[A-Za-z]+\s+)*[\w./-]+\.py\b",
                r"\bperl\b", r"\bruby\b", r"\bnode\b")
-ALWAYS_DENY = (r"(^|[;&|]\s*)ln\b",)
+ALWAYS_DENY = (r"(^|[;&|(])\s*(\S*/)?ln\s",)
 
 
 def project_dir():
@@ -178,8 +178,8 @@ def normalise_command(command):
 
 def strip_noise(command):
     """Drop commit messages and fd redirections, which are not file writes."""
-    text = re.sub(r"(\s-m|\s--message(=|\s))\s*(\"[^\"]*\"|'[^']*')", " -m MSG",
-                  command)
+    text = re.sub(r"(\bgit\s+commit\b[^|;&\n]*?)(\s-[a-zA-Z]*m|\s--message(=|\s))\s*(\"[^\"]*\"|'[^']*')",
+                  r"\1 -m MSG", command)
     text = re.sub(r"\d*>&\d+", " ", text)
     text = re.sub(r">\s*/dev/null", " ", text)
     text = re.sub(r"python3?\s+-m\s+pytest\b", "pytest", text)
@@ -212,7 +212,7 @@ def mentions_path(command, rel_or_pattern):
     base = rel_or_pattern.split("*")[0].rstrip("/")
     if not base:
         return False
-    return re.search(r"(^|[\s=;|&(:])(\./)?" + re.escape(base) + r"(?=/|\s|$|[;|&)])",
+    return re.search(r"(^|[\s/=;|&(:])(\./)?" + re.escape(base) + r"(?=/|\s|$|[;|&)])",
                      normalise_command(command), re.IGNORECASE) is not None
 
 
