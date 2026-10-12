@@ -38,7 +38,12 @@ def main():
         deny("Model lock could not read the target model; the switch is refused.")
     tokens = set(re.split(r"[^a-z0-9]+", target.lower())) - {""}
     families = {"haiku", "sonnet", "opus", "fable", "best", "default", "opusplan"}
-    if (tokens & set(allowed)) and not ((tokens & families) - set(allowed)):
+    allowed_tokens = set()
+    for entry in allowed:
+        allowed_tokens |= set(re.split(r"[^a-z0-9]+", entry)) & families
+    if target.lower() in allowed:
+        sys.exit(0)
+    if (tokens & allowed_tokens) and not ((tokens & families) - allowed_tokens):
         sys.exit(0)
     deny("Today's exercise uses %s. Ask a facilitator for a power-up."
          % (allowed[0] if allowed else "the configured model"))

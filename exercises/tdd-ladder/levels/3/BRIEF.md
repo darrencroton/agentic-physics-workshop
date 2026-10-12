@@ -13,7 +13,7 @@ The unlock has already saved your earlier work on a branch and restored the stub
 5. Run the tests, see them pass, commit.
 6. Every few cycles, `./tdd refactor` (tests stay frozen), then `./tdd done`.
 
-If a test is wrong, say so, and the group decides whether to go back to red on purpose.
+If a test is wrong, say so, and the group decides whether to go back to red on purpose: in the gate terminal, `./tdd abort "wrong oracle"` closes the open cycle without credit, then `./tdd red` starts a fresh one and the test can be fixed. If a new test passes straight away because the behaviour already works, `./tdd abort` closes that cycle too; keep the test, it still guards the behaviour.
 
 ## Suggested cycle order
 

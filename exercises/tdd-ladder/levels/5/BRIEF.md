@@ -6,7 +6,7 @@ Who tests the tests? Mutation testing: plant small deliberate bugs in your imple
 
 ## What to do
 
-1. Ask Claude to use a subagent to write about ten small mutants of **your** `binning.py`, for example flipping a comparison, changing an exponent or dropping a term. Each one should be a separate copy, not an edit to your real file.
+1. Ask Claude to use a subagent to write about ten small mutants of **your** `binning.py`, for example flipping a comparison, changing an exponent or dropping a term. Each one should be a separate copy under `mutants/` (Claude may write there at this level), not an edit to your real file.
 2. Run your suite against each mutant. Ask for the command and the output.
 3. For each survivor, decide: is it a real gap in your tests, or an equivalent mutant (a change that does not alter behaviour)?
 4. Ask which of your tests are redundant.

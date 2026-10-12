@@ -25,8 +25,11 @@ def require_tty():
     Also refuses inside a Claude Code tool call (CLAUDECODE is set there),
     which stops the easy pty tricks; a determined script can still unset it.
     """
-    if not is_interactive() or os.environ.get("CLAUDECODE"):
+    if not is_interactive():
         raise NotATerminal(HUMANS_ONLY)
+    if os.environ.get("CLAUDECODE"):
+        raise NotATerminal(HUMANS_ONLY + " This shell was started by Claude "
+                           "Code; open a fresh Terminal window for the gate.")
 
 
 def ask(prompt):

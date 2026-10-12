@@ -125,7 +125,21 @@ class GuardTests(unittest.TestCase):
                     "env -i ./gate hint", "unset CLAUDECODE; ./gate hint",
                     "python3 -c 'import o''s; print(o)' .gatekit/x"):
             self.deny(tool("Bash", command=cmd))
-        for cmd in ("git log --stat", "git diff HEAD~1", "git status", "cat README.md",
+        for cmd in ("ln -s .. tests/parent", "git diff --no-index --binary tests .",
+                    "cd /tmp && ln -sf /etc/passwd tests/x"):
+            self.deny(tool("Bash", command=cmd))
+        os.symlink("..", os.path.join(self.root, "tests", "parent"))
+        self.deny(tool("Write", file_path="tests/parent/gate", content="x"))
+        self.deny(tool("Write", file_path="tests/parent/.vault/x", content="x"))
+        for cmd in ("./tdd test tests/test_binning.py -v 2>&1 | tail -30",
+                    ".venv/bin/pytest tests/ -q 2>&1", "python3 -m pytest tests/test_binning.py::test_x",
+                    "git commit -m 'Implement S1: x >= e_k; tests pass'",
+                    "git commit -m 'Add test: expect ValueError when sigma <= 0'",
+                    "git commit -m 'tdd red: single bin mean'",
+                    "cd /Users/me/dist/tdd-ladder && .venv/bin/python -m pytest -q",
+                    "python -c \"from hzbin.data import load_hz; print(load_hz('data/hz_mock.csv'))\"",
+                    "make test 2>&1 | tail -20", "python3 -c 'import numpy; print(numpy.__version__)'",
+                    "git log --stat", "git diff HEAD~1", "git status", "cat README.md",
                     "cat src/hzbin/binning.py", "ls -la", "cat .gitignore", "./tdd test -q",
                     ".venv/bin/python -m pytest tests/test_x.py -k mean"):
             self.allow(tool("Bash", command=cmd))
@@ -213,6 +227,12 @@ class ModelLockTests(unittest.TestCase):
         self.root = fakerepo.make(allowed=["haiku", "sonnet"])
         _, decision, _ = self.switch("claude-sonnet-5-5")
         self.assertIsNone(decision)
+        shutil.rmtree(self.root)
+        self.root = fakerepo.make(allowed=["haiku", "claude-sonnet-5-5"])
+        _, decision, _ = self.switch("claude-sonnet-5-5")
+        self.assertIsNone(decision)
+        _, decision, _ = self.switch("opus")
+        self.assertEqual(decision, "deny")
 
 
 class TeacherContextTests(unittest.TestCase):

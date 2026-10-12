@@ -15,11 +15,12 @@ USAGE = """usage: ./tdd <command>
   green                (humans) tests committed and failing for the right reason
   refactor             (humans) all green, tests frozen
   done                 (humans) close the cycle
+  abort [reason]       (humans) close the open cycle without credit
   score                (humans) acceptance, mutants killed, false alarms
   new-attempt          (humans) save work on a branch, restore the stub
 """
 
-HUMAN_ONLY = ("red", "green", "refactor", "done", "score", "new-attempt")
+HUMAN_ONLY = ("red", "green", "refactor", "done", "abort", "score", "new-attempt")
 
 
 def cmd_status(root, args):
@@ -40,6 +41,7 @@ COMMANDS = {
     "status": cmd_status, "test": cmd_test, "ladder": scoring.cmd_ladder,
     "red": phases.cmd_red, "green": phases.cmd_green,
     "refactor": phases.cmd_refactor, "done": phases.cmd_done,
+    "abort": phases.cmd_abort,
     "score": scoring.cmd_score, "new-attempt": phases.cmd_new_attempt,
 }
 

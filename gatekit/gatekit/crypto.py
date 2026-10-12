@@ -121,6 +121,10 @@ def master_secret(passphrase):
 
 
 def ensure_secure_file(path):
-    """Raise if `path` is not a regular file owned by the user."""
+    """Raise if `path` is missing or readable by group or others."""
     if not os.path.isfile(path):
         raise PackError("passphrase file not found: %s" % path)
+    mode = os.stat(path).st_mode & 0o777
+    if mode & 0o077:
+        raise PackError("passphrase file %s is readable by others; "
+                        "chmod 600 it" % path)

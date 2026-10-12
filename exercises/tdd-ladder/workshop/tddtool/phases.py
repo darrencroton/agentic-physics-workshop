@@ -27,6 +27,9 @@ def _all_pass(root, label):
     if record is None:
         raise C.TddError("pytest ran but no run record appeared in "
                          ".tdd/runs.jsonl. Is pytest.ini intact?")
+    if code not in (0, 5):
+        raise C.TddError("pytest exited with code %d; the run did not complete "
+                         "cleanly." % code)
     passed, failed, skipped, errors = C.summarise_run(record)
     if errors:
         raise C.TddError("the suite does not even collect: %s"
@@ -53,7 +56,8 @@ def cmd_red(root, args):
                          "with ./tdd done first." % phase.upper())
     passed, record = _all_pass(root, "entry check for RED")
     cycle = {"behaviour": behaviour, "level": level, "red_started": C.now_iso(),
-             "red_commit": C.git_head(root), "baseline_passing": passed}
+             "red_commit": C.git_head(root), "baseline_passing": passed,
+             "src_hash": C.tree_hash(root, "src")}
     C.write_cycle(root, cycle)
     C.write_phase(root, "red")
     _say("")
@@ -69,6 +73,9 @@ def cmd_green(root, args):
     if C.read_phase(root) != "red":
         raise C.TddError("green follows red. Start a cycle with ./tdd red.")
     cycle = C.read_cycle(root) or {}
+    if cycle.get("src_hash") and cycle["src_hash"] != C.tree_hash(root, "src"):
+        raise C.TddError("src/ changed during RED. Only the test changes in "
+                         "RED; restore src/ (git checkout -- src) and try again.")
     dirty = C.dirty_paths(root, "tests")
     if dirty:
         raise C.TddError("tests/ has uncommitted changes (%s). Commit the "
@@ -91,17 +98,21 @@ def cmd_green(root, args):
                              for e in errors))
     if not failed:
         raise C.TddError("nothing fails. A test that has never failed might "
-                         "not be able to fail. Check the test, then try again.")
+                         "not be able to fail. Check the test and try again, "
+                         "or close this cycle with ./tdd abort if the behaviour "
+                         "is already implemented (keep the test).")
     bad = {n: t["exc_type"] for n, t in failed.items()
            if t["exc_type"] not in C.GOOD_FAILURES}
     if bad:
         raise C.TddError("red for the wrong reason: %s. Only AssertionError "
                          "or NotImplementedError count." % ", ".join(
                              "%s raises %s" % (n, e) for n, e in bad.items()))
-    regressions = sorted(set(cycle.get("baseline_passing", [])) & set(failed))
+    baseline = set(cycle.get("baseline_passing", []))
+    regressions = sorted(baseline - set(passed))
     if regressions:
-        raise C.TddError("previously passing tests now fail: %s. The new "
-                         "test must not break old ones." % ", ".join(regressions))
+        raise C.TddError("previously passing tests now fail, skip or are gone: "
+                         "%s. The new test must not break old ones."
+                         % ", ".join(regressions))
     cycle.update({"green_started": C.now_iso(), "green_commit": C.git_head(root),
                   "red_observed": True, "new_tests": new_tests,
                   "failure_types": sorted({t["exc_type"] for t in failed.values()}),
@@ -163,6 +174,25 @@ def cmd_done(root, args):
     _say("")
     _say("Cycle closed: %s" % cycle.get("behaviour", "?"))
     _say("Valid cycles at this level: %d" % count)
+    return 0
+
+
+def cmd_abort(root, args):
+    state = C.load_state(root)
+    _require_level(state, "abort")
+    phase = C.read_phase(root)
+    if phase == "none":
+        raise C.TddError("no cycle is open.")
+    cycle = C.read_cycle(root) or {}
+    reason = " ".join(args).strip() or "aborted by the group"
+    cycle.update({"aborted": C.now_iso(), "abort_reason": reason, "valid": False,
+                  "level": state.get("level", 0)})
+    C.append_jsonl(root, "cycles.jsonl", cycle)
+    C.clear_cycle(root)
+    C.write_phase(root, "none")
+    _say("Cycle closed without credit (%s). Files are left as they are; "
+         "commit or restore them, then start the next cycle with ./tdd red."
+         % reason)
     return 0
 
 

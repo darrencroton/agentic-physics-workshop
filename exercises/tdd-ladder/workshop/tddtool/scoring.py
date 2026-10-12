@@ -29,6 +29,9 @@ def make_workspace(base, name, src_dir, tests_dir, binning_path=None):
     """Create <base>/<name> with src/ and tests/, optionally swapping binning.py."""
     ws = os.path.join(base, name)
     _copy_tree(src_dir, os.path.join(ws, "src"))
+    data_dir = os.path.join(os.path.dirname(src_dir), "data")
+    if os.path.isdir(data_dir):
+        _copy_tree(data_dir, os.path.join(ws, "data"))
     if os.path.isdir(tests_dir):
         _copy_tree(tests_dir, os.path.join(ws, "tests"))
     else:
@@ -62,17 +65,20 @@ def run_suite(python, workspace):
         tail = (proc.stdout or proc.stderr).strip().splitlines()[-1:] or ["no output"]
         return {}, "pytest produced no report: %s" % tail[0], elapsed
     for case in tree.iter("testcase"):
-        name = "%s::%s" % (case.get("classname", ""), case.get("name", ""))
+        classname = case.get("classname", "")
+        name = "%s::%s" % (classname, case.get("name", ""))
         outcome = "passed"
         for child in case:
             if child.tag in ("failure", "error"):
                 outcome = child.tag
-                if "collection" in name or case.get("name") == "":
-                    collection_error = (child.get("message") or "")[:200]
                 break
             if child.tag == "skipped":
                 outcome = "skipped"
                 break
+        if not classname:
+            if outcome != "passed":
+                collection_error = "collection error in %s" % case.get("name", "?")
+            continue
         outcomes[name] = outcome
     if proc.returncode in (2, 3, 4) and not outcomes:
         collection_error = collection_error or "pytest exit %d" % proc.returncode
@@ -106,7 +112,7 @@ def score(root, state, quiet=False):
             jobs[mid] = make_workspace(base, mid, src_dir, tests_dir,
                                        os.path.join(hidden, "mutants", mid + ".py"))
         workers = min(8, max(2, os.cpu_count() or 2))
-        results = {}
+        results = {"reference": run_suite(python, jobs.pop("reference"))}
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
             futures = {pool.submit(run_suite, python, ws): name
                        for name, ws in jobs.items()}
@@ -121,11 +127,13 @@ def score(root, state, quiet=False):
     ref_outcomes, ref_err, suite_s = results["reference"]
     good_tests = sorted(n for n, o in ref_outcomes.items() if o == "passed")
     false_alarms = sorted(n for n, o in ref_outcomes.items() if o != "passed")
-    survivors, attribution = [], {}
+    skipped = sorted(n for n, o in ref_outcomes.items() if o == "skipped")
+    survivors, attribution, incomplete = [], {}, []
     for mid in sorted(mutants):
         m_outcomes, m_err, _ = results[mid]
-        killed = any(m_outcomes.get(t) != "passed" for t in good_tests) or (
-            bool(good_tests) and m_err is not None)
+        killed = any(m_outcomes.get(t) in ("failure", "error") for t in good_tests)
+        if m_err and not m_outcomes and good_tests:
+            incomplete.append(mid)
         if not killed:
             survivors.append(mid)
         for t in false_alarms:
@@ -140,7 +148,9 @@ def score(root, state, quiet=False):
         "survivor_specs": sorted({mutants[m]["spec"] for m in survivors}),
         "survivor_spec_list": [mutants[m]["spec"] for m in survivors],
         "false_alarms": false_alarms,
+        "skipped": skipped,
         "false_alarm_specs": {t: sorted(s) for t, s in attribution.items()},
+        "incomplete_runs": incomplete,
         "collection_error": ref_err,
         "test_count": len(ref_outcomes),
         "suite_seconds": round(suite_s, 2),
@@ -161,14 +171,20 @@ def format_score(result, mutants_spec=None):
                      % ", ".join(_spec_counts(result)))
     lines.append("FALSE ALARMS    %d of your %d tests fail on a correct implementation"
                  % (len(result["false_alarms"]), result["test_count"]))
-    if result.get("collection_error") and not result["test_count"]:
-        lines.append("  your suite did not run on a correct implementation: %s"
+    if result.get("collection_error"):
+        lines.append("  your suite did not fully run on a correct implementation: %s"
                      % result["collection_error"])
     for name in result["false_alarms"]:
         specs = result["false_alarm_specs"].get(name) or []
         short = name.split("::")[-1]
-        lines.append("  %-40s (conflicts with %s)"
-                     % (short, ", ".join(specs) if specs else "unknown"))
+        if name in result.get("skipped", []):
+            lines.append("  %-40s (skipped; skips count as failures)" % short)
+        else:
+            lines.append("  %-40s (conflicts with %s)"
+                         % (short, ", ".join(specs) if specs else "unknown"))
+    if result.get("incomplete_runs"):
+        lines.append("  mutant runs that did not complete (not counted as kills): %s"
+                     % ", ".join(result["incomplete_runs"]))
     lines.append("SUITE RUNTIME   %.2f s on the correct implementation"
                  % result["suite_seconds"])
     lines.append("(score took %.1f s)" % result["score_seconds"])

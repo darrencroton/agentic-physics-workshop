@@ -26,17 +26,18 @@ PATH_TOOLS = {"Read": "file_path", "Edit": "file_path", "Write": "file_path",
 EDIT_TOOLS = ("Edit", "Write", "MultiEdit", "NotebookEdit")
 
 HUMAN_GATE = r"\bgate\b[^|;&\n]*\b(unlock|hint|skip|reset|allow-model)\b"
-HUMAN_TDD = r"\btdd\b[^|;&\n]*\b(red|green|refactor|done|score|new-attempt)\b"
+HUMAN_TDD = r"\btdd\b[^|;&\n]*\b(red|green|refactor|done|abort|score|new-attempt)\b"
 HUMAN_INDIRECT = r"\b(gate|tdd)\b\s+\$"
 PACKAGE_MANAGERS = (r"\bpip3?\b", r"-m\s*pip\b", r"\bensurepip\b", r"\buvx?\b",
                     r"\bbrew\b", r"\bnpm\b", r"\bconda\b", r"\bpipx\b",
                     r"\bpoetry\b", r"\beasy_install\b",
                     r"\|\s*(sh|bash|zsh|python3?)\b")
-PTY_TRICKS = (r"\bpty\b", r"\bopenpty\b", r"\bscript\s", r"\bexpect\b",
+PTY_TRICKS = (r"\bpty\b", r"\bopenpty\b", r"(^|[;&|]\s*)script\s", r"(^|[;&|]\s*)expect\b",
               r"\bunbuffer\b", r"\bsocat\b", r"\bfaketty\b",
               r"\bCLAUDECODE\b", r"\benv\s+-[iu]\b", r"\bunset\s+CLAUDE")
 GIT_READERS = (r"\bgit\b[^|;&\n]*\b(show|cat-file|archive|bundle|fast-export|"
                r"grep|ls-tree|rev-list|format-patch|diff-tree|worktree)\b",
+               r"\bgit\b[^|;&\n]*\bdiff\b[^|;&\n]*--no-index",
                r"\bgit\b[^|;&\n]*\blog\b[^|;&\n]*\s(-p|--patch|-u|--full-diff)\b",
                r"\bgit\b[^|;&\n]*\bconfig\b[^|;&\n]*core\.hooksPath")
 DOT_GLOBS = (r"(^|[\s/=:,{(])\.[\w-]*[\[\*\?{]", r"\{[^}]*,\s*\.", r"\.\*/")
@@ -45,7 +46,11 @@ WRITE_VERBS = (r">{1,2}", r"\btee\b", r"\bsed\s+-[a-zA-Z]*i", r"\bcp\b",
                r"\bmv\b", r"\brm\b", r"\btouch\b", r"\bmkdir\b", r"\bchmod\b",
                r"\bln\b", r"\bpatch\b", r"\bgit\s+(checkout|restore|reset|"
                r"stash|revert|rebase|clean|apply|cherry-pick|merge)\b",
-               r"\bpython3?\b", r"\bperl\b", r"\bruby\b", r"\bnode\b")
+               r"\bopen\([^)]*['\"][wax]", r"\.write_(text|bytes)\(", r"\bshutil\.",
+               r"\bos\.(remove|unlink|rename|replace|symlink|link|makedirs|mkdir)\b",
+               r"\bpython3?\s+(-[A-Za-z]+\s+)*[\w./-]+\.py\b",
+               r"\bperl\b", r"\bruby\b", r"\bnode\b")
+ALWAYS_DENY = (r"(^|[;&|]\s*)ln\b",)
 
 
 def project_dir():
@@ -124,19 +129,27 @@ def read_phase(root):
     return phase if phase in ("none", "red", "green", "refactor") else "none"
 
 
-def relative_path(root, path):
-    """`path` relative to root in posix form; None if it leaves the repo."""
+def _rel(root, candidate):
+    if candidate == root:
+        return "."
+    if candidate.startswith(root + os.sep):
+        return os.path.relpath(candidate, root).replace(os.sep, "/")
+    return None
+
+
+def relative_paths(root, path):
+    """(lexical, resolved) repo-relative posix paths; None where outside."""
     if not path:
-        return None
+        return None, None
     expanded = os.path.expanduser(path)
     lexical = os.path.abspath(os.path.join(root, expanded))
-    full = os.path.realpath(lexical)
-    for candidate in (lexical, full):
-        if candidate == root:
-            return "."
-        if candidate.startswith(root + os.sep):
-            return os.path.relpath(candidate, root).replace(os.sep, "/")
-    return None
+    return _rel(root, lexical), _rel(root, os.path.realpath(lexical))
+
+
+def relative_path(root, path):
+    """`path` relative to root in posix form; None if it leaves the repo."""
+    lexical, resolved = relative_paths(root, path)
+    return lexical if lexical is not None else resolved
 
 
 def in_dir(rel, directory):
@@ -161,6 +174,16 @@ def is_frozen(rel):
 def normalise_command(command):
     """Strip quotes and backslashes so split spellings match the regexes."""
     return re.sub(r"[\"'\\]", "", command)
+
+
+def strip_noise(command):
+    """Drop commit messages and fd redirections, which are not file writes."""
+    text = re.sub(r"(\s-m|\s--message(=|\s))\s*(\"[^\"]*\"|'[^']*')", " -m MSG",
+                  command)
+    text = re.sub(r"\d*>&\d+", " ", text)
+    text = re.sub(r">\s*/dev/null", " ", text)
+    text = re.sub(r"python3?\s+-m\s+pytest\b", "pytest", text)
+    return text
 
 
 def glob_match(rel, pattern):
@@ -189,7 +212,7 @@ def mentions_path(command, rel_or_pattern):
     base = rel_or_pattern.split("*")[0].rstrip("/")
     if not base:
         return False
-    return re.search(r"(^|[\s/=;|&(:])" + re.escape(base) + r"(/|\b)",
+    return re.search(r"(^|[\s=;|&(:])(\./)?" + re.escape(base) + r"(?=/|\s|$|[;|&)])",
                      normalise_command(command), re.IGNORECASE) is not None
 
 

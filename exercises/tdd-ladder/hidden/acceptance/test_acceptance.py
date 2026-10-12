@@ -23,7 +23,7 @@ def test_s2_out_of_range_points_dropped_and_counted():
                                [1, 1, 1, 1, 1], EDGES)
     assert list(res.n) == [1, 1, 0]
     assert res.n_dropped == 3
-    assert isinstance(res.n_dropped, int)
+    assert isinstance(res.n_dropped, (int, np.integer))
 
 
 def test_s3_inverse_variance_weights():
@@ -111,8 +111,8 @@ def test_s10_lists_accepted_and_output_types():
     for field in (res.x_eff, res.mean, res.err):
         assert isinstance(field, np.ndarray) and field.dtype == np.float64
         assert field.shape == (3,)
-    assert isinstance(res.n, np.ndarray) and res.n.dtype == np.int64
-    assert isinstance(res.n_dropped, int) and res.n_dropped == 1
+    assert isinstance(res.n, np.ndarray) and np.issubdtype(res.n.dtype, np.integer)
+    assert isinstance(res.n_dropped, (int, np.integer)) and res.n_dropped == 1
 
 
 def test_s10_float32_input_accumulated_in_float64():

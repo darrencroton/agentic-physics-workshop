@@ -83,6 +83,15 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
     master = read_passphrase(passphrase_file)
     templates = os.path.join(TOP, "gatekit", "templates")
     out = os.path.abspath(out or os.path.join(TOP, "dist", exercise))
+    protected = [os.path.abspath(p) for p in (TOP, src, os.path.join(TOP, "gatekit"),
+                                              os.path.join(TOP, "exercises"),
+                                              os.path.join(TOP, "tools"), os.path.expanduser("~"))]
+    for item in protected:
+        if out == item or item.startswith(out + os.sep):
+            raise SystemExit("refusing to wipe %s: it contains the build sources" % out)
+    if (os.path.isdir(out) and not os.path.isdir(os.path.join(out, ".gatekit"))
+            and os.listdir(out) not in ([], [".venv"])):
+        raise SystemExit("refusing to wipe %s: it is not an earlier build output" % out)
 
     wipe_output(out, keep_venv)
     log("output %s" % out)

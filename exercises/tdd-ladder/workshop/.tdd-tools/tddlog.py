@@ -42,7 +42,7 @@ def pytest_runtest_makereport(item, call):
                                               "exc_type": None,
                                               "duration": 0.0})
     entry["duration"] += report.duration
-    if report.when == "call" and report.skipped:
+    if report.skipped:
         entry["outcome"] = "skipped"
     if report.failed:
         entry["outcome"] = "failed" if report.when == "call" else "error"

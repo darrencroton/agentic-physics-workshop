@@ -24,6 +24,13 @@ def status_lines(root, state):
         lines.append("TDD phase: %s%s" % (phase.upper(), (
             " (%s)" % cycle["behaviour"]) if cycle.get("behaviour") else ""))
         lines.append("Valid cycles at this level: %d" % len(C.valid_cycles(root, level)))
+    if level in (0, 1):
+        attempts = [a for a in C.records(state).get("new_attempts", []) if a.get("level") == level]
+        since = attempts[-1]["ts"] if attempts else ""
+        runs = [r for r in C.read_jsonl(root, "runs.jsonl") if r.get("ts", "") >= since]
+        red = [r for r in runs if any(t["outcome"] in ("failed", "error") for t in r.get("tests", {}).values())]
+        lines.append("Test runs at this level: %d; runs with a failing test: %d (red %s)"
+                     % (len(runs), len(red), "observed" if red else "never observed"))
     score = C.last_score(state, level)
     if score:
         lines.append("Last score at this level: acceptance %d/%d, killed %d/%d, "

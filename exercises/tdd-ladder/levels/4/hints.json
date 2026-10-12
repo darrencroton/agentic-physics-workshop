@@ -6,7 +6,7 @@
     },
     {
       "unlock_after_minutes": 5,
-      "text": "For N independent trials with true coverage p, the standard deviation of the measured fraction is sqrt(p(1-p)/N). Use a bound of about 3 of those. Different properties kill different bug classes: the uniform-sigma limit catches weighting and square-root errors; affine equivariance catches scatter-based errors; the float32 offset test catches precision loss."
+      "text": "For N independent trials with true coverage p, the standard deviation of the measured fraction is sqrt(p(1-p)/N). Use a bound of about 3 of those. Different properties kill different bug classes: the uniform-sigma limit with sigma != 1 and scattered y catches weighting, square-root and scatter-based errors; affine equivariance (scale sigma with y) catches mean and weighting errors; the float32 offset test catches precision loss."
     },
     {
       "unlock_after_minutes": 10,

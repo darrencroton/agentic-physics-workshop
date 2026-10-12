@@ -7,7 +7,9 @@ from gatekit import answers
 from tddtool import common as C
 
 NOT_QUITE = "Not quite. Discuss and try again."
-SPEC_ITEM = re.compile(r"^\s*(?:#+\s*)?(?:\*\*)?(?:S|D)?\s*(\d{1,2})\s*[.):]", re.MULTILINE)
+SPEC_ITEM = re.compile(
+    r"^\s*(?:[|\-*]\s*)?(?:#+\s*)?(?:\*\*)?(?:decision\s*|[SD])?\s*(\d{1,2})\s*(?:\*\*)?\s*[.):|\-\u2013\u2014]",
+    re.MULTILINE | re.IGNORECASE)
 
 
 def _level(state):
@@ -117,7 +119,8 @@ def spec_id_in_last_survivors(root, state, question, answer):
             return True, ""
         return False, NOT_QUITE
     sid = C.spec_id(answer)
-    if sid and sid in s["survivor_specs"]:
+    accepted = {part for spec in s["survivor_specs"] for part in spec.split("/")}
+    if sid and sid in accepted:
         return True, ""
     return False, NOT_QUITE
 

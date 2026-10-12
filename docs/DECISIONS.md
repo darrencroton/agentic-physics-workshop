@@ -53,3 +53,30 @@ Sources: https://code.claude.com/docs/en/hooks, …/hooks-guide, …/permissions
 | `scoring.pack` contained `__pycache__`. | Fixed in `deterministic_tar`. |
 | Deny rules lacked `Read(./.git/**)`, `Edit(**/.claude/**)`. | Added. |
 | Unverified against Claude Code docs: case sensitivity of deny-rule paths; whether Grep searches hidden directories and whether Read-deny filtering applies to its results. | Open; the guard does not rely on either. |
+
+## External review panel, round 1 (2026-10-12; Codex gpt-6.1-sol high, Claude Opus 5.5 high, read-only via orchestrator)
+
+| Finding (reviewer) | Outcome |
+|---|---|
+| No way out of an open cycle whose test passes at once or whose oracle is wrong (both) | Added human-only `./tdd abort [reason]`: closes the cycle without credit, phase → none. Briefs 3 and 4 explain it. Logged as a deviation from docs/04 §6 (which has no abort). |
+| Guard false positives: `2>&1`, `python -m pytest`, commit-message text, `expect` in messages, `/tdd-ladder` paths, python as a write verb (Claude) | Fixed: redirections and `git commit -m` text stripped before matching; `python -m pytest` is a read; `python -c` is a write only when it opens files for writing; running a `.py` script file still counts as a write; `script`/`expect` anchored to command position; path mentions need a delimiter after the name. Regression tests added. |
+| `tools/build.py --out` could wipe the sources (Codex) | Fixed: refuses outputs that contain the sources or are not an earlier build. |
+| Symlink inside `tests/` escapes the frozen-path checks (Codex) | Fixed: edits must satisfy the rules on both the lexical and the resolved path; `ln` is always denied in Bash. |
+| `git diff --no-index` reads the vault (Codex) | Fixed: denied. |
+| M06's spec label `S3/S4` could never be answered (both) | Fixed: validator accepts either part. |
+| Skipped, missing or timed-out mutant runs counted as kills (Codex) | Fixed: a kill needs a failure or error of a reference-passing test; incomplete runs are listed. |
+| GREEN did not check `src/` unchanged since RED, nor that baseline tests still exist (Codex) | Fixed: `src/` content hash recorded at RED; baseline tests must be present and passing at GREEN. |
+| Setup-phase skips (`@pytest.mark.skip`) logged as passed; pytest exit code ignored (both) | Fixed in `tddlog.py` and `_all_pass`. |
+| Affine-equivariance menu row wrong (σ must scale too; it cannot kill M07); uniform-σ needs σ ≠ 1 to kill M05 (both) | Brief 4 and hint 2 corrected. Deviation from docs/04 §7 Level 4 table, for physics correctness. |
+| Scoring workspace had no `data/` (Claude) | Fixed: `data/` copied; self-test adds a data-loading test. |
+| Acceptance demanded Python `int` and `int64` where the spec says "integer" (Claude) | Relaxed to `np.integer`; mutants still all killed; L1 sample now 8/12. |
+| SPEC.md counter missed `Decision 1:`, table and bullet formats (Claude) | Regex widened. |
+| "Red never observed" was recorded but never shown (Claude) | `./tdd status` at Levels 0–1 prints runs and whether any run had a failing test. |
+| Level 5 mutant copies had no allowed location (Claude) | `mutants/` editable at Level 5 and gitignored; brief says so. |
+| Post-unlock exception would traceback after state advanced (Claude) | Caught with a clear message. |
+| Suite runtime measured under contention (Claude) | Reference run now executes alone before the parallel batch. |
+| `allow-model <full-id>` was stored but never matched (Codex) | Exact full-ID match added. |
+| Collection errors mis-reported in the score (Claude) | Detected from testcases without a classname. |
+| M16 labelled `S1` in `mutants.json` (Claude, open question) | Intended: the baseline mutant needs some spec label for the survivor report; S1 is its nearest decision. |
+| Reference rejects infinite edges though S9 does not say so (Codex) | Left as is: S7's "non-finite" rule is read as covering edges; acceptance does not test it. |
+| Level 4 can be completed while staying in RED (Claude) | Accepted: the gate needs only the score; the brief recommends cycles. |

@@ -290,7 +290,11 @@ def _advance(root, manifest, state, secrets_list, how):
     post = gate.get("post_unlock")
     if post:
         fn = exercise.resolve(_tool(manifest), "post_unlock", post)
-        message = fn(root, state, manifest, new_level)
+        try:
+            message = fn(root, state, manifest, new_level)
+        except Exception as exc:
+            message = ("The post-unlock step failed (%s). Level %d is open; ask "
+                       "a facilitator to check the repo." % (exc, new_level))
         if message:
             _say(message)
         st.save_state(root, state)

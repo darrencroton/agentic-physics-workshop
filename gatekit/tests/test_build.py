@@ -28,6 +28,7 @@ class BuildAndUnlockTests(unittest.TestCase):
         self.passfile = os.path.join(self.tmp, "master")
         with open(self.passfile, "w") as fh:
             fh.write("correct horse battery\n")
+        os.chmod(self.passfile, 0o600)
         self.out = os.path.join(self.tmp, "dist", "fixture")
 
     def tearDown(self):

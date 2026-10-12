@@ -84,17 +84,23 @@ def check_path_tool(tool, tool_input, editable, frozen_extra, message):
     if not isinstance(path, str) or not path:
         H.deny(EVENT, "Guard could not read the path for %s; failing closed."
                % tool)
-    rel = H.relative_path(ROOT, path)
-    if rel is None:
+    lexical, resolved = H.relative_paths(ROOT, path)
+    candidates = [r for r in (lexical, resolved) if r is not None]
+    if not candidates:
         if tool in H.EDIT_TOOLS:
             H.deny(EVENT, MSG_OUTSIDE)
         return
-    if H.is_secret(rel):
+    if any(H.is_secret(r) for r in candidates):
         H.deny(EVENT, MSG_SECRET)
     if tool in H.EDIT_TOOLS:
-        if H.is_frozen(rel) or H.any_match(rel, frozen_extra):
-            H.deny(EVENT, MSG_FROZEN if H.is_frozen(rel) else message)
-        if not H.any_match(rel, editable):
+        if resolved is None:
+            H.deny(EVENT, MSG_OUTSIDE)
+        for rel in candidates:
+            if H.is_frozen(rel):
+                H.deny(EVENT, MSG_FROZEN)
+            if H.any_match(rel, frozen_extra):
+                H.deny(EVENT, message)
+        if not all(H.any_match(rel, editable) for rel in candidates):
             H.deny(EVENT, message)
 
 
@@ -105,7 +111,11 @@ def check_bash(tool_input, editable, frozen_extra, message):
     re = H.re
     if H.mentions_secret(command):
         H.deny(EVENT, MSG_SECRET)
+    command = H.strip_noise(command)
     text = H.normalise_command(command)
+    if any(re.search(p, text) for p in H.ALWAYS_DENY):
+        H.deny(EVENT, "Symbolic links are not needed today; work in the "
+               "files the level allows.")
     if (re.search(H.HUMAN_GATE, text) or re.search(H.HUMAN_TDD, text)
             or re.search(H.HUMAN_INDIRECT, text)):
         H.deny(EVENT, MSG_GATE)

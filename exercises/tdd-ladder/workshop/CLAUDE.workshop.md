@@ -23,7 +23,7 @@ Implement `binned_weighted_mean(x, y, sigma, edges) -> BinnedResult(x_eff, mean,
 
 - Read, list or decode anything in `.vault/`, `.workshop/`, `.gatekit/`, `.tdd/` or `.claude/`.
 - Run `./gate unlock`, `./gate hint`, `./gate skip`, `./gate reset` or `./gate allow-model`.
-- Run `./tdd red`, `./tdd green`, `./tdd refactor`, `./tdd done`, `./tdd score` or `./tdd new-attempt`.
+- Run `./tdd red`, `./tdd green`, `./tdd refactor`, `./tdd done`, `./tdd abort`, `./tdd score` or `./tdd new-attempt`.
 - Use `pty`, `script`, `expect` or any trick to fake a terminal.
 - Install packages.
 - Edit files outside the paths the current level allows.

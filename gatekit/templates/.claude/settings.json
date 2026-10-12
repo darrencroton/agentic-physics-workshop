@@ -30,6 +30,7 @@
       "Bash(./tdd green *)",
       "Bash(./tdd refactor *)",
       "Bash(./tdd done *)",
+      "Bash(./tdd abort *)",
       "Bash(./tdd score *)",
       "Bash(./tdd new-attempt *)",
       "Bash(pip *)",

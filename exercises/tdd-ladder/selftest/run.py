@@ -271,12 +271,36 @@ def level3(repo):
     check(code == 0 and repo.phase() == "none", "cycle 1: done")
     for n in (2, 3, 4, 5):
         run_cycle(repo, n)
+    # A test that passes straight away: green refuses, abort closes without credit.
+    code, out = repo.tdd("red", "a behaviour that already works")
+    check(code == 0, "red opened for the already-passing case")
+    with open(os.path.join(repo.root, "tests", "test_already.py"), "w") as fh:
+        fh.write("from hzbin.binning import binned_weighted_mean\n\n\n"
+                 "def test_single_point():\n"
+                 "    assert list(binned_weighted_mean([0.5], [2.0], [1.0], [0.0, 1.0]).mean) == [2.0]\n")
+    repo.commit_all("already passing test")
+    code, out = repo.tdd("green")
+    check(code == 1 and "nothing fails" in out and "abort" in out, "green refuses when nothing fails, suggests abort")
+    code, out = repo.tdd("abort", "already satisfied")
+    check(code == 0 and repo.phase() == "none", "abort closes the cycle")
+    # A skipped test is refused at the next red.
+    with open(os.path.join(repo.root, "tests", "test_skip.py"), "w") as fh:
+        fh.write("import pytest\n\n\n@pytest.mark.skip\ndef test_skipped():\n    assert False\n")
+    repo.commit_all("skipped test")
+    code, out = repo.tdd("red", "something")
+    check(code == 1 and "skipped" in out, "red refuses a skipped test")
+    os.unlink(os.path.join(repo.root, "tests", "test_skip.py"))
+    repo.commit_all("remove skipped test")
     cycles = [json.loads(line) for line in open(os.path.join(repo.root, ".tdd", "cycles.jsonl"))]
     check(sum(1 for c in cycles if c["valid"]) == 5, "5 valid cycles recorded")
+    check(sum(1 for c in cycles if not c["valid"]) == 1, "aborted cycle recorded without credit")
     code, out = repo.gate("unlock")
     check(code == 1 and "no score" in out, "unlock refused without a score")
     # The group's finished Rung-4 suite.
     repo.install_sample(os.path.join("l3_cycles", "rung4"))
+    with open(os.path.join(repo.root, "tests", "test_data_file.py"), "w") as fh:
+        fh.write("from hzbin.data import load_hz\n\n\ndef test_data_loads():\n"
+                 "    z, h, s = load_hz('data/hz_mock.csv')\n    assert len(z) == 40\n")
     repo.commit_all("rung 4 suite")
     acc, killed, fa, _, out = repo.score()
     check(killed >= 9 and fa == 0, "L3 score: >= 9 kills, 0 false alarms", "%d/%d" % (killed, fa))
