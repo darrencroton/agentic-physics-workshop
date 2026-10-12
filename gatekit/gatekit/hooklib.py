@@ -25,13 +25,22 @@ PATH_TOOLS = {"Read": "file_path", "Edit": "file_path", "Write": "file_path",
               "Glob": "path", "Grep": "path"}
 EDIT_TOOLS = ("Edit", "Write", "MultiEdit", "NotebookEdit")
 
-HUMAN_GATE = r"\bgate\b\s+(unlock|hint|skip|reset|allow-model)\b"
-HUMAN_TDD = r"\btdd\b\s+(red|green|refactor|done|score|new-attempt)\b"
-PACKAGE_MANAGERS = (r"\bpip3?\b", r"\bpython3?\s+-m\s+pip\b", r"\buv\b",
+HUMAN_GATE = r"\bgate\b[^|;&\n]*\b(unlock|hint|skip|reset|allow-model)\b"
+HUMAN_TDD = r"\btdd\b[^|;&\n]*\b(red|green|refactor|done|score|new-attempt)\b"
+HUMAN_INDIRECT = r"\b(gate|tdd)\b\s+\$"
+PACKAGE_MANAGERS = (r"\bpip3?\b", r"-m\s*pip\b", r"\bensurepip\b", r"\buvx?\b",
                     r"\bbrew\b", r"\bnpm\b", r"\bconda\b", r"\bpipx\b",
-                    r"\bpoetry\b", r"\beasy_install\b")
+                    r"\bpoetry\b", r"\beasy_install\b",
+                    r"\|\s*(sh|bash|zsh|python3?)\b")
 PTY_TRICKS = (r"\bpty\b", r"\bopenpty\b", r"\bscript\s", r"\bexpect\b",
-              r"\bunbuffer\b", r"\bsocat\b", r"\bfaketty\b")
+              r"\bunbuffer\b", r"\bsocat\b", r"\bfaketty\b",
+              r"\bCLAUDECODE\b", r"\benv\s+-[iu]\b", r"\bunset\s+CLAUDE")
+GIT_READERS = (r"\bgit\b[^|;&\n]*\b(show|cat-file|archive|bundle|fast-export|"
+               r"grep|ls-tree|rev-list|format-patch|diff-tree|worktree)\b",
+               r"\bgit\b[^|;&\n]*\blog\b[^|;&\n]*\s(-p|--patch|-u|--full-diff)\b",
+               r"\bgit\b[^|;&\n]*\bconfig\b[^|;&\n]*core\.hooksPath")
+DOT_GLOBS = (r"(^|[\s/=:,{(])\.[\w-]*[\[\*\?{]", r"\{[^}]*,\s*\.", r"\.\*/")
+SECRET_RE = r"\.(vault|workshop|gatekit|claude|git|tdd(-tools)?)\b"
 WRITE_VERBS = (r">{1,2}", r"\btee\b", r"\bsed\s+-[a-zA-Z]*i", r"\bcp\b",
                r"\bmv\b", r"\brm\b", r"\btouch\b", r"\bmkdir\b", r"\bchmod\b",
                r"\bln\b", r"\bpatch\b", r"\bgit\s+(checkout|restore|reset|"
@@ -136,15 +145,22 @@ def in_dir(rel, directory):
 
 
 def is_secret(rel):
-    """True for paths Claude may never touch."""
-    return any(in_dir(rel, d) for d in SECRET_DIRS)
+    """True for paths Claude may never touch (case-insensitive)."""
+    low = rel.lower()
+    return any(in_dir(low, d.lower()) for d in SECRET_DIRS)
 
 
 def is_frozen(rel):
     """True for build-controlled paths Claude may read but not edit."""
-    if rel in FROZEN_FILES:
+    low = rel.lower()
+    if low in {f.lower() for f in FROZEN_FILES}:
         return True
-    return any(in_dir(rel, d) for d in FROZEN_DIRS)
+    return any(in_dir(low, d.lower()) for d in FROZEN_DIRS)
+
+
+def normalise_command(command):
+    """Strip quotes and backslashes so split spellings match the regexes."""
+    return re.sub(r"[\"'\\]", "", command)
 
 
 def glob_match(rel, pattern):
@@ -161,11 +177,11 @@ def any_match(rel, patterns):
 
 
 def mentions_secret(command):
-    """True if a shell command names a secret or tool path."""
-    for d in SECRET_DIRS:
-        if re.search(r"(^|[\s/'\"=;|&(])" + re.escape(d) + r"(/|\b)", command):
-            return True
-    return False
+    """True if a shell command names a secret or tool path, in any spelling."""
+    text = normalise_command(command)
+    if re.search(SECRET_RE, text, re.IGNORECASE):
+        return True
+    return any(re.search(p, text) for p in DOT_GLOBS)
 
 
 def mentions_path(command, rel_or_pattern):
@@ -173,8 +189,8 @@ def mentions_path(command, rel_or_pattern):
     base = rel_or_pattern.split("*")[0].rstrip("/")
     if not base:
         return False
-    return re.search(r"(^|[\s/'\"=;|&(])" + re.escape(base) + r"(/|\b)",
-                     command) is not None
+    return re.search(r"(^|[\s/=;|&(:])" + re.escape(base) + r"(/|\b)",
+                     normalise_command(command), re.IGNORECASE) is not None
 
 
 def has_write_verb(command):

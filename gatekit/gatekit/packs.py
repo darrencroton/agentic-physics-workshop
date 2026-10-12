@@ -21,8 +21,10 @@ def deterministic_tar(directory):
     with gzip.GzipFile(fileobj=buf, mode="wb", mtime=0) as gz:
         with tarfile.open(fileobj=gz, mode="w", format=tarfile.PAX_FORMAT) as tar:
             for root, dirs, files in os.walk(directory):
-                dirs.sort()
+                dirs[:] = sorted(d for d in dirs if d != "__pycache__")
                 for name in sorted(files):
+                    if name.endswith((".pyc", ".DS_Store")):
+                        continue
                     full = os.path.join(root, name)
                     arcname = os.path.relpath(full, directory)
                     info = tar.gettarinfo(full, arcname=arcname)

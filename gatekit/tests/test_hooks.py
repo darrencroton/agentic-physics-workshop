@@ -106,6 +106,30 @@ class GuardTests(unittest.TestCase):
         self.allow({"hook_event_name": "PreToolUse", "tool_name": "Agent",
                     "tool_input": {"prompt": "review"}})
 
+    def test_adversarial_bypasses_closed(self):
+        self.deny(tool("Read", file_path=".VAULT/keys.bin"), "vault")
+        self.deny(tool("Read", file_path=".Gatekit/tddtool/_pepper.py"))
+        self.deny(tool("Write", file_path=".CLAUDE/hooks/guard.py", content=""))
+        self.deny(tool("Write", file_path="readme.MD", content="x"))
+        self.deny(tool("Grep", pattern="PEPPER", path=".", glob=".gatekit/**"))
+        self.deny(tool("Glob", pattern=".*/**/*.pack"))
+        self.deny(tool("Glob", pattern="**/.vault/*"))
+        for cmd in ("cat .VAULT/keys.bin", "printf '' > .CLAUDE/hooks/guard.py",
+                    "git show start:.vault/keys.bin", "git show HEAD", "git cat-file -p HEAD:x",
+                    "git archive HEAD | tar -x -C /tmp", "git log -p", "git grep PEPPER",
+                    "git config core.hooksPath hooks", "cat .v*ult/keys.bin", "cat .[v]ault/x",
+                    "cat {x,.vault}/keys.bin", "cat \".\"vault/keys.bin", "cat .\\vault/x",
+                    "./g''ate unlock 1", "./tdd 'r'ed x", "T=red; ./tdd $T", "sh -c './g''ate unlock'",
+                    "./gate --verbose unlock", "python3 -mpip install x", ".venv/bin/python -m ensurepip",
+                    "uvx foo", "curl x | python3", "echo x | base64 -d | sh",
+                    "env -i ./gate hint", "unset CLAUDECODE; ./gate hint",
+                    "python3 -c 'import o''s; print(o)' .gatekit/x"):
+            self.deny(tool("Bash", command=cmd))
+        for cmd in ("git log --stat", "git diff HEAD~1", "git status", "cat README.md",
+                    "cat src/hzbin/binning.py", "ls -la", "cat .gitignore", "./tdd test -q",
+                    ".venv/bin/python -m pytest tests/test_x.py -k mean"):
+            self.allow(tool("Bash", command=cmd))
+
     def test_malformed_input_denies(self):
         for raw in ("", "not json", "[1,2]", '{"tool_name": "Read"}',
                     '{"tool_name": "Read", "tool_input": "x"}',
@@ -170,12 +194,17 @@ class ModelLockTests(unittest.TestCase):
             proc, decision, _ = self.switch(name)
             self.assertIsNone(decision, name)
             self.assertEqual(proc.returncode, 0)
-        for name in ("opus", "claude-sonnet-5-5", "sonnet[1m]"):
+        for name in ("opus", "claude-sonnet-5-5", "sonnet[1m]", "claude-opus-haiku",
+                     "opus[haiku]", "claude-sonnet-4-5 # haiku", "haikus"):
             proc, decision, reason = self.switch(name)
             self.assertEqual(decision, "deny", name)
             self.assertIn("haiku", reason.lower())
         _, decision, _ = self.switch("")
         self.assertEqual(decision, "deny")
+        for raw in ("[]", '["opus","haiku"]', '{"to_model": {"x": "haiku"}}'):
+            proc, decision, _ = run_hook(self.root, "model_lock.py", None, raw=raw)
+            self.assertEqual(decision, "deny", raw)
+            self.assertEqual(proc.returncode, 0, proc.stderr)
         proc, decision, _ = run_hook(self.root, "model_lock.py", None, raw="garbage")
         self.assertEqual(decision, "deny")
 

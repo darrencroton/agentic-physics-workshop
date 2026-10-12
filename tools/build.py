@@ -97,6 +97,7 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
     os.makedirs(os.path.join(out, ".gatekit"))
     copy_tree(os.path.join(TOP, "gatekit", "gatekit"),
               os.path.join(out, ".gatekit", "gatekit"))
+    os.unlink(os.path.join(out, ".gatekit", "gatekit", "ptyhelper.py"))
     shutil.copy2(os.path.join(src, "manifest.json"),
                  os.path.join(out, ".gatekit", "manifest.json"))
     copy_tree(os.path.join(src, "levels", "0"),

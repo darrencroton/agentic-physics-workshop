@@ -74,8 +74,11 @@ def check_path_tool(tool, tool_input, editable, frozen_extra, message):
     field = H.PATH_TOOLS[tool]
     path = tool_input.get(field)
     if tool in ("Glob", "Grep"):
-        pattern = tool_input.get("pattern") or ""
-        if H.mentions_secret(str(pattern)) or H.mentions_secret(str(path or "")):
+        for value in (tool_input.get("pattern"), tool_input.get("glob"),
+                      tool_input.get("type"), path):
+            if value and H.mentions_secret(str(value)):
+                H.deny(EVENT, MSG_SECRET)
+        if tool == "Glob" and H.re.search(r"(^|/)\.", str(tool_input.get("pattern") or "")):
             H.deny(EVENT, MSG_SECRET)
         path = path or "."
     if not isinstance(path, str) or not path:
@@ -99,15 +102,20 @@ def check_bash(tool_input, editable, frozen_extra, message):
     command = tool_input.get("command")
     if not isinstance(command, str) or not command.strip():
         H.deny(EVENT, "Guard could not read the Bash command; failing closed.")
-    import re
+    re = H.re
     if H.mentions_secret(command):
         H.deny(EVENT, MSG_SECRET)
-    if re.search(H.HUMAN_GATE, command) or re.search(H.HUMAN_TDD, command):
+    text = H.normalise_command(command)
+    if (re.search(H.HUMAN_GATE, text) or re.search(H.HUMAN_TDD, text)
+            or re.search(H.HUMAN_INDIRECT, text)):
         H.deny(EVENT, MSG_GATE)
-    if any(re.search(p, command) for p in H.PACKAGE_MANAGERS):
+    if any(re.search(p, text) for p in H.PACKAGE_MANAGERS):
         H.deny(EVENT, MSG_PKG)
-    if any(re.search(p, command) for p in H.PTY_TRICKS):
+    if any(re.search(p, text) for p in H.PTY_TRICKS):
         H.deny(EVENT, MSG_PTY)
+    if any(re.search(p, text) for p in H.GIT_READERS):
+        H.deny(EVENT, "That git command can print the vault or the tool sources. "
+               "Use git status, git diff, git log --stat and git add/commit.")
     if H.has_write_verb(command):
         for frozen in H.FROZEN_FILES + H.FROZEN_DIRS:
             if H.mentions_path(command, frozen):

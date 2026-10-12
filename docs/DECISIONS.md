@@ -38,3 +38,18 @@ Sources: https://code.claude.com/docs/en/hooks, …/hooks-guide, …/permissions
 | 2026-10-12 | Hooks | Added `SessionStart` hook `model_check.py` (best-effort warning on launch-time model override). | Fact 8 above. |
 | 2026-10-12 | Environment | `.venv` built from `/opt/homebrew/bin/python3.13` (3.13.2); pins `numpy==2.3.2`, `matplotlib==3.10.5`, `pytest==9.1.1`. | Versions already present on the build machine; user's choice. |
 | 2026-10-12 | Master passphrase | Read from `~/.config/workshop/master-passphrase` (mode 600). | User's choice; outside every repo. |
+
+## Adversarial review (2026-10-12, Opus subagent against a fresh dist/tdd-ladder)
+
+| Finding | Outcome |
+|---|---|
+| Any file under `tests/` runs with repo permissions via `./tdd test`/pytest/`python3`, so Claude can read the pepper and `keys.bin`, decrypt every pack and drive `./gate` through `os.openpty`. | Structural; documented as the primary honest limit in `gatekit/README.md` §11. Verified-gate packs and the TTY rule are soft against a code-running Claude; crypto gates stay hard. |
+| APFS is case-insensitive: `.VAULT/keys.bin` readable, `.CLAUDE/hooks/guard.py` writable. | Fixed: all path checks lower-case. |
+| `git show HEAD`, `git cat-file`, `git archive`, `git log -p`, `git grep` print the committed vault and pepper. | Fixed: guard denies git object readers; `git status/diff/log --stat/add/commit` still allowed. |
+| Quote and variable splitting (`./g''ate unlock`, `T=red; ./tdd $T`), dot-globs (`.v*ult`), `-mpip`, `uvx`, `curl \| python3`. | Fixed: commands normalised (quotes and backslashes stripped) before matching; new patterns. |
+| `gatekit/ptyhelper.py` shipped in dist is a ready-made TTY faker. | Fixed: not copied by `tools/build.py`. |
+| `require_tty()` cannot tell a pty from a terminal. | Mitigated: also refuses when `CLAUDECODE` is set (Claude Code's Bash sets it); guard blocks `env -i/-u` and `unset CLAUDE*`. `ptyhelper` strips `CLAUDE*` from the test environment. |
+| `model_lock.py` substring match accepted `claude-opus-haiku`; list input tracebacked. | Fixed: whole-token match, other family names deny, non-object input denies. |
+| `scoring.pack` contained `__pycache__`. | Fixed in `deterministic_tar`. |
+| Deny rules lacked `Read(./.git/**)`, `Edit(**/.claude/**)`. | Added. |
+| Unverified against Claude Code docs: case sensitivity of deny-rule paths; whether Grep searches hidden directories and whether Read-deny filtering applies to its results. | Open; the guard does not rely on either. |

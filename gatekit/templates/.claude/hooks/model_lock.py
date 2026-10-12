@@ -3,6 +3,7 @@
 
 import json
 import os
+import re
 import sys
 
 ROOT = os.path.realpath(os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd())
@@ -19,9 +20,13 @@ def deny(reason):
 def main():
     try:
         data = json.loads(sys.stdin.read() or "{}")
-        target = str(data.get("to_model") or data.get("requested_model") or "")
     except ValueError:
+        data = None
+    if not isinstance(data, dict):
         deny("Model lock received malformed input; the switch is refused.")
+    target = data.get("to_model") or data.get("requested_model") or ""
+    if not isinstance(target, str):
+        deny("Model lock could not read the target model; the switch is refused.")
     try:
         with open(os.path.join(ROOT, ".workshop", "state.json"),
                   encoding="utf-8") as fh:
@@ -31,7 +36,9 @@ def main():
              "A human should run ./gate reset in the gate terminal.")
     if not target:
         deny("Model lock could not read the target model; the switch is refused.")
-    if any(alias and alias in target.lower() for alias in allowed):
+    tokens = set(re.split(r"[^a-z0-9]+", target.lower())) - {""}
+    families = {"haiku", "sonnet", "opus", "fable", "best", "default", "opusplan"}
+    if (tokens & set(allowed)) and not ((tokens & families) - set(allowed)):
         sys.exit(0)
     deny("Today's exercise uses %s. Ask a facilitator for a power-up."
          % (allowed[0] if allowed else "the configured model"))

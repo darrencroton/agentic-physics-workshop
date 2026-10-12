@@ -281,33 +281,55 @@ cd gatekit && python3 -m unittest discover -s . -t . -p 'test_*.py'
 
 ## 11. Honest limits
 
-This is a learning scaffold, not an exam proctor. A group that wants to cheat can, and the lecture should say so openly.
+This is a learning scaffold, not an exam proctor (docs/00 §5.6). A group that wants to cheat can, and the lecture should say so openly.
 
 ### Hard to bypass
 
-- Encrypted packs: no later-level content is readable without the secret, which means T plus the correct answer (crypto), the level secret (verified) or the master passphrase.
-- The TTY requirement: Claude cannot type into the gate terminal through its normal tools.
+- Crypto gates (Exercises A–C): a slot opens only with the check token T plus the human answer, and no key for them exists in the repo. Without both, later-level content stays encrypted.
+- Writes outside the repo or to frozen files, and `..`, absolute, `~` and `/tmp/../` paths through Read and Edit.
+- A wrong master passphrase leaks nothing (PBKDF2, 100k iterations).
 
 ### Soft
 
 - The teacher persona and `CLAUDE.md` rules are instructions Claude is asked to follow.
-- Path guards on Bash are best-effort regexes (section 8), which is why the vault is encrypted rather than merely hidden.
-- `verified` gates rely on obfuscation (section 4).
+- Verified gates (all of tdd-ladder): the encrypted packs and the TTY requirement hold only because `CLAUDE.md`, the persona and the guard tell Claude not to cheat, and because a group would have to ask it to. See the structural limit below.
+- Path and command guards on Bash are regexes (section 8). They were tightened after the review but are still regex-based, so shell indirection always beats them.
 
 ### Bypassable by a determined human
 
 - Launching with `claude --model opus`: a launch flag is not a mid-session switch, so `PreModelSwitch` never sees it, and `SessionStart` carries `model` only optionally, so `model_check.py` may not warn.
 - Asking Claude to reverse-engineer a gate.
-- Reading the vault with the master passphrase, or reading `keys.bin` and the pepper from the tool source.
+- Reading `keys.bin` and the pepper from the repo, or the vault with the master passphrase.
 - Guessing a small crypto answer space offline.
-- Editing `.workshop/state.json` or the hooks directly; they are protected from Claude, not from the person at the keyboard.
+- Editing `.workshop/state.json` or the hooks directly. Editing `state.json` can jump levels but yields no content.
 
-Further limits to be aware of:
-
-- Claude could itself use a pty (`pty`, `script`, `expect`) to type into `./gate`, despite the guard regex and the `CLAUDE.md` rule against it. The regex only catches obvious spellings.
-- Bash deny rules in `settings.json` and the guard regex are not a security boundary: indirection, wrappers and scripts can avoid them.
-- Hooks may not run until the folder is trusted in the first interactive launch; the facilitator checklist covers accepting trust, and `preflight` cannot detect it.
+Hooks may not run until the folder is trusted in the first interactive launch; the facilitator checklist covers accepting trust, and `preflight` cannot detect it.
 
 ### Adversarial review findings
 
-(to be filled after the review)
+An adversarial review attacked a fresh `dist/tdd-ladder` as a Claude session whose tool calls pass through `guard.py`.
+
+**Structural limit (no cheap fix).** Claude may edit `tests/**` and may run `./tdd test`, pytest or `python3 tests/x.py`. Any Python file under `tests/` runs at import time with the repo's own permissions. It can read `.gatekit/tddtool/_pepper.py` and `.vault/keys.bin`, unseal every level secret and decrypt every pack (`CLIENT_SPEC.md`, the reference, the mutants). It can also call `os.openpty` to drive `./gate` and `./tdd` as if a human typed. So for verified gates neither the encrypted packs nor the TTY requirement is hard against a code-running Claude; both are soft barriers. The master passphrase is not needed to open tdd-ladder packs offline: `keys.bin` plus the pepper suffice. Crypto gates stay hard because no key for them exists in the repo.
+
+**Second limit.** The vault and the pepper are committed to git, because they must travel with the clone. Git object readers (`git show`, `git cat-file`, `git archive`, `git log -p`, `git grep`) can therefore print them. The guard blocks the common spellings, but `$VAR`, `printf`, `base64 | sh`, `eval` or string concatenation in Python always beats a regex.
+
+**Fixed after the review (closed by the guard, still regex-based):**
+
+- Path checks are case-insensitive. APFS is case-insensitive, so `.VAULT/keys.bin` was readable and `.CLAUDE/hooks/guard.py` was writable.
+- The secret-path regex matches after stripping quotes and backslashes, and inside `ref:path` forms.
+- Git object readers are blocked: show, cat-file, archive, bundle, fast-export, grep, ls-tree, rev-list, format-patch, diff-tree, `log -p/--patch`, and `config core.hooksPath`.
+- Human-only `gate` and `tdd` commands are matched after quote stripping and with variables.
+- Package-manager variants are blocked: `-mpip`, ensurepip, uvx, `| sh`, `| python3`.
+- Dot-glob and brace patterns that could expand to a dotdir are blocked; Grep `glob` and Glob dot-patterns are checked.
+- `gatekit/ptyhelper.py` is no longer shipped in `dist/`.
+- `require_tty()` also refuses when the `CLAUDECODE` environment variable is present (Claude Code's Bash tool sets it), and the guard blocks `env -i`, `env -u` and `unset CLAUDECODE`.
+- `model_lock` matches whole tokens and denies on non-object input.
+- `__pycache__` is excluded from packs.
+- Deny rules were added for `Read(./.git/**)` and `Edit(**/.claude/**)`.
+
+**Not exploitable:** `..`, absolute, `~` and `/tmp/../` paths through Read and Edit; writes outside the repo or to frozen files; `cat -- .vault`, `ln -s .vault`, `cd .vault`, `script … ./gate`; a wrong master passphrase; git history beyond the start tree.
+
+**Open (unverified against the Claude Code docs):**
+
+- Whether permission deny-rule paths are case-sensitive.
+- Whether Grep searches hidden directories, and whether Read-deny filtering applies to its results.

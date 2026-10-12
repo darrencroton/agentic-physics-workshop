@@ -14,6 +14,9 @@ class PtySession:
     """Run a command with a pty and answer prompts as they appear."""
 
     def __init__(self, argv, cwd=None, env=None, timeout=60.0):
+        env = dict(os.environ if env is None else env)
+        for key in [k for k in env if k.startswith("CLAUDE")]:
+            del env[key]
         self.master, slave = os.openpty()
         self.proc = subprocess.Popen(
             argv, cwd=cwd, env=env, stdin=slave, stdout=slave, stderr=slave,

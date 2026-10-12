@@ -18,6 +18,9 @@
       "Edit(./.tdd/**)",
       "Edit(./.claude/**)",
       "Edit(./.tdd-tools/**)",
+      "Read(./.git/**)",
+      "Edit(**/.claude/**)",
+      "Edit(**/.workshop/**)",
       "Bash(./gate unlock *)",
       "Bash(./gate hint *)",
       "Bash(./gate skip *)",
@@ -46,7 +49,9 @@
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/model_check.py"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/model_check.py"
+            ],
             "timeout": 10
           }
         ]
@@ -58,7 +63,9 @@
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/teacher_context.py"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/teacher_context.py"
+            ],
             "timeout": 10
           }
         ]
@@ -71,7 +78,9 @@
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.py"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.py"
+            ],
             "timeout": 10,
             "onFailure": "block"
           }
@@ -85,7 +94,9 @@
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/model_lock.py"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/model_lock.py"
+            ],
             "timeout": 10,
             "onFailure": "block"
           }
