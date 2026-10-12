@@ -139,7 +139,7 @@ def run_check(root, manifest, state):
         return False, "check could not run: %s" % exc, None
     if proc.returncode != 0:
         tail = (proc.stderr or proc.stdout).strip().splitlines()[-3:]
-        return False, "check failed: %s" % " | ".join(tail), None
+        return False, " | ".join(tail), None
     token = crypto.canonical_token(proc.stdout)
     if crypto.verify_token(token) != gate.get("verify"):
         return False, gate.get("fail_message",

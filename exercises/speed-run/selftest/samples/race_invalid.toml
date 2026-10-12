@@ -1,0 +1,5 @@
+# Invalid on purpose: sigma_fraction above the 0.2 limit.
+[division]
+name = "toleranced"
+sigma_fraction = 0.5
+justification = "Half a sigma per bin is generous, and we would like a generous tolerance for this entry please, because it is quicker."

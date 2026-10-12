@@ -1,0 +1,16 @@
+{
+  "tiers": [
+    {
+      "unlock_after_minutes": 0,
+      "text": "C via ctypes is the big step. The arithmetic can be contracted into fused multiply-adds by default; compare with -ffp-contract=off."
+    },
+    {
+      "unlock_after_minutes": 5,
+      "text": "Commit before every submit. ./race submit refuses if paircount/ or race.toml has uncommitted changes."
+    },
+    {
+      "unlock_after_minutes": 10,
+      "text": "The calibration entry is a numpy cell list that does 200k in a few seconds. Beating it clearly means compiled code (a cell list in C via ctypes runs in about 1.5 s) or far fewer wasted distance evaluations."
+    }
+  ]
+}

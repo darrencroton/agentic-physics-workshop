@@ -2,6 +2,7 @@
   "exercise": "fixture",
   "title": "Fixture Exercise",
   "models": {"default": "haiku", "allowed": ["haiku"]},
+  "human_only": {"race": ["submit", "install-solution"]},
   "levels": [
     {"id": 0, "title": "Measure", "persona": "coach", "target_minutes": 5,
      "gate": {"type": "crypto", "check": "checks/level0.py",

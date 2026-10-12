@@ -1,0 +1,8 @@
+# What "correct" means for your entry. Humans edit this file; Claude never does.
+# exact: every bin identical to the golden counts.
+# toleranced: a bin passes when |count - golden| <= sigma_fraction * sqrt(golden).
+#   sigma_fraction must be > 0 and <= 0.2, and justification must be a real paragraph.
+[division]
+name = "toleranced"
+sigma_fraction = 0.1
+justification = "Our counter compares squared separations with squared edges, so a handful of pairs within an ulp of an edge change bin. That shift is far below the Poisson error sqrt(N) of every bin, so a tenth of a sigma per bin cannot move any science result."

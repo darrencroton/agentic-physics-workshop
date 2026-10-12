@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+"""Speed Run tool: status | log | board | submit | install-solution.
+
+Re-executes itself under .venv/bin/python when the venv exists, so race.toml
+can be validated with tomllib; status, log and board also work without it.
+Set RACE_NO_REEXEC=1 to stay on the current interpreter.
+"""
+
+import os
+import sys
+
+ROOT = os.path.dirname(os.path.realpath(__file__))
+VENV_PY = os.path.join(ROOT, ".venv", "bin", "python")
+
+if (os.path.exists(VENV_PY)
+        and os.path.realpath(sys.executable) != os.path.realpath(VENV_PY)
+        and not os.environ.get("RACE_NO_REEXEC")):
+    os.execv(VENV_PY, [VENV_PY, os.path.realpath(__file__)] + sys.argv[1:])
+
+sys.path.insert(0, os.path.join(ROOT, ".gatekit"))
+
+from racetool.cli import main  # noqa: E402
+
+if __name__ == "__main__":
+    sys.exit(main(ROOT, sys.argv[1:]))

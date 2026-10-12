@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SessionStart hook: best-effort warning when the session model is not allowed.
+"""SessionStart hook: reports the starting model and warns when it is not allowed.
 
 Claude Code does not always include `model` in SessionStart input, so a
 launch-time override can go unnoticed.  This is documented as an honest limit.
@@ -17,7 +17,10 @@ def main():
         data = json.loads(sys.stdin.read() or "{}")
     except ValueError:
         return
-    model = str(data.get("model") or "")
+    model = " ".join(str(data.get("model") or "").split())[:100]
+    if model:
+        print("WORKSHOP: this session started on %s; /status shows the current "
+              "model." % model)
     try:
         with open(os.path.join(ROOT, ".workshop", "state.json"),
                   encoding="utf-8") as fh:

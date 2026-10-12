@@ -1,0 +1,25 @@
+{
+  "exercise": "speed-run", "title": "Speed Run", "tool": "racetool",
+  "models": {"default": "haiku", "allowed": ["haiku"]},
+  "human_only": {"race": ["submit", "install-solution"]},
+  "levels": [
+    {"id": 0, "title": "Measure before you touch anything", "persona": "coach", "target_minutes": 7,
+     "gate": {"type": "crypto", "check": ".gatekit/racetool/checks/level0.py", "python": "venv", "timeout": 120,
+              "questions": [{"id": "pairs", "kind": "numeric", "decimals": 0, "lo": 499500, "hi": 499500,
+                             "prompt": "How many unique pairs, and so math.sqrt calls, does the reference evaluate at N = 1000?"}],
+              "reflection": "From the fit: the reference's predicted runtime at N = 200,000 in minutes, and how you got it."}},
+    {"id": 1, "title": "Vectorise, and survive the memory wall", "persona": "coach", "target_minutes": 10,
+     "gate": {"type": "crypto", "check": ".gatekit/racetool/checks/level1.py", "python": "venv", "timeout": 120,
+              "questions": [{"id": "matrix_gb", "kind": "numeric", "decimals": 0, "lo": 298, "hi": 320,
+                             "prompt": "How many gigabytes is ONE 200,000 x 200,000 float64 matrix?"}],
+              "reflection": "Your memory estimate before the 20k run, and what the harness measured."}},
+    {"id": 2, "title": "Reduce the work, defend the answer", "persona": "coach", "target_minutes": 14,
+     "gate": {"type": "crypto", "check": ".gatekit/racetool/checks/level2.py", "python": "venv", "timeout": 120,
+              "questions": [{"id": "perbin", "kind": "choice", "accept": ["c"],
+                             "prompt": "Golden counts [100, 1000000]; yours [101, 1000010]; declared sigma_fraction 0.05. Which bins pass? (a) both (b) the first only (c) the second only (d) neither"}],
+              "reflection": "Which division did you enter, and what evidence decided it?"}},
+    {"id": 3, "title": "Open race", "persona": "collaborator", "target_minutes": 11,
+     "gate": {"type": "verified", "condition": "race.submitted_ok",
+              "reflection": "Your biggest wrong turn, and the evidence that showed it."}}
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "tiers": [
+    {
+      "unlock_after_minutes": 0,
+      "text": "The largest separation you need is 10 in a box of 100. Most pairs can be skipped before any distance is computed."
+    },
+    {
+      "unlock_after_minutes": 5,
+      "text": "Grid the box into cells of side at least 10 and compare only neighbouring cells. Or use cKDTree, but read which way its count_neighbors treats a pair exactly at the edge."
+    },
+    {
+      "unlock_after_minutes": 10,
+      "text": "If the diff table shows a few counts moving between adjacent bins, those are pairs within rounding error of an edge. Either match the reference arithmetic (sqrt first, then compare), or declare toleranced in race.toml with a Poisson-error justification. Re-run after any change to fast.py or race.toml."
+    }
+  ]
+}

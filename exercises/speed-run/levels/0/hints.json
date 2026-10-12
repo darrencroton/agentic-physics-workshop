@@ -1,0 +1,16 @@
+{
+  "tiers": [
+    {
+      "unlock_after_minutes": 0,
+      "text": "What does the profile say the loop is spending its time on? Which call is made the most times?"
+    },
+    {
+      "unlock_after_minutes": 5,
+      "text": "The loop visits every unique pair: N(N-1)/2 of them. Count them for N = 1000."
+    },
+    {
+      "unlock_after_minutes": 10,
+      "text": "499,500 pairs, and so 499,500 sqrt calls. The fit's exponent is about 2, so the time at 200,000 is (200000/2000)^2 x t(2000). Divide seconds by 60 for minutes."
+    }
+  ]
+}

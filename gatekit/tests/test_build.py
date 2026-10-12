@@ -1,3 +1,4 @@
+import importlib.util
 import json
 import os
 import shutil
@@ -60,6 +61,13 @@ class BuildAndUnlockTests(unittest.TestCase):
             settings = json.load(fh)
         self.assertEqual(settings["model"], "haiku")
         self.assertIn("PreModelSwitch", settings["hooks"])
+        deny = settings["permissions"]["deny"]
+        self.assertIn("Bash(./race submit *)", deny)
+        self.assertIn("Bash(./race install-solution *)", deny)
+        self.assertNotIn("Bash(./tdd red *)", deny)
+        self.assertIn("Bash(./gate unlock *)", deny)
+        with open(os.path.join(self.out, ".claude", "settings.json")) as fh:
+            self.assertNotIn("__HUMAN_ONLY_DENY__", fh.read())
         with open(os.path.join(self.out, ".vault", "level1.pack"), "rb") as fh:
             first = fh.read()
         self.build()
@@ -69,6 +77,16 @@ class BuildAndUnlockTests(unittest.TestCase):
         from gatekit import packs
         self.assertEqual(packs.open_pack(first, [master]), packs.open_pack(second, [master]))
         self.assertNotEqual(first, second)
+
+    def test_deny_entries_fall_back_to_tdd(self):
+        spec = importlib.util.spec_from_file_location("build_tool", BUILD)
+        build_tool = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(build_tool)
+        self.assertEqual(build_tool.deny_entries({}),
+                         ["Bash(./tdd %s *)" % sub for sub in (
+                             "red", "green", "refactor", "done", "abort", "score",
+                             "new-attempt")])
+        self.assertEqual(build_tool.deny_entries({"human_only": {}}), [])
 
     def test_check_unlock_wrong_then_right(self):
         self.build()

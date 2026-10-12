@@ -60,6 +60,7 @@ The manifest lives at `exercises/<name>/manifest.json` and is copied to `.gateki
   "exercise": "tdd-ladder",              // must match state.json; a mismatch tells you to reset
   "title": "The TDD Ladder",
   "tool": "tddtool",                     // optional: package under .gatekit/ (conditions, validators, hooks into status etc.)
+  "human_only": {"tdd": ["red", "green", "refactor", "done", "abort", "score", "new-attempt"]},  // optional and illustrative here: launcher -> subcommands only humans may run (see section 8); each exercise declares its own; absent means this tdd list
   "models": {
     "default": "haiku",                  // rendered into .claude/settings.json "model" (build)
     "allowed": ["haiku"]                 // initial state.allowed_models
@@ -103,6 +104,8 @@ The manifest lives at `exercises/<name>/manifest.json` and is copied to `.gateki
   ]
 }
 ```
+
+`human_only` maps an exercise launcher name (the executable at the repo root, such as `race`) to the subcommands Claude must never run. Names and subcommands must match `[A-Za-z0-9][A-Za-z0-9_-]*`. The guard builds its Bash patterns from it and the build renders the `settings.json` deny rules from it (section 8). When the field is absent the hard-coded TDD Ladder list applies (`tdd red|green|refactor|done|abort|score|new-attempt`); `{}` means no human-only exercise commands. Every launcher named in `human_only` is also frozen against edits and added to the build's executable launchers, alongside the hard-coded `gate`, `preflight`, `tdd` and `race`. The `gate` list is always hard-coded. A malformed field makes the build fail and the guard deny every Bash call.
 
 A level with no `gate` is treated as `{"type": "none"}`. For `verified` gates the only built-in validator is `gate.answer`, which checks the answer locally against the question's `accept`/range (`answers.matches`); anything else must be `tool.<name>`. `crypto` and `crypto-reflection` gates ignore `condition` and `validator`.
 
@@ -195,7 +198,7 @@ An answer that cannot be parsed ("answer with a number, e.g. 0.0093 or 1.2e-3") 
 
 ## 8. Hooks
 
-Wired in `.claude/settings.json`: `SessionStart` runs `model_check.py`, `UserPromptSubmit` runs `teacher_context.py`, `PreToolUse` (matcher `Read|Edit|Write|MultiEdit|NotebookEdit|Bash|Grep|Glob`) runs `guard.py`, `PreModelSwitch` (matcher `.*`) runs `model_lock.py`. They are exec-form commands (`python3` with `${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.py`) with a 10 second timeout; `guard.py` and `model_lock.py` set `onFailure: "block"` so a crash or timeout blocks. The settings file also sets `permissions.defaultMode` to `plan` and a deny list for the vault, state, tool and `.claude` paths, human-only `gate` and `tdd` subcommands and package managers. All hooks use only the standard library and run on Python 3.9+. They find the repo through `CLAUDE_PROJECT_DIR`, falling back to the current directory. The hook and settings schemas were verified against the docs (see `docs/DECISIONS.md`).
+Wired in `.claude/settings.json`: `SessionStart` runs `model_check.py`, `UserPromptSubmit` runs `teacher_context.py`, `PreToolUse` (matcher `Read|Edit|Write|MultiEdit|NotebookEdit|Bash|Grep|Glob`) runs `guard.py`, `PreModelSwitch` (matcher `.*`) runs `model_lock.py`. They are exec-form commands (`python3` with `${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.py`) with a 10 second timeout; `guard.py` and `model_lock.py` set `onFailure: "block"` so a crash or timeout blocks. The settings file also sets `permissions.defaultMode` to `plan` and a deny list for the vault, state, tool and `.claude` paths, human-only `gate` subcommands, the exercise's human-only subcommands and package managers. The build renders the exercise part: the template holds one placeholder element, `"__HUMAN_ONLY_DENY__"`, which `tools/build.py` replaces with `Bash(./<launcher> <sub> *)` entries from the manifest's `human_only` (the tdd default when absent) and fails if the placeholder is left over or the result is not valid JSON. All hooks use only the standard library and run on Python 3.9+. They find the repo through `CLAUDE_PROJECT_DIR`, falling back to the current directory. The hook and settings schemas were verified against the docs (see `docs/DECISIONS.md`).
 
 Deny output is `{"hookSpecificOutput": {"hookEventName": ..., "permissionDecision": "deny", "permissionDecisionReason": ...}}` on stdout with exit 0. Allowing is exit 0 with no output.
 
@@ -204,7 +207,7 @@ Deny output is `{"hookSpecificOutput": {"hookEventName": ..., "permissionDecisio
 | `guard.py` (PreToolUse) | `tool_name`, `tool_input` (`file_path`, `notebook_path`, `path`, `pattern`, `command`); `.workshop/state.json` (level); the level's `guard.json`; `.tdd/phase` | Denies malformed input, a non-string tool name, a non-object `tool_input`, and missing state. For path tools: denies secret paths for every tool; for edit tools also denies paths outside the repo, frozen files and the level's frozen globs, and anything not matching `editable`. For Bash: see below. Any unexpected exception also denies. |
 | `model_lock.py` (PreModelSwitch) | `to_model` (or `requested_model`); `allowed_models` from state | Allows if any allowed alias is a substring of the target (case-insensitive). Denies on malformed input, missing state, no target, or no match, with "Today's exercise uses <model>. Ask a facilitator for a power-up." |
 | `teacher_context.py` (UserPromptSubmit) | state `level` and `persona`, manifest level title, `.workshop/levels/N/persona.txt`, the tool's `teacher_context_extra` | Prints `WORKSHOP LEVEL n - <title> - persona: <mode>` followed by the persona text. If the first line of `persona.txt` starts `persona:` it overrides the mode and is dropped. Prints a short warning, rather than failing, if gatekit, state or the manifest are missing or the tool errors. Plain stdout becomes context. |
-| `model_check.py` (SessionStart) | `model` (optional) | Prints a warning into context if `model` is present and matches no allowed model; prints a "run ./gate reset" notice if state is missing. Never blocks. Best effort, since Claude Code does not always send `model`. |
+| `model_check.py` (SessionStart) | `model` (optional) | When `model` is present, always prints `WORKSHOP: this session started on <model>; /status shows the current model.` into context (it reports the starting model only, and goes stale after a `/model` power-up), and also prints a warning if it matches no allowed model; prints a "run ./gate reset" notice if state is missing. Never blocks. Best effort, since Claude Code does not always send `model`. |
 
 ### guard.json
 
@@ -229,14 +232,14 @@ The phase is read from `.tdd/phase` (`none`, `red`, `green` or `refactor`; anyth
 Always blocked, whatever the level (`hooklib.py`):
 
 - `SECRET_DIRS` (no read, list or write): `.vault`, `.workshop`, `.tdd`, `.claude`, `.gatekit`, `.tdd-tools`, `.git`.
-- `FROZEN_FILES` (readable, never editable): `gate`, `tdd`, `preflight`, `CLAUDE.md`, `README.md`, `BRIEF.md`, `CLIENT_SPEC.md`, `Makefile`, `pytest.ini`, `requirements.txt`, `.gitignore`, plus the `data/` directory.
+- `FROZEN_FILES` (readable, never editable; the manifest's `human_only` launchers are added at run time): `gate`, `tdd`, `race`, `preflight`, `CLAUDE.md`, `README.md`, `BRIEF.md`, `CLIENT_SPEC.md`, `Makefile`, `pytest.ini`, `requirements.txt`, `.gitignore`, plus the `data/` directory.
 
 ### Bash matching is best effort
 
 `guard.py` applies regexes to the command text. It denies a command that:
 
 - mentions a secret directory as a path component (for example `cat .vault/level1.pack`, `ls .workshop`);
-- runs `gate unlock|hint|skip|reset|allow-model` or `tdd red|green|refactor|done|score|new-attempt`;
+- runs `gate unlock|hint|skip|reset|allow-model` or one of the manifest's `human_only` exercise commands (default `tdd red|green|refactor|done|abort|score|new-attempt`), including the indirect `<launcher> $VAR` form; the guard reads `.gatekit/manifest.json` on each Bash call and denies when it cannot be read or `human_only` is malformed;
 - invokes a package manager (`pip`, `python -m pip`, `uv`, `brew`, `npm`, `conda`, `pipx`, `poetry`, `easy_install`);
 - uses pty tricks (`pty`, `openpty`, `script `, `expect`, `unbuffer`, `socat`, `faketty`);
 - contains a write verb (redirection, `tee`, `sed -i`, `cp`, `mv`, `rm`, `touch`, `mkdir`, `chmod`, `ln`, `patch`, mutating `git` subcommands, or `python`, `perl`, `ruby`, `node`) and also mentions a frozen file, a frozen directory or the base of a frozen glob.
@@ -271,8 +274,8 @@ cd gatekit && python3 -m unittest discover -s . -t . -p 'test_*.py'
 |---|---|
 | `test_crypto_packs.py` | Keystream round-trip, slot wrap and unwrap, verify token, deterministic tar, pack round-trip with the master slot, tamper detection via the MAC, `seal_json`, unsafe member paths. |
 | `test_answers_state.py` | Keyword synonyms and Greek, choice, numeric grid and units, numeric-log, free, crypto slot enumeration; state round-trip, level advance and corrupt state. |
-| `test_build.py` | Builds the fixture exercise: layout and determinism, wrong then right answer through the real `gate`, master skip and model power-up, and that `preflight` runs. |
-| `test_hooks.py` | `guard.py` against synthetic hook JSON (vault read, `gate unlock`, package managers and pty, secret paths, frozen edits, normal work, malformed input, missing state, phase rules); `model_lock.py` allow, deny and power-up; `teacher_context.py` persona per level; `model_check.py`. |
+| `test_build.py` | Builds the fixture exercise: layout and determinism, rendered `human_only` deny rules and the tdd fallback, wrong then right answer through the real `gate`, master skip and model power-up, and that `preflight` runs. |
+| `test_hooks.py` | `guard.py` against synthetic hook JSON (vault read, `gate unlock`, package managers and pty, secret paths, frozen edits, normal work, malformed input, missing state, phase rules); `model_lock.py` allow, deny and power-up; `teacher_context.py` persona per level; `model_check.py` (model line and warning); manifest-driven `human_only` denials and the fail-closed bad-manifest case. |
 | `test_tty_cli.py` | Human-only commands refuse without a TTY; `hint` and `reset` succeed through a pty. |
 
 `tests/fakerepo.py` builds a throwaway repo and `tests/fixture_exercise/` is the small exercise the build tests use.
@@ -285,7 +288,7 @@ This is a learning scaffold, not an exam proctor (docs/00 §5.6). A group that w
 
 ### Hard to bypass
 
-- Crypto gates (Exercises A–C): a slot opens only with the check token T plus the human answer, and no key for them exists in the repo. Without both, later-level content stays encrypted.
+- Crypto gates (Exercises A–C): a slot opens only with the check token T plus the human answer, and no key for them exists in the repo. Without both, later-level content stays encrypted. For the Speed Run this is weaker than it sounds: its check scripts print a fixed line, so each crypto gate's only secret is the human answer (one value, 23 values, or four letters), which a determined group could guess offline against the pack.
 - Writes outside the repo or to frozen files, and `..`, absolute, `~` and `/tmp/../` paths through Read and Edit.
 - A wrong master passphrase leaks nothing (PBKDF2, 100k iterations).
 
@@ -318,7 +321,7 @@ An adversarial review attacked a fresh `dist/tdd-ladder` as a Claude session who
 - Path checks are case-insensitive. APFS is case-insensitive, so `.VAULT/keys.bin` was readable and `.CLAUDE/hooks/guard.py` was writable.
 - The secret-path regex matches after stripping quotes and backslashes, and inside `ref:path` forms.
 - Git object readers are blocked: show, cat-file, archive, bundle, fast-export, grep, ls-tree, rev-list, format-patch, diff-tree, `log -p/--patch`, and `config core.hooksPath`.
-- Human-only `gate` and `tdd` commands are matched after quote stripping and with variables.
+- Human-only `gate` commands and the manifest's `human_only` commands (`tdd` by default) are matched after quote stripping and with variables.
 - Package-manager variants are blocked: `-mpip`, ensurepip, uvx, `| sh`, `| python3`.
 - Dot-glob and brace patterns that could expand to a dotdir are blocked; Grep `glob` and Glob dot-patterns are checked.
 - `gatekit/ptyhelper.py` is no longer shipped in `dist/`.

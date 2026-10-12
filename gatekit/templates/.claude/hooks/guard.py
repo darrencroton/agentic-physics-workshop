@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.join(ROOT, ".gatekit"))
 
 try:
     from gatekit import hooklib as H
+    from gatekit import manifest as manifest_mod
 except ImportError:
     sys.stdout.write('{"hookSpecificOutput": {"hookEventName": "PreToolUse", '
                      '"permissionDecision": "deny", "permissionDecisionReason": '
@@ -95,13 +96,24 @@ def check_path_tool(tool, tool_input, editable, frozen_extra, message):
     if tool in H.EDIT_TOOLS:
         if resolved is None:
             H.deny(EVENT, MSG_OUTSIDE)
+        launchers = tuple(human_only_spec())
         for rel in candidates:
-            if H.is_frozen(rel):
+            if H.is_frozen(rel, launchers):
                 H.deny(EVENT, MSG_FROZEN)
             if H.any_match(rel, frozen_extra):
                 H.deny(EVENT, message)
         if not all(H.any_match(rel, editable) for rel in candidates):
             H.deny(EVENT, message)
+
+
+def human_only_spec():
+    """Launcher -> human-only subcommands from the manifest; deny when unreadable."""
+    try:
+        manifest = manifest_mod.load_root_manifest(ROOT)
+        return H.human_only(manifest)
+    except (manifest_mod.ManifestError, ValueError) as exc:
+        H.deny(EVENT, "Guard could not read the workshop manifest (%s); "
+               "failing closed." % exc)
 
 
 def check_bash(tool_input, editable, frozen_extra, message):
@@ -118,8 +130,10 @@ def check_bash(tool_input, editable, frozen_extra, message):
     if any(re.search(p, text) for p in H.ALWAYS_DENY):
         H.deny(EVENT, "Symbolic links are not needed today; work in the "
                "files the level allows.")
-    if (re.search(H.HUMAN_GATE, text) or re.search(H.HUMAN_TDD, text)
-            or re.search(H.HUMAN_INDIRECT, text)):
+    spec = human_only_spec()
+    direct, indirect = H.human_only_patterns(spec)
+    if (re.search(H.HUMAN_GATE, text) or re.search(indirect, text)
+            or any(re.search(p, text) for p in direct)):
         H.deny(EVENT, MSG_GATE)
     if any(re.search(p, text) for p in H.PACKAGE_MANAGERS):
         H.deny(EVENT, MSG_PKG)
@@ -129,7 +143,7 @@ def check_bash(tool_input, editable, frozen_extra, message):
         H.deny(EVENT, "That git command can print the vault or the tool sources. "
                "Use git status, git diff, git log --stat and git add/commit.")
     if H.has_write_verb(command):
-        for frozen in H.FROZEN_FILES + H.FROZEN_DIRS:
+        for frozen in H.FROZEN_FILES + tuple(spec) + H.FROZEN_DIRS:
             if H.mentions_path(command, frozen):
                 H.deny(EVENT, MSG_FROZEN)
         for pattern in frozen_extra:

@@ -15,7 +15,7 @@ import sys
 SECRET_DIRS = (".vault", ".workshop", ".tdd", ".claude", ".gatekit",
                ".tdd-tools", ".git")
 # Paths Claude may read but never edit (launchers and build-controlled files).
-FROZEN_FILES = ("gate", "tdd", "preflight", "CLAUDE.md", "README.md",
+FROZEN_FILES = ("gate", "tdd", "race", "preflight", "CLAUDE.md", "README.md",
                 "BRIEF.md", "CLIENT_SPEC.md", "Makefile", "pytest.ini",
                 "requirements.txt", ".gitignore")
 FROZEN_DIRS = ("data",)
@@ -26,8 +26,10 @@ PATH_TOOLS = {"Read": "file_path", "Edit": "file_path", "Write": "file_path",
 EDIT_TOOLS = ("Edit", "Write", "MultiEdit", "NotebookEdit")
 
 HUMAN_GATE = r"\bgate\b[^|;&\n]*\b(unlock|hint|skip|reset|allow-model)\b"
-HUMAN_TDD = r"\btdd\b[^|;&\n]*\b(red|green|refactor|done|abort|score|new-attempt)\b"
-HUMAN_INDIRECT = r"\b(gate|tdd)\b\s+\$"
+# Human-only exercise-tool subcommands used when a manifest has no "human_only".
+DEFAULT_HUMAN_ONLY = {"tdd": ["red", "green", "refactor", "done", "abort",
+                              "score", "new-attempt"]}
+_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
 PACKAGE_MANAGERS = (r"\bpip3?\b", r"-m\s*pip\b", r"\bensurepip\b", r"\buvx?\b",
                     r"\bbrew\b", r"\bnpm\b", r"\bconda\b", r"\bpipx\b",
                     r"\bpoetry\b", r"\beasy_install\b",
@@ -112,6 +114,37 @@ def load_manifest(root):
     return load_json(os.path.join(root, ".gatekit", "manifest.json"))
 
 
+def human_only(manifest):
+    """Launcher name -> subcommand list of human-only exercise commands.
+
+    Uses the manifest's optional "human_only" field, else the tdd default.
+    Raises ValueError when the field is malformed.
+    """
+    spec = manifest.get("human_only") if isinstance(manifest, dict) else None
+    if spec is None:
+        return {k: list(v) for k, v in DEFAULT_HUMAN_ONLY.items()}
+    if not isinstance(spec, dict):
+        raise ValueError("human_only must be an object")
+    result = {}
+    for launcher, subs in spec.items():
+        if (not _NAME_RE.match(str(launcher)) or not isinstance(subs, list)
+                or not all(isinstance(s, str) and _NAME_RE.match(s)
+                           for s in subs)):
+            raise ValueError("human_only entry %r is malformed" % (launcher,))
+        result[launcher] = list(subs)
+    return result
+
+
+def human_only_patterns(spec):
+    """(direct, indirect) regexes for human-only commands from `human_only()`."""
+    direct = [r"\b%s\b[^|;&\n]*\b(%s)\b"
+              % (re.escape(launcher), "|".join(re.escape(s) for s in subs))
+              for launcher, subs in sorted(spec.items()) if subs]
+    launchers = ["gate"] + sorted(spec)
+    indirect = r"\b(%s)\b\s+\$" % "|".join(re.escape(n) for n in launchers)
+    return direct, indirect
+
+
 def level_dir(root, level):
     """Directory holding the unlocked files for `level`."""
     return os.path.join(root, ".workshop", "levels", str(level))
@@ -163,10 +196,14 @@ def is_secret(rel):
     return any(in_dir(low, d.lower()) for d in SECRET_DIRS)
 
 
-def is_frozen(rel):
-    """True for build-controlled paths Claude may read but not edit."""
+def is_frozen(rel, launchers=()):
+    """True for build-controlled paths Claude may read but not edit.
+
+    `launchers` are extra frozen file names, such as the manifest's
+    human-only launchers.
+    """
     low = rel.lower()
-    if low in {f.lower() for f in FROZEN_FILES}:
+    if low in {f.lower() for f in tuple(FROZEN_FILES) + tuple(launchers)}:
         return True
     return any(in_dir(low, d.lower()) for d in FROZEN_DIRS)
 

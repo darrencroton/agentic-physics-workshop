@@ -169,6 +169,63 @@ class GuardTests(unittest.TestCase):
         self.deny(tool("Edit", file_path="src/a.py", old_string="a", new_string="b"), "gate reset")
 
 
+class GuardHumanOnlyTests(unittest.TestCase):
+    def setUp(self):
+        manifest = dict(fakerepo.MANIFEST, human_only={"race": ["submit"]})
+        self.root = fakerepo.make(manifest=manifest)
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def decision(self, command):
+        proc, decision, _ = run_hook(self.root, "guard.py", tool("Bash", command=command))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return decision
+
+    def test_manifest_human_only_denied(self):
+        for cmd in ("./race submit", "./race submit --foo", "./race --fast submit",
+                    "./ra''ce 'sub'mit", "C=submit; ./race $C", "./race $CMD",
+                    "yes | ./race submit"):
+            self.assertEqual(self.decision(cmd), "deny", cmd)
+
+    def test_other_commands_allowed(self):
+        for cmd in ("./race status", "./race log", "./race bench 1000", "cat race.toml",
+                    "./tdd score"):
+            self.assertIsNone(self.decision(cmd), cmd)
+
+    def edit_decision(self, path):
+        payload = tool("Edit", file_path=path, old_string="a", new_string="b")
+        proc, decision, _ = run_hook(self.root, "guard.py", payload)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return decision
+
+    def test_manifest_launcher_is_frozen(self):
+        self.assertEqual(self.edit_decision("race"), "deny")
+        self.assertIsNone(self.edit_decision("src/a.py"))
+
+    def test_new_manifest_launcher_is_frozen(self):
+        manifest = os.path.join(self.root, ".gatekit", "manifest.json")
+        with open(manifest, "w") as fh:
+            json.dump(dict(fakerepo.MANIFEST, human_only={"lab": ["submit"]}), fh)
+        self.assertEqual(self.edit_decision("lab"), "deny")
+
+    def test_unreadable_manifest_denies_edits(self):
+        manifest = os.path.join(self.root, ".gatekit", "manifest.json")
+        with open(manifest, "w") as fh:
+            fh.write("not json")
+        self.assertEqual(self.edit_decision("src/a.py"), "deny")
+
+    def test_unreadable_manifest_denies(self):
+        manifest = os.path.join(self.root, ".gatekit", "manifest.json")
+        for text in ("not json", json.dumps(dict(fakerepo.MANIFEST, human_only=["race"])),
+                     json.dumps(dict(fakerepo.MANIFEST, human_only={"race": "submit"}))):
+            with open(manifest, "w") as fh:
+                fh.write(text)
+            self.assertEqual(self.decision("./race status"), "deny", text)
+        os.unlink(manifest)
+        self.assertEqual(self.decision("./race status"), "deny")
+
+
 class GuardPhaseTests(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.root)
@@ -268,9 +325,13 @@ class TeacherContextTests(unittest.TestCase):
             proc, _, _ = run_hook(root, "model_check.py",
                                   {"hook_event_name": "SessionStart", "model": "claude-opus-5-5"})
             self.assertIn("WARNING", proc.stdout)
+            self.assertIn("WORKSHOP: this session started on claude-opus-5-5; "
+                          "/status shows the current model.", proc.stdout)
             proc, _, _ = run_hook(root, "model_check.py",
                                   {"hook_event_name": "SessionStart", "model": "claude-haiku-5-5"})
-            self.assertEqual(proc.stdout.strip(), "")
+            self.assertEqual(proc.stdout.strip(),
+                             "WORKSHOP: this session started on claude-haiku-5-5; "
+                             "/status shows the current model.")
             proc, _, _ = run_hook(root, "model_check.py", {"hook_event_name": "SessionStart"})
             self.assertEqual(proc.stdout.strip(), "")
         finally:

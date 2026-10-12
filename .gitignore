@@ -5,3 +5,7 @@ dist/
 .ruff_cache/
 *.pyc
 __pycache__/
+*.so
+*.dylib
+*.o
+*.dSYM/

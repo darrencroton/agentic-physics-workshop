@@ -1,0 +1,34 @@
+# Ruff configuration for the workshop builder.
+# target-version py39: gatekit and racetool must import on Python 3.9, so
+# zip(strict=) (3.10+) is not available and B905 does not apply.
+
+target-version = "py39"
+
+[lint]
+select = [
+  "F",     # pyflakes: unused imports and variables, undefined names, f-string
+           # bugs. The core of the tool -- F841 is the dead-local class that
+           # five supervised runs shipped and two LLM reviewers missed.
+  "E9",    # syntax and IO errors: the file could not even be parsed.
+  "B",     # bugbear: real traps, not style. B905 zip-without-strict silently
+           # truncates to the shortest input -- a genuine defect in numerical
+           # code; B904 loses the original traceback on re-raise.
+  "T10",   # a forgotten pdb/breakpoint left in committed code.
+  "DTZ",   # naive and deprecated datetime calls, including utcnow().
+  "ASYNC", # blocking calls inside async functions.
+  "PLE",   # pylint's error tier only -- never its convention or refactor tiers.
+]
+
+# Deliberately NOT selected, with the reason, so the next person does not
+# "helpfully" add them back:
+#   I    import sorting            -- pure ordering, no defect
+#   C4   comprehension rewrites    -- C408 fights a documented dict() convention
+#   SIM  simplifications           -- judgement; often less readable
+#   UP   pyupgrade                 -- modernisation, not correctness
+#   E4   import placement          -- E402 fires on deliberate sys.path fixups
+#   E7   statement style           -- E702 is semicolons, pure taste
+#   E5   line length               -- house style (cf. MD013 in markdownlint)
+#   RUF  ruff-specific             -- mixed; RUF001-003 flag unicode that is
+#                                     legitimate in scientific prose
+#   S    bandit                    -- security focus, low value for numerics;
+#                                     available per-repo if a project wants it

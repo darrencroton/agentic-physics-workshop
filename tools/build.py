@@ -5,14 +5,16 @@ usage: tools/build.py <exercise> --master-passphrase-file <path> [--out DIR]
                       [--setup-python PATH] [--keep-venv]
 
 Steps: wipe and recreate the output, copy level0/, templates and tools,
-render CLAUDE.md, pack levels and hidden assets, write .workshop/, git init,
-commit "Workshop start" and tag `start`.
+render CLAUDE.md, render settings.json (model and the human-only deny rules
+from the manifest), make the launchers executable, pack levels and hidden
+assets, write .workshop/, git init, commit "Workshop start" and tag `start`.
 """
 
 import argparse
 import itertools
 import json
 import os
+import re
 import secrets
 import shutil
 import subprocess
@@ -22,9 +24,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TOP = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(TOP, "gatekit"))
 
-from gatekit import answers, crypto, packs, manifest as mf  # noqa: E402
+from gatekit import answers, crypto, hooklib, packs, manifest as mf  # noqa: E402
 
 LEVEL_PRIVATE = ("persona.txt", "hints.json", "guard.json")
+DENY_PLACEHOLDER = "__HUMAN_ONLY_DENY__"
 
 
 def log(text):
@@ -128,9 +131,14 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
 
     render(os.path.join(out, ".claude", "settings.json"),
            {"__MODEL__": manifest.get("models", {}).get("default", "haiku")})
+    render_human_only_deny(os.path.join(out, ".claude", "settings.json"),
+                           manifest)
     render(os.path.join(out, "preflight"),
            {"__SETUP_PYTHON__": setup_python or "python3"})
-    for name in ("gate", "preflight", "tdd", "race"):
+    launchers = ("gate", "preflight", "tdd", "race") + tuple(
+        n for n in hooklib.human_only(manifest)
+        if n not in ("gate", "preflight", "tdd", "race"))
+    for name in launchers:
         path = os.path.join(out, name)
         if os.path.exists(path):
             os.chmod(path, 0o755)
@@ -225,6 +233,42 @@ def render(path, replacements):
         text = fh.read()
     for old, new in replacements.items():
         text = text.replace(old, new)
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(text)
+
+
+def deny_entries(manifest):
+    """Bash deny rules for the manifest's human-only exercise commands."""
+    try:
+        spec = hooklib.human_only(manifest)
+    except ValueError as exc:
+        raise SystemExit("manifest: %s" % exc) from exc
+    return ["Bash(./%s %s *)" % (launcher, sub)
+            for launcher, subs in spec.items() for sub in subs]
+
+
+def render_human_only_deny(path, manifest):
+    """Replace the placeholder deny element in settings.json with the rules."""
+    with open(path, "r", encoding="utf-8") as fh:
+        text = fh.read()
+    pattern = re.compile(r'^([ \t]*)"%s",[ \t]*\n' % DENY_PLACEHOLDER,
+                         re.MULTILINE)
+    if len(pattern.findall(text)) != 1:
+        raise SystemExit("settings.json template needs exactly one %s element"
+                         % DENY_PLACEHOLDER)
+    entries = deny_entries(manifest)
+
+    def expand(match):
+        return "".join("%s%s,\n" % (match.group(1), json.dumps(e))
+                       for e in entries)
+
+    text = pattern.sub(expand, text)
+    if DENY_PLACEHOLDER in text:
+        raise SystemExit("placeholder left in settings.json")
+    try:
+        json.loads(text)
+    except ValueError as exc:
+        raise SystemExit("rendered settings.json is invalid: %s" % exc) from exc
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(text)
 

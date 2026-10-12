@@ -1,0 +1,11 @@
+{
+  "editable": [
+    "LOG.md"
+  ],
+  "frozen": [
+    "paircount/**",
+    "race.toml",
+    "bench/**"
+  ],
+  "message": "Level 0 is measurement only. Claude may edit only LOG.md; paircount/ is frozen until you unlock Level 1, so that you measure before you optimise."
+}
