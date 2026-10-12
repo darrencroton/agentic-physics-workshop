@@ -99,3 +99,7 @@ Sources: https://code.claude.com/docs/en/hooks, …/hooks-guide, …/permissions
 ## External review panel, round 3 (2026-10-12; verification of round 2)
 
 All round-2 items confirmed resolved by both reviewers. New: a command substitution (`$(…)` or backticks) inside a stripped commit message escaped the secret-path check (Codex serious, Claude moderate). Fixed: only literal messages (no `$` or backtick) are stripped, per `git commit` segment, so multiple `-m` flags also work; absolute repo paths are reduced to relative before matching. Minor: abort's restore commit now has a `tests` pathspec; the "tests kept" message says RED needs a passing suite. Accepted: `/Volumes/data/...`-style clone paths can trip the frozen-path check on Bash writes (clear message, path tools unaffected).
+
+## External review panel, round 4 (2026-10-12; verification of round 3)
+
+Both reviewers found the same residual: message text that itself looks like `-m '…'` (nested inside a substitution) was still stripped. Fixed in `89cec79`: when a command contains `$(`, a backtick, `${` or `<(` anywhere, nothing is stripped and the raw command is inspected. Accepted false positive: a literal commit message containing `;` and a secret-looking token is denied (fails safe). Reviewer summary across four rounds: Codex gpt-6.1-sol (read-only sandbox, high effort) and Claude Opus 5.5 (plan mode, high effort), both launched through the orchestrator; every serious finding was independently verified in the code before fixing.
