@@ -1,0 +1,89 @@
+{
+  "source": "ATNF Pulsar Catalogue v2.9.0, https://www.atnf.csiro.au/research/pulsar/psrcat/",
+  "citation": "Manchester, Hobbs, Teoh & Hobbs 2005, AJ 129, 1993",
+  "licence": "Free to use with acknowledgement (cite Manchester et al. 2005); CSIRO ATNF property, see the CSIRO Legal Notice on the catalogue site",
+  "columns": {
+    "JNAME": {
+      "numeric": false,
+      "description": "Pulsar name (J2000)"
+    },
+    "GL": {
+      "numeric": true,
+      "unit": "deg",
+      "description": "Galactic longitude",
+      "log": false
+    },
+    "GB": {
+      "numeric": true,
+      "unit": "deg",
+      "description": "Galactic latitude",
+      "log": false
+    },
+    "DIST": {
+      "numeric": true,
+      "unit": "kpc",
+      "description": "Best distance estimate",
+      "log": true
+    },
+    "DIST_DM": {
+      "numeric": true,
+      "unit": "kpc",
+      "description": "Distance from DM (YMW16)",
+      "log": true
+    },
+    "XX": {
+      "numeric": true,
+      "unit": "kpc",
+      "description": "Galactocentric X (Sun at 0, 8.5, 0)",
+      "log": false
+    },
+    "YY": {
+      "numeric": true,
+      "unit": "kpc",
+      "description": "Galactocentric Y (Sun at 0, 8.5, 0)",
+      "log": false
+    },
+    "ZZ": {
+      "numeric": true,
+      "unit": "kpc",
+      "description": "Galactocentric Z, towards north pole",
+      "log": false
+    },
+    "P0": {
+      "numeric": true,
+      "unit": "s",
+      "description": "Spin period",
+      "log": true
+    },
+    "P1": {
+      "numeric": true,
+      "unit": "",
+      "description": "Period derivative (s/s)",
+      "log": true
+    },
+    "DM": {
+      "numeric": true,
+      "unit": "cm^-3 pc",
+      "description": "Dispersion measure",
+      "log": true
+    },
+    "AGE": {
+      "numeric": true,
+      "unit": "yr",
+      "description": "Characteristic age P/(2 Pdot)",
+      "log": true
+    },
+    "BSURF": {
+      "numeric": true,
+      "unit": "G",
+      "description": "Surface magnetic field",
+      "log": true
+    },
+    "EDOT": {
+      "numeric": true,
+      "unit": "erg/s",
+      "description": "Spin-down luminosity",
+      "log": true
+    }
+  }
+}

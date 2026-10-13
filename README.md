@@ -18,10 +18,11 @@ Hands-on exercises for a workshop of about 70 minutes (a 15-minute lecture, then
 |---|---|---|---|---|---|
 | **B** | **Speed Run.** A correct but painfully slow pair counter for galaxy clustering. Make it fast without ever getting a wrong answer: measure first, survive the memory wall, change the algorithm, then race. Every run is checked against golden counts you cannot see; a wrong answer scores zero, and "correct" is a decision the group must declare. | Measure first; a correctness gate is non-negotiable | Haiku | **Ready** (self-tested; live calibration pending) | [`exercises/speed-run/FACILITATOR-WALKTHROUGH.md`](exercises/speed-run/FACILITATOR-WALKTHROUGH.md) |
 | **D** | **The TDD Ladder.** Implement one small binning function several times, from "just build it" to tests you can trust. At every step an objective scorecard runs the group's tests against deliberately broken copies of the function and reports how many they catch. | You define "correct"; the agent cannot | Haiku | **Ready** (self-tested; live calibration pending) | [`exercises/tdd-ladder/FACILITATOR-WALKTHROUGH.md`](exercises/tdd-ladder/FACILITATOR-WALKTHROUGH.md) |
+| **E** | **Explorer.** Have Claude build a small browser tool that plots any columns of a real physics dataset (ATNF pulsars or CMS dimuons) against each other, in 2D or 3D, coloured by any other column, with every axis chosen from a drop-down menu. Do it the way the lecture says to: plan in plan mode, build in small checked steps, write your own test list before Claude's, then get a fresh-context `reviewer` agent to review it and triage its findings yourselves, committing each step that works. Each gate checks that the step happened and that the tool runs; a human has to look at the page to answer the graded question. The group leaves with `PLAYBOOK.md`, a one-page script to reuse on their own code. | Plan, build, test, review: the workflow as a habit | Sonnet | **Ready** (self-tested; live calibration pending) | [`exercises/explorer/FACILITATOR-WALKTHROUGH.md`](exercises/explorer/FACILITATOR-WALKTHROUGH.md) |
 | A | **Two Roads.** Two H₀ engines disagree on the same catalogue. Find out why, fix it properly, and leave code you would trust. | Evidence-driven debugging; agreement is not correctness | Haiku | Designed | `docs/01-two-roads.md` |
 | C | **Fortran Archaeology.** Port legacy code and prove the port is equivalent. | Establish the oracle before you change anything | Sonnet | Designed | `docs/03-fortran-archaeology.md` |
 
-Each exercise's **facilitator walkthrough** is the operating guide to that exercise, for the facilitator and the group leaders: building and distributing it, setting up a leader's laptop, running the session, every level with its gate answers, what to do when something goes wrong, and how to reset. It contains spoilers and is never copied into a participant repo. `docs/00-facilitator-guide.md` covers the whole session: the lecture, group roles, the leaders' briefing, the run-sheet and the trial. The pedagogical designs live in `docs/01`–`04`; where an exercise has been built, its walkthrough supersedes the design.
+Each exercise's **facilitator walkthrough** is the operating guide to that exercise, for the facilitator and the group leaders: building and distributing it, setting up a leader's laptop, running the session, every level with its gate answers, what to do when something goes wrong, and how to reset. It contains spoilers and is never copied into a participant repo. `docs/00-facilitator-guide.md` covers the whole session: the lecture, group roles, the leaders' briefing, the run-sheet and the trial. The pedagogical designs live in `docs/01`–`05`; where an exercise has been built, its walkthrough supersedes the design.
 
 ## How a session works
 
@@ -38,7 +39,7 @@ This is a learning scaffold, not an exam proctor. A group can cheat; they would 
 You build one participant repo per exercise from this repository, rehearse it, and send each group leader a copy as a git bundle. Leaders and participants never need this repository.
 
 1. **Plan.** Choose the exercises and the group leaders, and check everyone's Claude accounts: `docs/00-facilitator-guide.md` sections 1, 7 and 11.
-2. **Install the requirements** on your Mac: the Xcode Command Line Tools (`xcode-select --install`; they provide `git` and `clang`), Python 3.11 or newer (for example `brew install python@3.13`), Claude Code **2.1.295 or newer** (`claude --version`), a Claude account that can run Claude Code on Haiku, and a git identity (`git config --global user.name` and `user.email`).
+2. **Install the requirements** on your Mac: the Xcode Command Line Tools (`xcode-select --install`; they provide `git` and `clang`, which only the Speed Run needs), Python 3.11 or newer (for example `brew install python@3.13`), Claude Code **2.1.295 or newer** (`claude --version`), a Claude account that can run Claude Code on Haiku (and Sonnet, for Explorer), and a git identity (`git config --global user.name` and `user.email`).
 3. **Clone this repository and create the master passphrase.** You type it to skip a stuck group or grant a power-up; it is kept outside every repo.
 
    ```zsh
@@ -48,7 +49,7 @@ You build one participant repo per exercise from this repository, rehearse it, a
    chmod 600 ~/.config/workshop/master-passphrase
    ```
 
-4. **Build, check and rehearse each exercise you will run:** section 1 of its walkthrough. Play it through once yourself, on Haiku, before the day; `docs/00` section 6 has the fuller calibration matrix.
+4. **Build, check and rehearse each exercise you will run:** section 1 of its walkthrough. Play it through once yourself, on the exercise's model (Haiku, or Sonnet for Explorer), before the day; `docs/00` section 6 has the fuller calibration matrix.
 5. **Give each leader their repo:** section 2 of the walkthrough. You send a bundle made from a freshly built or reset repo, together with the walkthrough, and decide who types the master passphrase on the day. Leaders set up their own laptops with section 3.
 6. **Brief the leaders, then run the day:** `docs/00-facilitator-guide.md` has the leaders' briefing (section 7), the lecture (section 3) and the run-sheet and stuck protocol (section 8).
 7. **Afterwards:** each walkthrough says what to copy out for the record and how to reset between runs. For a trial run, `docs/00` section 9 says what to measure.
@@ -64,8 +65,8 @@ docs/               the pedagogical designs and the decision log
 ```
 
 - The toolkit, its manifest schema, gate types and limits are documented in [`gatekit/README.md`](gatekit/README.md).
-- An exercise is a directory under `exercises/` with a `manifest.json`, a plaintext `level0/`, one directory per later level (`BRIEF.md`, `persona.txt`, `hints.json`, `guard.json`, any new files, all encrypted at build time), a participant `CLAUDE.md`, an optional exercise tool and hidden assets, a self-test and a facilitator walkthrough. The TDD Ladder and the Speed Run are the worked examples; `exercises/speed-run/PLAN.md` shows the design contract the Speed Run was built from.
-- Everything the participant repo runs is standard-library Python, except the exercise code itself. `tools/build.py` and `gatekit/` run on the system `python3` (3.9 or newer); the exercise code runs in the participant repo's `.venv` (Python 3.11 or newer).
+- An exercise is a directory under `exercises/` with a `manifest.json`, a plaintext `level0/`, one directory per later level (`BRIEF.md`, `persona.txt`, `hints.json`, `guard.json`, any new files, all encrypted at build time), a participant `CLAUDE.md`, an optional exercise tool and hidden assets, a self-test and a facilitator walkthrough. The TDD Ladder, the Speed Run and Explorer are the worked examples; `exercises/speed-run/PLAN.md` and `exercises/explorer/PLAN.md` show the design contracts they were built from.
+- Everything the participant repo runs is standard-library Python, except the exercise code itself (numpy, scipy, matplotlib and pytest, and plotly and pytest-cov for Explorer, pinned in each exercise's `requirements.txt`). `tools/build.py` and `gatekit/` run on the system `python3` (3.9 or newer); the exercise code runs in the participant repo's `.venv` (Python 3.11 or newer).
 - `BUILD-SPEC.md`, `CLAUDE.md` and `PROGRESS.md` are the engineering spec, instructions and hand-off notes used to build this repository with Claude Code. `docs/DECISIONS.md` records the verified facts about Claude Code hooks and permissions, every deviation from the designs, and the review findings.
 
 ### Self-tests
@@ -76,6 +77,7 @@ Run once the exercise has been built and its `.venv` set up (step 4 of [Run the 
 cd gatekit && python3 -m unittest discover -s . -t . -p 'test_*.py'; cd ..
 python3 exercises/tdd-ladder/selftest/run.py --master-passphrase-file ~/.config/workshop/master-passphrase
 python3 exercises/speed-run/selftest/run.py --master-passphrase-file ~/.config/workshop/master-passphrase
+python3 exercises/explorer/selftest/run.py --master-passphrase-file ~/.config/workshop/master-passphrase
 ```
 
 The first runs the toolkit's unit tests. The others verify each exercise's hidden assets and then play the whole exercise through a pseudo-terminal: every level, every gate refusal, the expected result bands, the master skip and the reset. They leave the repo clean at level 0.

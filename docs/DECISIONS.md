@@ -196,3 +196,74 @@ Both reviewers confirmed every round-1 item resolved as implemented and found no
 | 2026-10-13 | Reset | The walkthroughs' reset (`./gate reset`, then `git reset --hard start && git clean -fdx -e .venv -e .workshop`) is canonical; `docs/00` points to it. | The short form `git reset --hard start && ./gate reset` leaves untracked work (SPEC.md, new tests, results) in place. |
 | 2026-10-13 | `docs/00` §5 | Condensed to the design intent and lecture points, with the as-built details left to `gatekit/README.md`. The section numbers are unchanged. | The repo layout, settings skeleton and key derivation no longer matched the build. |
 | 2026-10-13 | Session timing | The `docs/00` run-sheet gives 45 minutes from Go to Stop (Stop at T = 63, show-and-tell 65–70), matching its own "At a Glance" table and the built exercises' time checkpoints; the session is about 70 minutes, and the README says so. A hard 60 shortens the lecture and show-and-tell, not the hands-on. | The run-sheet allowed 40 minutes, so Speed Run groups lost their race and TDD groups their Level 4. |
+
+## Explorer (Exercise E) build (2026-10-13/14)
+
+### Claude Code facts (verified 2026-10-13 against https://code.claude.com/docs, installed Claude Code 2.1.296)
+
+| # | Item | Finding | Design consequence |
+|---|---|---|---|
+| 1 | Plan mode as the starting mode | `permissions.defaultMode` in project settings accepts `plan`. | The session starts in plan mode; Level 0 is planning only. |
+| 2 | `/code-review` | A bundled skill that runs as a background subagent with a fresh context and writes its output to the conversation only. | Not used for the gate: its output cannot be captured into `REVIEW.md` by the group. It stays in the playbook for home use. |
+| 3 | Subagents | They start fresh: their own prompt, the task and `CLAUDE.md`, not the conversation. | The shipped `reviewer` agent is a genuine fresh-context review. |
+| 4 | `.claude/agents/*.md` | Frontmatter keys `name`, `description`, `tools`, `model` (an alias such as `sonnet`) and `permissionMode`. | `reviewer.md` sets `tools: Read, Grep, Glob, Bash` and `model: sonnet`: it has no Edit or Write tool and is told never to modify files (Bash could). |
+| 5 | Stop hook | Exit code 2 blocks the stop; exit 1 does not. | Noted for the take-home notes; no Stop hook is shipped. |
+| 6 | `UserPromptSubmit` | Stdout becomes context for the turn. | Unchanged from the other exercises: the level brief and persona are injected this way. |
+| 7 | `Esc Esc` and `/rewind` | Restore the code and/or the conversation to an earlier point. | The playbook's "Recover" step names them. |
+| 8 | Pausing between plan steps | There is no native "pause between plan steps". | The briefs ask for one step at a time; the Driver's `Esc` is the pause. |
+| 9 | Model names | Aliases `haiku`, `sonnet`, `opus`; full ids of the form `claude-haiku-5-5`. | `models.default` and `allowed` use the alias `sonnet`. |
+
+Rendering check (2026-10-14): the page built by the reference solution was opened in Chrome for both datasets. The 2D to 3D switch works, the colour bar is titled "log10 P0 (s)", hovering shows every column with units, and there were no console errors. The dimuon J/ψ and Z bands are visible with log axes.
+
+### Deviations from `docs/05` and `exercises/explorer/PLAN.md`
+
+| Date | Area | Decision | Reason |
+|---|---|---|---|
+| 2026-10-13 | Check paths | The manifest names the checks `.gatekit/exploretool/checks/levelN.py`, not `checks/levelN.py`. | The gate CLI resolves check paths relative to the repo root. |
+| 2026-10-13 | Gatekit: last-level crypto gate | `tools/build.py` now sets `verify` for a crypto gate on the last level and fails the build if its token is missing; new gatekit unit test. | An exercise ending on a crypto gate could never complete: no later pack held the verify token. |
+| 2026-10-13 | Gatekit: build wipe | The `tools/build.py` wipe tolerates a Finder `.DS_Store` and always restores a stashed `.venv`; new unit test. | A rebuild died on a `.DS_Store` with the venv stranded in the stash. |
+| 2026-10-13 | `PLAN.md` template | The leader's note about the `Dataset:` line moved into an HTML comment above it. | A `<` on the `Dataset:` line would reach the shell through `make`. |
+| 2026-10-13 | `make list` at Level 0 | The README and hint 1 ask Claude for the missing-value counts; `make list` is introduced as working from Level 1. | The tool does not exist at Level 0, so `make list` cannot work there. |
+| 2026-10-13 | Level 1 keywords | Extra accepted forms: "the sun", "our sun", "the solar system", "the earth", "the solar neighbourhood" (both spellings), "the j/psi", "j/psi meson", "jpsi meson". | Keyword matching keeps articles and words; only case, spaces and punctuation are removed. |
+| 2026-10-13 | HTML check | `scattergl` and `scatter3d` are searched for outside the embedded plotly.js. | plotly.js itself contains both strings, so a search of the whole file would always pass. |
+| 2026-10-13 | Check order | The commit count is checked before the clean tree. | A group that has not committed enough would otherwise be told only that the tree is dirty; the commit sentence names the real fix. |
+| 2026-10-13 | `on_reset` | `exploretool.on_reset` removes `out/`. | A stale page from the last group must not survive a reset. |
+| 2026-10-13 | Template `.gitignore` | `out/` and `.coverage` added to the gatekit template `.gitignore` (harmless for the other exercises). | Generated pages and coverage files would otherwise show as untracked and dirty the tree. |
+| 2026-10-13 | Persona length | Personas run 210–235 words, over PLAN's 150–200. | The "Explain as you go" paragraph and the never-list are kept in full, as in the Speed Run. |
+| 2026-10-13 | Last-level note | The pre-reflection note after the final gate also mentions the reviewer agent. | The agent is part of what the group takes home with `PLAYBOOK.md`. |
+| 2026-10-13 | Data | Pulsars: 4,503 rows (catalogue v2.9.0), not about 3,700. Pulsars without a distance (74) have `XX`, `YY`, `ZZ` blanked. Dimuons: trimmed to the first 60,000 rows. | The real catalogue size; psrcat places pulsars with no distance at the Sun, which would plant false points where the Level 1 question looks; 60,000 rows keep `dimuons.csv` at 7.9 MB (under 8 MB) and still exercise sampling. |
+| 2026-10-13 | Reference solution | `build_page(payload, blob)` takes the serialised JSON. | The NaN variant (`solution_nan`) then overlays a single file. |
+| 2026-10-13 | Dependencies | `plotly` 7.1.0 and `pytest-cov` 7.1.0 added to the venv beside numpy 2.3.2 and pytest 9.1.1 (installed 2026-10-13, approved by the facilitator). | The page needs plotly's bundled plotly.js; `make coverage` needs pytest-cov. |
+
+## External review panel, round 1 for Explorer (2026-10-14; Codex gpt-6.1-sol high, Claude Opus 5.5 high, read-only via orchestrator, staggered parallel launch)
+
+Every finding was verified in the code by the integrator before a fix was assigned. The Level 1 headless plan-mode probe and the Claude Code docs could not settle whether plan mode's own plan-file write passes through the `PreToolUse` guard, so the guard now allows it either way.
+
+| Finding (reviewer) | Outcome |
+|---|---|
+| Level 3 required at least one FIX, so an honest short or clean review could not complete the exercise and invited a manufactured fix (Codex, serious) | Fixed: the gate needs three triaged findings with reasons and no FIX; the reviewer agent is asked for three to eight findings; briefs, walkthrough, docs/05 (§12 decision 14), PLAN.md and the self-test updated. |
+| `tools/build.py` now enables a last-level crypto gate, but `gate unlock` on the last level derives the answer's slot secret and never checks it, so a graded final question would accept any answer (Codex, serious; Explorer's final gate has no question) | Fixed: the build refuses a last-level crypto gate with graded questions; unit test added; `gatekit/README.md` §3 says so. |
+| Plan mode writes its plan file under `~/.claude/plans/`; the guard denies every Edit/Write outside the repo, so the session's first action might be refused (Claude, serious if confirmed; docs do not say whether that write goes through the Write hook) | Fixed defensively: `guard.py` allows edits under `~/.claude/plans` and `$CLAUDE_CONFIG_DIR/plans` only; unit test added. To confirm in the live calibration. |
+| The README never said the controls must be static HTML with the options written by Python, while the check parses the file without running JavaScript (Claude, moderate) | Fixed: one sentence in the README; the three refusal sentences say "the check does not run JavaScript". |
+| A REVIEW.md decision cell of "FIXED" or "FIX (done)" stopped counting at the last gate (Claude, moderate) | Fixed: the decision is matched by prefix. |
+| The Level 1 question can be answered from the column file or from physics knowledge, but the walkthrough said it could only be answered in the browser (Claude, moderate) | Fixed: reworded as "prompts a look"; added to the honest limits in the walkthrough and docs/05 §12. |
+| Hint 3 unlocked at 10 minutes on 8-minute levels, and the checkpoints told leaders to take it at 8 (both, moderate) | Fixed: tiers at 0, 3 and 6 minutes on Levels 0, 2 and 3 (0, 5, 10 on Level 1); checkpoints say "give hint 3's advice". |
+| A FIX label is not evidence that anything was fixed; the self-test completes Level 3 with only REVIEW.md committed (Codex, moderate) | Accepted and documented as a human check (walkthrough honest limits, docs/05 §12). The design's gates check that the step happened, not that it was done well. |
+| `docs/00` told facilitators to rehearse every exercise on Haiku and the calibration matrix starts on Haiku; Explorer allows only Sonnet (Codex, moderate) | Fixed: "the exercise's model"; the matrix note says runs 1–2 use Sonnet for Explorer. |
+| The reference solution cannot select a numeric column called `none` (Codex, moderate) | Accepted: the sample REVIEW.md records it as ACCEPT, which is itself the lesson; any CSV is the promise, a column literally named `none` is the edge. |
+| The Level 0 refusal said `tests/` opens at Level 1; it opens at Level 2 (Claude, minor) | Fixed. |
+| A two-step plan passes Level 0 but Level 1 needs three commits (Claude, minor) | Fixed in wording: the refusal says "commit each working step or fix (three commits or more)". |
+| Leaders' set-up omitted the Xcode Command Line Tools (`make`, `git`), and preflight's `make` failure hid the real error (Claude, minor) | Fixed: bullet added; `preflight_extra.py` reports `make`'s stderr. |
+| Level 3 runs both datasets, which a tool with pulsar-only assumptions discovers in the last eight minutes (Claude, minor) | Fixed: a line in the Level 1 brief. |
+| Five-person role row listed six people (Codex, minor) | Fixed: Coach and Scribe combine. |
+| DECISIONS said the reviewer "cannot edit"; Bash could (both, minor) | Fixed: "has no Edit or Write tool and is told never to modify files". |
+| docs/05 said `json.loads` rejects `NaN` by default; the check supplies `parse_constant` because the default accepts it (Codex, minor) | Fixed. |
+| PLAN.md still quoted 3,734 rows; the self-test docstring claimed every refusal is provoked (Claude, minor) | Fixed: 4,503; "most". |
+| PLAN.md numeric-column rule did not say a column needs at least one value; the palette sentence read as if it needed every column (Codex, open) | Fixed: both sentences reworded; README matches. |
+| A Bash command with a write verb that also names `data/` is refused even when it only reads the data, for example `cp data/pulsars.csv /tmp/x.csv` (Claude, risk) | Accepted, existing gatekit behaviour: a troubleshooting row in the walkthrough. |
+| Who types TESTS.md and REVIEW.md, given "all code goes through Claude" (Claude, open) | Fixed: the Level 2 and 3 briefs say the files are not code and may be typed directly or dictated. |
+| Live Sonnet timing for Level 1 (both, risk) | Open: the calibration run in `PROGRESS.md`. Hooks do run inside subagents (docs verified 2026-10-14), so the guard covers the reviewer agent; it is read-only, so no change. |
+
+## External review panel, round 2 for Explorer (2026-10-14; verification of round 1, same reviewers, continued sessions)
+
+Both reviewers judged every round-1 item resolved or accepted on stated grounds, with no serious findings. Fixed from this round: the walkthrough still described the removed "no FIX" refusal (both; now says an all-ACCEPT/REJECT triage passes); a decision cell naming more than one verdict ("ACCEPT / REJECT") was counted by the prefix match (Codex; now refused as undecided); the Level 1 table in docs/05 still said "only visible in the browser" (Codex; now "prompts a look"). Accepted: three triaged findings remain mandatory (Codex, residual): the reviewer is asked for three to eight and REJECT is a valid triage, so a clean review completes. Still open: the live Sonnet calibration, and confirming the plan-mode write is accepted in a real session.

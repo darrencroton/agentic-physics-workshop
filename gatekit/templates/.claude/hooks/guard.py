@@ -33,6 +33,22 @@ MSG_PTY = ("Faking a terminal is off limits. Human-only commands stay with "
 MSG_FROZEN = ("That file is part of the exercise scaffolding and is "
               "read-only. Work in the files the current level allows.")
 MSG_OUTSIDE = "Edits outside the workshop repo are not allowed today."
+
+
+def plan_file(path):
+    """Claude Code's own plan-mode files (~/.claude/plans or $CLAUDE_CONFIG_DIR/plans)."""
+    homes = [os.path.join(os.path.expanduser("~"), ".claude")]
+    if os.environ.get("CLAUDE_CONFIG_DIR"):
+        homes.append(os.environ["CLAUDE_CONFIG_DIR"])
+    try:
+        real = os.path.realpath(os.path.expanduser(path))
+    except (OSError, ValueError):
+        return False
+    for home in homes:
+        plans = os.path.realpath(os.path.join(home, "plans"))
+        if real == plans or real.startswith(plans + os.sep):
+            return True
+    return False
 MSG_STATE = ("Workshop state is missing. A human should run ./gate reset in "
              "the gate terminal.")
 
@@ -88,7 +104,7 @@ def check_path_tool(tool, tool_input, editable, frozen_extra, message):
     lexical, resolved = H.relative_paths(ROOT, path)
     candidates = [r for r in (lexical, resolved) if r is not None]
     if not candidates:
-        if tool in H.EDIT_TOOLS:
+        if tool in H.EDIT_TOOLS and not plan_file(path):
             H.deny(EVENT, MSG_OUTSIDE)
         return
     if any(H.is_secret(r) for r in candidates):

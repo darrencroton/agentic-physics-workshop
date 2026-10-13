@@ -1,0 +1,16 @@
+{
+  "tiers": [
+    {
+      "unlock_after_minutes": 0,
+      "text": "Ask: 'Talk me through the tests this needs, what coverage they give, and what they won't cover. Don't write them yet.'"
+    },
+    {
+      "unlock_after_minutes": 3,
+      "text": "Run make coverage. Which lines are never run by a test?"
+    },
+    {
+      "unlock_after_minutes": 6,
+      "text": "Ask Claude to break one thing deliberately and run the tests. Do they notice? Then revert."
+    }
+  ]
+}

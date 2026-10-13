@@ -28,6 +28,8 @@ from gatekit import answers, crypto, hooklib, packs, manifest as mf  # noqa: E40
 
 LEVEL_PRIVATE = ("persona.txt", "hints.json", "guard.json")
 DENY_PLACEHOLDER = "__HUMAN_ONLY_DENY__"
+# Finder metadata that may reappear while the output is being wiped.
+IGNORED_LEFTOVERS = (".DS_Store",)
 
 
 def log(text):
@@ -57,11 +59,17 @@ def wipe_output(out, keep_venv):
         stash = out + ".venv-keep"
         shutil.rmtree(stash, ignore_errors=True)
         os.rename(venv, stash)
-    shutil.rmtree(out, ignore_errors=True)
-    os.makedirs(out)
-    if stash:
-        os.rename(stash, venv)
-        log("kept existing .venv")
+    try:
+        shutil.rmtree(out, ignore_errors=True)
+        os.makedirs(out, exist_ok=True)
+        left = sorted(set(os.listdir(out)) - set(IGNORED_LEFTOVERS))
+        if left:
+            raise SystemExit("could not wipe %s: %s remain" % (out, ", ".join(left)))
+    finally:
+        if stash:
+            os.makedirs(out, exist_ok=True)
+            os.rename(stash, venv)
+            log("kept existing .venv")
 
 
 def crypto_secrets(gate, level_answers, master):
@@ -93,7 +101,7 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
         if out == item or item.startswith(out + os.sep):
             raise SystemExit("refusing to wipe %s: it contains the build sources" % out)
     if (os.path.isdir(out) and not os.path.isdir(os.path.join(out, ".gatekit"))
-            and os.listdir(out) not in ([], [".venv"])):
+            and sorted(set(os.listdir(out)) - set(IGNORED_LEFTOVERS)) not in ([], [".venv"])):
         raise SystemExit("refusing to wipe %s: it is not an earlier build output" % out)
 
     wipe_output(out, keep_venv)
@@ -182,6 +190,20 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
         with open(os.path.join(vault, "level%d.pack" % n), "wb") as fh:
             fh.write(pack)
         log("packed level %d (%d slots)" % (n, len(slots)))
+
+    last_gate = levels[-1].get("gate", {"type": "none"})
+    if last_gate.get("type", "none") in ("crypto", "crypto-reflection"):
+        key = str(len(levels) - 1)
+        if key not in level_answers:
+            raise SystemExit("answers.json lacks level %s token" % key)
+        graded = [q for q in last_gate.get("questions", [])
+                  if q.get("kind", "free") != "free"]
+        if graded:
+            raise SystemExit("the last level's crypto gate cannot have graded questions "
+                             "(there is no pack to check the answer against): use "
+                             "free questions or a reflection")
+        last_gate["verify"] = crypto.verify_token(
+            bytes.fromhex(level_answers[key]["token"]))
 
     with open(os.path.join(vault, "master.check"), "wb") as fh:
         fh.write(packs.build_pack(b"master", [crypto.master_secret(master)],

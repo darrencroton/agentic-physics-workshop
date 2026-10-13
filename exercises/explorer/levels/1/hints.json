@@ -1,0 +1,16 @@
+{
+  "tiers": [
+    {
+      "unlock_after_minutes": 0,
+      "text": "Ask for one step, the command and its output. Then make open and look. Then commit."
+    },
+    {
+      "unlock_after_minutes": 5,
+      "text": "./gate check prints the first thing that is missing. Paste that line to Claude."
+    },
+    {
+      "unlock_after_minutes": 10,
+      "text": "Pulsars: where is the Sun in this coordinate system? Look in data/pulsars.columns.json. Dimuons: put M on X with log on; the dense vertical lines are particles."
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "tiers": [
+    {
+      "unlock_after_minutes": 0,
+      "text": "Ask Claude which columns of your dataset have missing values, and how many. (make list answers that once the tool exists.)"
+    },
+    {
+      "unlock_after_minutes": 3,
+      "text": "What should the page do with a zero on a log axis, or a row whose colour column is missing? Write it down in PLAN.md."
+    },
+    {
+      "unlock_after_minutes": 6,
+      "text": "Acceptance criteria are things you could check by eye or by test: 'the 3D view rotates', 'hovering shows the unit', 'the dropped-row count changes when I pick P1'. Then: 'commit PLAN.md'."
+    }
+  ]
+}

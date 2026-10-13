@@ -10,12 +10,12 @@
 |---|---|---|
 | **Lecture** | 15 min | The Verify-First Loop, healthy use, how the exercises work |
 | **Form groups** | 3 min | Groups of 2–5 sit with their leader; roles assigned; gate terminal opened |
-| **Hands-on** | 45 min | Gated exercise in Claude Code, on a weak model. The built exercises are timed for 45 minutes from Go; TDD's 5-minute stretch level is for fast groups. |
+| **Hands-on** | 45 min | Gated exercise in Claude Code, on a weak model (Haiku; Explorer uses Sonnet). The built exercises are timed for 45 minutes from Go; TDD's 5-minute stretch level is for fast groups, and Explorer has no stretch level. |
 | **Show-and-tell** | 5 min | Each group: one moment the agent was wrong and how they caught it |
 
 **Total: about 70 minutes.** For a hard 60, run the lecture's essentials in 10 minutes and the show-and-tell in 2 (open decision 3, Section 11); don't cut the hands-on, because the exercises are calibrated for 45.
 
-### The Four Exercises
+### The Five Exercises
 
 | ID | Exercise | Core lesson | Model | Best for |
 |---|---|---|---|---|
@@ -23,16 +23,17 @@
 | **B** | Speed Run (optimisation race) | Measure first; a correctness gate is non-negotiable | Haiku | Mixed groups; competitive rooms |
 | **C** | Fortran Archaeology (legacy port) | Establish the oracle before you change anything | Sonnet | Strongest leaders |
 | **D** | TDD Ladder (test-driven development) | You define "correct"; the agent cannot | Haiku | Groups who write shared code |
+| **E** | Explorer (plan, build, test, review) | Plan, build, test, review: the workflow as a habit | Sonnet | Any group; the lightest exercise, closest to everyday use |
 
-Only B and D are built so far; A and C are designs (see the `README.md` exercise table).
+Only B, D and E are built so far; A and C are designs (see the `README.md` exercise table).
 
-**Suggested assignment:** A for half the groups, then B and D split across the rest. C goes only to leaders who are comfortable with compilers and Fortran. Groups doing the *same* exercise make the show-and-tell more interesting, because their different paths are directly comparable.
+**Suggested assignment:** A for half the groups, then B and D split across the rest. E suits groups who want to leave with a tool they will use and a playbook for their own code; it runs on Sonnet, so check those leaders' accounts. C goes only to leaders who are comfortable with compilers and Fortran. Groups doing the *same* exercise make the show-and-tell more interesting, because their different paths are directly comparable.
 
 ---
 
 ## 2. Design Principles
 
-1. **One workflow, four vehicles.** Every exercise drills the same loop (Section 3, Slide 4). The physics is the vehicle; the loop is the take-home.
+1. **One workflow, five vehicles.** Every exercise drills the same loop (Section 3, Slide 4). The physics is the vehicle; the loop is the take-home.
 2. **The human owns the result.**
    - Gates require *human* judgement, typed by a human, to unlock the next level.
    - A weak model means the group must understand the problem to direct the agent.
@@ -239,7 +240,7 @@ How to add an exercise to this repository is in `README.md` ("Build and extend")
 
 ### Calibration Matrix
 
-Run each exercise in four ways before the trial:
+Run each exercise in four ways before the trial (Explorer runs on Sonnet, so its runs 1 and 2 use Sonnet and run 3 does not apply):
 
 | Run | Model | Driver behaviour | What you're testing |
 |---|---|---|---|
@@ -266,7 +267,7 @@ Run each exercise in four ways before the trial:
 
 ### Repos and Leader Machines (macOS)
 
-- [ ] Each exercise built, checked and rehearsed by you on Haiku: walkthrough section 1.
+- [ ] Each exercise built, checked and rehearsed by you on the exercise's model (Haiku; Sonnet for Explorer): walkthrough section 1.
 - [ ] Each leader sent a git bundle of the built repo and the walkthrough, at least a week before: walkthrough section 2. Never send this repository.
 - [ ] Each leader's laptop set up by the leader from walkthrough section 3, before the briefing, on the Claude Code version you calibrated against. Packages must be in place by then: agents can't install them during the session.
 - [ ] Exercise C only (when built): `gfortran` (e.g. via Homebrew `gcc`), compile-tested in preflight.

@@ -1,0 +1,12 @@
+{
+  "editable": [
+    "explorer/**",
+    "PLAN.md",
+    "LOG.md"
+  ],
+  "frozen": [
+    "tests/**",
+    "PLAYBOOK.md"
+  ],
+  "message": "At this level Claude may edit explorer/, PLAN.md and LOG.md; tests/ is frozen until Level 2, so build first and test next."
+}

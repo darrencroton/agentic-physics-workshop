@@ -126,7 +126,7 @@ Pack member paths are checked and any that escape the destination are refused.
 {"0": {"token": "<hex sha256 of canonical check output>"}}
 ```
 
-The build needs an entry for every `crypto` and `crypto-reflection` gate, and fails otherwise.
+The build needs an entry for every `crypto` and `crypto-reflection` gate, and fails otherwise. A crypto gate on the last level opens no pack, but its token still sets the `verify` value that lets `gate check` and `gate unlock` pass there. Because no pack checks the answer, such a gate may carry only `free` questions; the build refuses a graded one.
 
 ## 4. Gate types
 
@@ -206,7 +206,7 @@ Deny output is `{"hookSpecificOutput": {"hookEventName": ..., "permissionDecisio
 
 | Hook | Reads | Behaviour |
 |---|---|---|
-| `guard.py` (PreToolUse) | `tool_name`, `tool_input` (`file_path`, `notebook_path`, `path`, `pattern`, `command`); `.workshop/state.json` (level); the level's `guard.json`; `.tdd/phase` | Denies malformed input, a non-string tool name, a non-object `tool_input`, and missing state. For path tools: denies secret paths for every tool; for edit tools also denies paths outside the repo, frozen files and the level's frozen globs, and anything not matching `editable`. For Bash: see below. Any unexpected exception also denies. |
+| `guard.py` (PreToolUse) | `tool_name`, `tool_input` (`file_path`, `notebook_path`, `path`, `pattern`, `command`); `.workshop/state.json` (level); the level's `guard.json`; `.tdd/phase` | Denies malformed input, a non-string tool name, a non-object `tool_input`, and missing state. For path tools: denies secret paths for every tool; for edit tools also denies paths outside the repo (except Claude Code's own plan-mode files under `~/.claude/plans` or `$CLAUDE_CONFIG_DIR/plans`), frozen files and the level's frozen globs, and anything not matching `editable`. For Bash: see below. Any unexpected exception also denies. |
 | `model_lock.py` (PreModelSwitch) | `to_model` (or `requested_model`); `allowed_models` from state | Allows if any allowed alias is a substring of the target (case-insensitive). Denies on malformed input, missing state, no target, or no match, with "Today's exercise uses <model>. Ask a facilitator for a power-up." |
 | `teacher_context.py` (UserPromptSubmit) | state `level` and `persona`, manifest level title, `.workshop/levels/N/persona.txt`, the tool's `teacher_context_extra` | Prints `WORKSHOP LEVEL n - <title> - persona: <mode>` followed by the persona text. If the first line of `persona.txt` starts `persona:` it overrides the mode and is dropped. Prints a short warning, rather than failing, if gatekit, state or the manifest are missing or the tool errors. Plain stdout becomes context. |
 | `model_check.py` (SessionStart) | `model` (optional) | When `model` is present, always prints `WORKSHOP: this session started on <model>; /status shows the current model.` into context (it reports the starting model only, and goes stale after a `/model` power-up), and also prints a warning if it matches no allowed model; prints a "run ./gate reset" notice if state is missing. Never blocks. Best effort, since Claude Code does not always send `model`. |

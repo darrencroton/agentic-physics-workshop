@@ -10,12 +10,20 @@
 - Documentation by role (2026-10-13): `README.md` "Run the workshop" is the facilitator's checklist; each walkthrough is the operating guide for the facilitator (sections 1–2: build, rehearse, bundle, passphrase policy) and the group leaders (section 3 onwards: laptop set-up from the bundle, running the session, levels, troubleshooting, reset). `docs/00` §5 and §7 updated to match the build; `docs/02` and `docs/04` marked as designs superseded by the walkthroughs. Bundle clone and preflight verified for both exercises. Decisions in `docs/DECISIONS.md`.
 - Environment: `dist/tdd-ladder/.venv` (Python 3.13.2; numpy 2.3.2, matplotlib 3.10.5, pytest 9.1.1) and `dist/speed-run/.venv` (adds scipy 1.17.0). Master passphrase in `~/.config/workshop/master-passphrase`.
 
+## Done (2026-10-14)
+
+- **Phase 6, Exercise E, Explorer** (`exercises/explorer/` → `dist/explorer/`): built. Design in `docs/05-data-explorer.md`, build contract in `exercises/explorer/PLAN.md`, operating guide in `exercises/explorer/FACILITATOR-WALKTHROUGH.md`. Four levels on Sonnet (plan; build the prototype; test; review), all collaborator persona, no planted bugs; `crypto-reflection` gates for 0, 2 and 3 and one graded keyword question at Level 1 (`sun` or `jpsi`); every gate checks commits since the previous unlock and a clean tree. A shipped `reviewer` agent (`.claude/agents/reviewer.md`) gives the Level 3 fresh-context review. `selftest/run.py` passes 134 checks in about 61 s (both datasets, every refusal, skip, reset). Reference solution (`selftest/solution/`): 15 tests, 96% coverage. The generated page was rendered in Chrome: 2D to 3D switch, colour bar, hover, no console errors.
+- Datasets: `pulsars.csv` 4,503 rows (ATNF v2.9.0, 451 KB; pulsars without a distance have `XX`, `YY`, `ZZ` blanked) and `dimuons.csv` the first 60,000 CMS Run2010B events (7.9 MB). The bundle is about 10 MB.
+- `gatekit` fixes found by building E: the last level's crypto gate now gets a verify token in `tools/build.py` (an exercise ending on a crypto gate could never complete); the build wipe tolerates a Finder `.DS_Store` and always restores a stashed `.venv`; `out/` and `.coverage` added to the template `.gitignore`. Unit tests added for the first two.
+- Environment: `dist/explorer/.venv` (Python 3.13.2; numpy 2.3.2, plotly 7.1.0, pytest 9.1.1, pytest-cov 7.1.0). Decisions and deviations from `docs/05` in `docs/DECISIONS.md`.
+
 ## How to re-run everything
 
 ```zsh
 cd gatekit && python3 -m unittest discover -s . -t . -p 'test_*.py'; cd ..
 python3 exercises/tdd-ladder/selftest/run.py --master-passphrase-file ~/.config/workshop/master-passphrase
 python3 exercises/speed-run/selftest/run.py --master-passphrase-file ~/.config/workshop/master-passphrase
+python3 exercises/explorer/selftest/run.py --master-passphrase-file ~/.config/workshop/master-passphrase
 ```
 
 Each self-test rebuilds its `dist/<name>` (keeping `.venv`) and leaves it clean at level 0.
@@ -23,7 +31,8 @@ Each self-test rebuilds its `dist/<name>` (keeping `.venv`) and leaves it clean 
 ## Next
 
 1. Human calibration runs on Haiku for both exercises (`exercises/<name>/FACILITATOR-WALKTHROUGH.md`), then a trial with the research group. Watch, in particular: whether "Explain as you go" makes the literal persona narrate its design choices at TDD Level 0; whether a Haiku-written cell list fits the 14-minute Speed Run Level 2; the Speed Run Level 3 pacing with the ~20 s submit.
-2. Phases 3 and 5 (Exercises A and C): not started. Gaps in BUILD-SPEC §9.
+2. Calibration run on Sonnet for Explorer, with a stopwatch (walkthrough section 1): record Level 1's time above all; if it runs over 20 minutes, move part of Level 0 into the README. Also confirm in that run that plan mode's plan file is written without a guard refusal (the guard now allows `~/.claude/plans`), and that the `reviewer` agent runs cleanly under the guard (hooks do run inside subagents per the docs).
+3. Phases 3 and 5 (Exercises A and C): not started. Gaps in BUILD-SPEC §9.
 
 ## Open questions
 

@@ -116,6 +116,80 @@ class BuildAndUnlockTests(unittest.TestCase):
         self.assertIn("Final level complete", out)
         self.assertTrue(st.load_state(self.out)["complete"])
 
+    def test_last_level_crypto_gate_rejects_graded_questions(self):
+        path = os.path.join(self.exercises, "fixture", "manifest.json")
+        with open(path) as fh:
+            manifest = json.load(fh)
+        manifest["levels"][1]["gate"] = {
+            "type": "crypto", "check": "checks/level0.py",
+            "questions": [{"id": "q", "prompt": "Which?", "kind": "keyword",
+                           "accept": ["a"]}]}
+        with open(path, "w") as fh:
+            json.dump(manifest, fh)
+        answers_path = os.path.join(self.exercises, "fixture", "answers.json")
+        with open(answers_path) as fh:
+            tokens = json.load(fh)
+        tokens["1"] = tokens["0"]
+        with open(answers_path, "w") as fh:
+            json.dump(tokens, fh)
+        proc = subprocess.run([PY, BUILD, "fixture", "--master-passphrase-file", self.passfile,
+                               "--out", self.out, "--exercises-dir", self.exercises],
+                              capture_output=True, text=True)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("graded questions", proc.stderr)
+
+    def test_last_level_crypto_gate_gets_verify(self):
+        path = os.path.join(self.exercises, "fixture", "manifest.json")
+        with open(path) as fh:
+            manifest = json.load(fh)
+        manifest["levels"][1]["gate"] = {"type": "crypto-reflection",
+                                         "check": "checks/level0.py", "questions": []}
+        with open(path, "w") as fh:
+            json.dump(manifest, fh)
+        answers_path = os.path.join(self.exercises, "fixture", "answers.json")
+        with open(answers_path) as fh:
+            tokens = json.load(fh)
+        tokens["1"] = tokens["0"]
+        with open(answers_path, "w") as fh:
+            json.dump(tokens, fh)
+        self.build()
+        with open(os.path.join(self.out, ".gatekit", "manifest.json")) as fh:
+            built = json.load(fh)
+        self.assertEqual(built["levels"][1]["gate"]["verify"],
+                         crypto.verify_token(bytes.fromhex(tokens["1"]["token"])))
+        gate = [PY, os.path.join(self.out, "gate")]
+        code, out = ptyhelper.run_pty(gate + ["unlock"], [("H0 to 1 d.p.?", "70.0"),
+                                                          ("surprised you?", "x")],
+                                      cwd=self.out)
+        self.assertEqual(code, 0, out)
+        proc = subprocess.run(gate + ["check"], cwd=self.out, capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("PASS", proc.stdout)
+        del tokens["1"]
+        with open(answers_path, "w") as fh:
+            json.dump(tokens, fh)
+        proc = subprocess.run([PY, BUILD, "fixture", "--master-passphrase-file", self.passfile,
+                               "--out", self.out, "--exercises-dir", self.exercises],
+                              capture_output=True, text=True)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("answers.json lacks level 1 token", proc.stdout + proc.stderr)
+
+    def test_keep_venv_tolerates_finder_metadata(self):
+        os.makedirs(os.path.join(self.out, ".venv"))
+        with open(os.path.join(self.out, ".venv", "marker"), "w") as fh:
+            fh.write("kept")
+        with open(os.path.join(self.out, ".DS_Store"), "w") as fh:
+            fh.write("finder")
+        for _ in range(2):
+            proc = subprocess.run([PY, BUILD, "fixture", "--master-passphrase-file",
+                                   self.passfile, "--out", self.out, "--exercises-dir",
+                                   self.exercises, "--keep-venv"],
+                                  capture_output=True, text=True)
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+            self.assertIn("kept existing .venv", proc.stdout)
+            self.assertTrue(os.path.exists(os.path.join(self.out, ".venv", "marker")))
+            self.assertFalse(os.path.exists(self.out + ".venv-keep"))
+
     def test_master_skip_and_power_up(self):
         self.build()
         gate = [PY, os.path.join(self.out, "gate")]

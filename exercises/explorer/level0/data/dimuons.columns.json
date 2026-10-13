@@ -1,0 +1,109 @@
+{
+  "source": "CMS Run2010B dimuon events, CERN Open Data record 700, https://opendata.cern.ch/record/700 (MuRun2010B.csv), first 60000 of 100000 rows",
+  "citation": "McCauley, T. (2014). Dimuon event information derived from the Run2010B public Mu dataset. CERN Open Data Portal, DOI 10.7483/OPENDATA.CMS.CB8H.MFFA",
+  "licence": "CC0 1.0",
+  "columns": {
+    "E1": {
+      "numeric": true,
+      "unit": "GeV",
+      "description": "Muon 1 energy",
+      "log": true
+    },
+    "px1": {
+      "numeric": true,
+      "unit": "GeV",
+      "description": "Muon 1 momentum x",
+      "log": false
+    },
+    "py1": {
+      "numeric": true,
+      "unit": "GeV",
+      "description": "Muon 1 momentum y",
+      "log": false
+    },
+    "pz1": {
+      "numeric": true,
+      "unit": "GeV",
+      "description": "Muon 1 momentum z",
+      "log": false
+    },
+    "pt1": {
+      "numeric": true,
+      "unit": "GeV",
+      "description": "Muon 1 transverse momentum",
+      "log": true
+    },
+    "eta1": {
+      "numeric": true,
+      "unit": "",
+      "description": "Muon 1 pseudorapidity",
+      "log": false
+    },
+    "phi1": {
+      "numeric": true,
+      "unit": "rad",
+      "description": "Muon 1 azimuthal angle",
+      "log": false
+    },
+    "Q1": {
+      "numeric": true,
+      "unit": "e",
+      "description": "Muon 1 charge",
+      "log": false
+    },
+    "E2": {
+      "numeric": true,
+      "unit": "GeV",
+      "description": "Muon 2 energy",
+      "log": true
+    },
+    "px2": {
+      "numeric": true,
+      "unit": "GeV",
+      "description": "Muon 2 momentum x",
+      "log": false
+    },
+    "py2": {
+      "numeric": true,
+      "unit": "GeV",
+      "description": "Muon 2 momentum y",
+      "log": false
+    },
+    "pz2": {
+      "numeric": true,
+      "unit": "GeV",
+      "description": "Muon 2 momentum z",
+      "log": false
+    },
+    "pt2": {
+      "numeric": true,
+      "unit": "GeV",
+      "description": "Muon 2 transverse momentum",
+      "log": true
+    },
+    "eta2": {
+      "numeric": true,
+      "unit": "",
+      "description": "Muon 2 pseudorapidity",
+      "log": false
+    },
+    "phi2": {
+      "numeric": true,
+      "unit": "rad",
+      "description": "Muon 2 azimuthal angle",
+      "log": false
+    },
+    "Q2": {
+      "numeric": true,
+      "unit": "e",
+      "description": "Muon 2 charge",
+      "log": false
+    },
+    "M": {
+      "numeric": true,
+      "unit": "GeV",
+      "description": "Dimuon invariant mass",
+      "log": true
+    }
+  }
+}

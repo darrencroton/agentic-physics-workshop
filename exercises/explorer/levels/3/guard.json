@@ -1,0 +1,14 @@
+{
+  "editable": [
+    "explorer/**",
+    "tests/**",
+    "REVIEW.md",
+    "LOG.md"
+  ],
+  "frozen": [
+    "PLAN.md",
+    "TESTS.md",
+    "PLAYBOOK.md"
+  ],
+  "message": "At this level Claude may edit explorer/, tests/, REVIEW.md and LOG.md; PLAN.md and TESTS.md are frozen so the review is against what you agreed."
+}

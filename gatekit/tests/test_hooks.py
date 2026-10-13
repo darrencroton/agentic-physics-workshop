@@ -86,6 +86,8 @@ class GuardTests(unittest.TestCase):
         self.deny(tool("Write", file_path="data/new.csv", content="x"))
         self.deny(tool("Write", file_path=".claude/settings.json", content="{}"))
         self.deny(tool("Write", file_path="/tmp/outside.txt", content="x"), "outside")
+        self.allow(tool("Write", file_path=os.path.expanduser("~/.claude/plans/x.md"),
+                        content="# plan"))
         self.deny(tool("Write", file_path="notes.md", content="x"))
         self.deny(tool("Bash", command="echo x > README.md"), "read-only")
         self.deny(tool("Bash", command="sed -i '' 's/a/b/' Makefile"))

@@ -1,0 +1,267 @@
+# Facilitator Walkthrough: Explorer
+
+Private. Contains gate answers and spoilers. Never copy into `dist/`, and keep it away from participants.
+
+This is the operating guide to the exercise. It has two readers:
+
+- **The facilitator** (the organiser) builds the participant repo, rehearses it, sends it to the group leaders and holds the master passphrase. Read all of it.
+- **Group leaders** set up their own laptop from the bundle the facilitator sends, and coach one group. Start at [section 3](#3-group-leaders-set-up-your-laptop); sections 1 and 2 are the facilitator's.
+
+The lecture, roles by group size, the run-sheet and the trial are in `docs/00-facilitator-guide.md` in the builder repository. The design this exercise was built from is `docs/05-data-explorer.md`; where the two differ, this walkthrough and `docs/DECISIONS.md` win.
+
+Every timing and size below was **measured on an M1 Max (Python 3.13.2, numpy 2.3.2, plotly 7.1.0); calibrate on your own laptop** before you quote a number to a group. Unlike the other exercises, the clock is not the main risk here: there are no planted bugs and no hidden assets, so what happens at each level depends on what Sonnet does on the day. The checks only prove that each step happened.
+
+Explorer runs on **Sonnet**, not Haiku. The lesson is the workflow (plan, build in checked steps, test, review), not supervising a weak model, and building Python plus a JavaScript page in 18 minutes is a real risk on Haiku. The lecture's "weak model" slide does not apply to this group: tell them Claude is a normal, helpful collaborator today.
+
+## 1. Facilitator: build and rehearse
+
+Once per machine, do steps 2 and 3 of "Run the workshop" in the repository [`README.md`](../../README.md#run-the-workshop): the requirements and the master passphrase. Then:
+
+```zsh
+cd <this repository>
+python3 tools/build.py explorer --master-passphrase-file ~/.config/workshop/master-passphrase --keep-venv
+cd dist/explorer
+./preflight --setup      # only if .venv is missing; creates .venv and installs the pins (network, once)
+./preflight              # must end with "Preflight passed"; also checks plotly and its bundled plotly.js
+```
+
+`./preflight --setup` installs numpy 2.3.2, plotly 7.1.0, pytest 9.1.1 and pytest-cov 7.1.0. Nothing needs a compiler, so unlike the Speed Run there is no `clang` requirement.
+
+Then do the Claude Code checks in section 3, step 4, play the whole exercise through once on Sonnet using section 5, and reset (section 7). Open `out/explorer.html` in a browser at least once in the rehearsal: the Level 1 question is meant to send the group there, and you want to have seen the page.
+
+- `--keep-venv` preserves an existing `dist/explorer/.venv` across rebuilds. Everything else in `dist/explorer` is regenerated, including the git history, so rebuild only between runs.
+- The participant `.venv` is made with `/opt/homebrew/bin/python3.13` when that exists, otherwise `python3`; the build machine used Python 3.13.2. Pass `--setup-python /path/to/python3` to the build to bake in another Python 3.11+.
+- The master passphrase stays in `~/.config/workshop/master-passphrase`, outside every repo. The build reads it; the repo stores only a check value. You type it at the prompt for `./gate skip --master`.
+- `exercises/explorer/selftest/run.py` plays the whole exercise with a reference solution (134 checks, about a minute). It proves the gates, not the timing; the rehearsal is where you learn the timing.
+
+### Optional: a calibration run
+
+The self-test cannot say how long Sonnet takes to build the tool with a group directing it. If you have an hour, play it yourself with a stopwatch, following the playbook prompts in the briefs: plan mode, one step at a time, commit each step. Write down the time at each unlock, and Level 1 above all: it is the long one (18 minutes) and the one most likely to run over. If Level 1 takes more than 20 minutes, tell leaders to give hint 3's advice at Level 0 early and to cut scope harder in the plan, and consider moving some of Level 0 into the README so that it fits 6 minutes. Record the result in `PROGRESS.md`.
+
+## 2. Facilitator: give the repo to group leaders
+
+Each leader gets a copy of the built participant repo as a git bundle: one file that clones into a complete repo. Never send them, or point participants at, the builder repository; it holds the sources and the answers.
+
+1. Start from a clean repo. A bundle carries everything in the repo, including rehearsal commits and branches, so rebuild (section 1) or reset (section 7) first.
+2. Check it and make the bundle:
+
+   ```zsh
+   cd dist/explorer
+   git status --short && git log --oneline && git branch   # expect no changes, one commit "Workshop start", only main
+   git bundle create ~/Desktop/explorer.bundle --all        # about 10 MB (the two datasets)
+   ```
+
+3. Send each leader the bundle and this walkthrough file. Ask them to work through section 3 before the leaders' briefing, so problems surface early. A private git remote works too: push `main` and the `start` tag, and send the clone URL instead.
+4. Decide who types the master passphrase. Skips ask for it in the group's own gate terminal; a leader's laptop never needs the passphrase file. By default you hold it and type it when a leader calls you over. If a leader will run a group without you in the room, such as a trial, tell them the passphrase. It opens every repo built from the same passphrase file, so if that matters, build their copy from a different passphrase file into another directory (`--out`).
+
+## 3. Group leaders: set up your laptop
+
+Do this a few days before the session, with a network connection. You need a Mac with:
+
+- The Xcode Command Line Tools (`xcode-select --install`): they provide `git` and `make`. No compiler is used.
+- Python 3.11 or newer, for example `brew install python@3.13`.
+- Claude Code 2.1.295 or newer (`claude --version`), signed in to a Claude account that can use Sonnet. The session starts on Sonnet and stays on it.
+- A git identity, because the exercise commits: `git config --global user.name "Your Name"` and `git config --global user.email you@example.org`.
+- A web browser. The group looks at the page it builds.
+
+Do not install anything else. If preflight asks for something, check with the facilitator first.
+
+1. Clone the bundle the facilitator sent (adjust the path to wherever you saved it):
+
+   ```zsh
+   git clone ~/Downloads/explorer.bundle explorer && cd explorer
+   ```
+
+2. `./preflight --setup` creates `.venv` and installs the pinned numpy, plotly, pytest and pytest-cov (a minute or so; the only step that needs the network apart from Claude Code). If it says your Python is too old, it prints the command to run with a newer one.
+3. `./preflight` must end with "Preflight passed". The first run also sets the workshop up at level 0.
+4. Run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Then, in Claude Code (about a minute):
+   1. `/hooks`: four events must be listed (SessionStart, UserPromptSubmit, PreToolUse, PreModelSwitch). If the list is empty, the trust dialog was not accepted: `/exit` and run `claude` again.
+   2. `/status`: the model line must say Sonnet.
+   3. `/model` and pick another model (Haiku, say): it must be refused. Picking Sonnet again is allowed.
+   4. `/agents` (or the agent list in your version): `reviewer` must be listed, as a project agent. It is used at Level 3. If it is missing, see section 6.
+   5. `/exit`.
+5. Rehearse: play Level 0 yourself following section 5, and reset (section 7) so the group's log starts empty. Level 0 needs nothing built, so it is a quick way to see the gate, the guard and the plan-mode start.
+
+## 4. Running the session
+
+### Two windows and a browser
+
+| Window | Command | Who types |
+|---|---|---|
+| Claude (large) | `claude`, in the repo | the Driver |
+| Gate (small) | a fresh Terminal window in the repo, then `./gate …`, `make open`, `make list`, `make test` | the humans |
+| Browser | `make open` shows `out/explorer.html` | everyone looks |
+
+Open the gate terminal from Terminal itself, not from inside Claude Code: the gate refuses to run from Claude's shell and says so. Claude cannot see the browser; that is the point of Level 1.
+
+The session starts in plan mode on Sonnet. `Shift+Tab` leaves plan mode once the group has agreed a plan. `/model` to anything but Sonnet is refused.
+
+**Which model is it, really?** Trust `/status`, not what Claude says about itself.
+
+### Choosing the dataset
+
+Before the session, choose the group's dataset: pulsars (`data/pulsars.csv`, for the astro and cosmology end of the room) or dimuons (`data/dimuons.csv`, for the particle end). Edit the `Dataset:` line of `PLAN.md` in the group's clone and leave it **uncommitted** (Claude commits `PLAN.md` at Level 0, which is what the gate wants):
+
+```text
+Dataset: data/pulsars.csv
+```
+
+That line is the only place the dataset is named. The Makefile reads it, so `make explore`, `make list` and the Level 1 check all follow it, and the group never types a path. The value must be exactly one of the two relative paths: the Level 0 gate refuses anything else. A group can run the other dataset, or its own CSV, with `make explore DATA=path/to/file.csv`; Level 3 runs the tool on both shipped datasets anyway. The template ships with the pulsars line; groups that keep it are doing the pulsars.
+
+### Opening (60 seconds, read aloud)
+
+> "Today we build a real tool, a 3D explorer for our data, and we build it the way you'd want a careful student to: plan, build in small steps, test, review, and commit as we go. Claude is a normal, helpful collaborator today; the gates just make sure we do each step. The gate terminal is ours: Claude can't type there, and that's where we run the tests ourselves. Roles: [assign]. The keyboard rotates at each gate. All code goes through Claude; we read, look, decide. At the end, `PLAYBOOK.md` is yours to take home."
+
+You are the Coach: you ask questions and fix tooling, and you do not drive. Allocate the roles (described in the repo's `README.md`) by group size, as below. The Driver rotates at each gate through everyone except you, so every other member types; you drive only with two people or to fix a technical problem.
+
+| Group size | Roles |
+|---|---|
+| 2 | You: Coach and Navigator. The other person: Driver, Sceptic and Scribe. |
+| 3 | Driver (rotating), Sceptic. You: Coach, Navigator and Scribe. |
+| 4 | Driver (rotating), Navigator, Sceptic. You: Coach and Scribe. |
+| 5 | Driver (rotating), Navigator, Browser Sceptic (looks at every result), Evidence Sceptic (wants every command and output). You: Coach and Scribe. |
+
+- **The expert who wants to write it by hand:** "You'd be faster today. The point is the habit for when the code is ten times bigger. Can you get Claude to do it the way you would?"
+- **Plotting rabbit holes** (styling, extra controls): the Navigator owns scope. "Is it in the plan?" Suggestions go in the log for later.
+- **Correction spirals:** after two failed corrections, `/clear` and a better prompt.
+
+### Time checkpoints
+
+45 minutes: 8 for Level 0, 18 for Level 1, 8 each for Levels 2 and 3, and 3 spare. There is no stretch level.
+
+| From Go | Expected | If behind |
+|---|---|---|
+| 8 min | `PLAN.md` committed, Level 0 unlocked | Keep the plan short; give hint 3's advice (acceptance criteria, then commit) |
+| 26 min | Level 1 gate passed | Narrow to what `./gate check` names; skip styling |
+| 34 min | Tests running | Five simple tests are enough |
+| 42 min | Review triaged | Three findings is enough; fix one |
+
+### Commands
+
+Useful at any time: `./gate status` (level, time on level, hints, dataset, whether the page is built, commits since the last gate), `./gate brief`, `./gate check`, `./gate hint` (three tiers: at 0, 3 and 6 minutes on the 8-minute levels, and 0, 5 and 10 on Level 1), and `make list`, `make explore`, `make open`, `make test`, `make coverage`. The repo's `README.md` lists every command.
+
+Need the master passphrase, which the facilitator holds, so call them over: `./gate skip --master` (open the next level for a stuck group, with a reason). It is logged. There are no model power-ups: Sonnet is already the model.
+
+## 5. Level by level
+
+Every gate check prints one sentence on failure naming the first thing that is wrong and how to fix it, and the success line on a pass. Tell the Driver to run `./gate check` early and often and paste the sentence to Claude. Every gate also requires new commits since the previous unlock and a clean tree for the paths it checks, so every brief ends "commit, then unlock". Humans do not touch the code: Claude makes the commits when asked.
+
+### Level 0: Plan (8 min, collaborator)
+
+1. The group reads the README, then in plan mode asks Claude to summarise the data and interface (the playbook's *Understand* prompt) and propose a plan (the *Plan* prompt). They argue with it, then have Claude save it as `PLAN.md` and commit it.
+2. `make list` cannot work yet: the tool does not exist until Level 1, so it fails with "No module named explorer.__main__; 'explorer' is a package and cannot be directly executed". That is expected. The README and hint 1 tell the group to ask Claude which columns have missing values and how many. (Pulsars: `P1` misses 1,524 values, `AGE`, `BSURF` and `EDOT` 1,605 each, and 74 pulsars have no distance, so their `XX`, `YY`, `ZZ` are blank. Dimuons has no missing values, but 60,000 rows to sample down.)
+3. Gate (`crypto-reflection`, no graded question). The check requires `PLAN.md` to be complete: `Dataset:` exactly one of the two shipped paths; each of the four decision lines (values at or below zero on a log axis; missing values in a selected column; the initial selection when the page opens; sampling above `--max-points`) answered after the colon; each section filled with something other than the template; at least three acceptance criteria and at least two steps. Also at least one commit since `start` and `PLAN.md` clean. The reflection (logged): one thing in Claude's plan you changed, and why.
+
+Observe: which decisions did Claude make silently (dropping rows, clipping logs, which columns the page opens on)? Does the group notice, or accept the plan unread? Is the plan bigger than the job (class hierarchies, a config system, a build step for the JavaScript)?
+
+Ask: "Which decisions did Claude make for us? Do we agree?" The Sceptic owns the acceptance criteria and the Navigator cuts the scope.
+
+Try deliberately:
+
+- Ask Claude to "just write the code". The guard refuses: "Level 0 is planning only: Claude may edit PLAN.md and LOG.md, and explorer/ opens at Level 1 and tests/ at Level 2." Read it aloud: the plan is where the decisions are cheap to change.
+- Unlock with the template `PLAN.md` or without committing: "no commit since start: ask Claude to commit PLAN.md (this level needs at least 1)". Change the `Dataset:` line to anything else and the gate says it must be exactly `data/pulsars.csv` or `data/dimuons.csv`.
+
+### Level 1: Build the prototype (18 min, collaborator)
+
+1. The unlock opens `explorer/` for editing (and freezes `tests/`). The group leaves plan mode and has Claude implement step 1 of the plan only, run it and show the command and output; then looks at the result themselves (`make list`, or `make explore` then `make open` in the gate terminal), has Claude commit, and goes to the next step. The generated page embeds plotly.js (about 5 MB), so `out/explorer.html` is a few MB. `make explore` should take well under 5 s.
+2. Gate (`crypto`, one graded question). The check runs the tool four times on the `PLAN.md` dataset: with the defaults; with `--max-points 500` (must write exactly 500 rows and still report the same `n_read`); with `--list` (must name every column of the column file); and on a file that does not exist (non-zero exit and no `Traceback`). It reads `data.json` as strict JSON with the structure in the README, and checks that `explorer.html` has plotly.js inline, no `<script src="http...">`, the five `<select>`s and four checkboxes with the right ids and an option for every numeric column, and the strings `scattergl` and `scatter3d` outside the plotly.js code. It also needs at least **3 commits** since the Level 0 unlock and `explorer/` and `PLAN.md` clean.
+3. The question needs a human who has looked at the page. **Pulsars:** plot `XX`, `YY`, `ZZ` and rotate it; the known pulsars crowd around one point. What is there? Answer **`sun`**. **Dimuons:** plot `M` against `pt1` with log axes; which particle makes the sharp band near 3.1 GeV? Answer **`jpsi`**. Matching ignores case, spaces and punctuation, and maps ψ to `psi`. Accepted for both datasets: `sun`, `the sun`, `our sun`, `solar system` (and `the`/`our` forms), `earth`, `the earth`, `us`, `solar neighbourhood` (UK and US spellings, with `the`), `jpsi`, `j/psi`, `jψ`, `psi`, `the j/psi`, `j/psi meson`, `jpsi meson`. It is a whole-answer match, not a search inside a sentence: a longer answer such as "the Sun, at the centre of the crowd" will be refused, so tell groups to answer in a word or two.
+4. The reflection (logged): each of you, one feature you would add, and which the group liked best. After the check passes, each member names a feature after two minutes of playing with the page (rotate, zoom, hover, switch columns, palettes and log axes). Suggestions go in `LOG.md` and are not built now. Typical ones are a slider, a trace-per-label, saved views and a second colour column; a group with time after Level 3 may build one.
+
+Observe:
+
+- Claude tries to build everything in one go. The Driver stops it (`Esc`) and asks for one step.
+- "This should work now" with no command and output run. The Sceptic asks for them.
+- A plotly detail recalled wrongly (the hover template, the colour-bar title, the 3D trace). "Check the installed version's documentation" is worth a minute.
+- `data.json` contains `NaN` and the check says: "data.json is not valid JSON (NaN is not JSON; write it with allow_nan=False)". That is two minutes of real debugging, on a mistake Python makes easy.
+- Hover showing another row's values after sampling, or a colour bar with no unit. Only the humans looking at the browser catch these.
+- Does anyone open the browser before the group's first commit? Does anyone commit?
+
+Ask: "What did that step change? Show me in the browser. Is it committed?"
+
+Try deliberately:
+
+- Ask Claude to write tests now. The guard refuses ("tests/ is frozen until Level 2, so build first and test next").
+- Have Claude write `NaN` into `data.json` and run `./gate check`: the sentence above. This is the bug that a human would not see and the check does.
+- Commit fewer than three times, then `./gate unlock`: "2 commits since the last gate; this level needs at least 3: ask Claude to commit each working step". Leave `explorer/` changes uncommitted: "explorer/ has uncommitted changes: ask Claude to commit, then unlock". (The commit count is checked first.)
+- Answer the question with the wrong word (`moon`): refused; the group can try again.
+
+### Level 2: Test (8 min, collaborator)
+
+1. The unlock opens `tests/`, `explorer/` and `TESTS.md` and freezes `PLAN.md`. The Scribe writes three things that must not break under "Our list" before anyone asks Claude anything (two minutes, no Claude). Then the group asks Claude for its test plan (what each test checks, the coverage, what it will not cover) without writing any tests yet, pastes the plan in under "Claude's plan", compares the two lists and agrees what to write. Then Claude writes and runs the tests, commits, and the group runs `make test` and `make coverage` in the gate terminal.
+2. Gate (`crypto-reflection`). `TESTS.md` has at least three bullets under "Our list" and real text under "Claude's plan"; `make test` finds at least five tests and all pass; at least one test module imports `explorer`; at least 1 commit since the Level 1 unlock; `explorer/`, `tests/` and `TESTS.md` clean. The reflection (logged): what did Claude's plan cover that yours didn't, or the reverse?
+
+Observe:
+
+- Claude writes tests immediately unless held to the plan; the brief tells it to wait.
+- The easy pure functions tested and the page left untested. Coverage shows it. The discussion to have: pytest can test the data preparation, `data.json` and the page's structure, but not what the page does in the browser, which needs a human.
+- A failing test "fixed" by changing the test. The one thing never to accept: a failing test is a finding. Fix the code, or decide the test was wrong and say why.
+
+Ask: "What won't these tests catch? Does that matter for us?"
+
+Try deliberately:
+
+- Unlock with an empty `TESTS.md`: "TESTS.md has 0 items under "Our list": write at least 3 things that must not break, before asking Claude". With four tests: "pytest collected 4 tests; this level needs at least 5, all passing: ask for the tests you agreed in TESTS.md". A failing test: "make test: 1 of 6 tests fail: fix the code, not the tests, then commit".
+- *Does the alarm ring?* Ask Claude to break one behaviour on purpose (drop the unit from a title, write `NaN` into `data.json`), run the tests, see whether they fail, then revert. A test that never fails proves nothing. This is the hint 3 exercise and the best use of a spare minute.
+- Ask Claude to weaken a test so that it passes. Watch whether the Sceptic notices.
+
+### Level 3: Review (8 min, collaborator, last level)
+
+1. The unlock opens `REVIEW.md` and freezes `PLAN.md` and `TESTS.md`. The group writes two things they think a reviewer will find (one minute), then asks Claude: "Use the reviewer agent to review the code since start against PLAN.md. Rank the findings by severity. Don't fix anything." The `reviewer` agent (`.claude/agents/reviewer.md`, on Sonnet, tools `Read`, `Grep`, `Glob`, `Bash`) is a fresh context that has not seen the conversation. Claude pastes the findings into the table in `REVIEW.md`; the group compares them with their guesses and triages each finding themselves: **FIX**, **ACCEPT** (true, but not worth fixing in a prototype) or **REJECT** (wrong), with one line of reason. Claude fixes the FIX items one at a time, running the tests after each, and commits.
+2. Gate (`crypto-reflection`, the last level: it marks the workshop complete). `REVIEW.md` has at least two guess bullets and at least three table rows each with a decision in {FIX, ACCEPT, REJECT} and a non-empty reason; the tests pass; the Level 1 run checks pass on **both** shipped datasets, whatever `PLAN.md` says; at least 1 commit since the Level 2 unlock; `explorer/`, `tests/` and `REVIEW.md` clean. The reflection (logged): what did the review find that the tests didn't? The gate prints the note that `PLAYBOOK.md` is theirs to take home, with the reviewer agent.
+
+Observe:
+
+- What the reviewer finds in 20 minutes of agent-built code. Typically real issues: the planned log policy not implemented, hover misaligned after sampling, no error for a CSV with no numeric columns, duplicated loading code, a unit missing from a title. Also noise (style, speculative performance).
+- Fixing every finding without discussion. Rejecting a finding with a good reason is as valuable as fixing one.
+- A guess the reviewer also found, or missed: it calibrates how much to trust each.
+- A fix that changes a test to pass.
+
+Ask: "Is this worth fixing in a prototype? Why?"
+
+Try deliberately:
+
+- Unlock with an untriaged `REVIEW.md`: "REVIEW.md has 0 triaged findings; this level needs at least 3, each marked FIX, ACCEPT or REJECT with a one-line reason". Triage everything as ACCEPT or REJECT with reasons: the gate passes, since no FIX is required (a clean review is a valid outcome); a cell such as "ACCEPT / REJECT" is refused as undecided.
+- Break the tool for the other dataset (say, a column assumption that only holds for pulsars): the gate runs both datasets and names the failing run.
+- Groups with time left: build one feature from the Level 1 list, or run `make explore DATA=...` on a CSV of their own.
+
+Honest limit: the check scripts print a fixed line, so each crypto gate's only secret is the human answer, and Level 1 accepts both datasets' answers, so a group could give the other dataset's answer. It is harmless here: the question exists to make a human look at the page, and the gates for Levels 0, 2 and 3 have no question at all. The checks are structural and cannot tell whether the page looks right. Two more limits worth knowing: the Level 1 question can be answered without the browser (the pulsar column file says where the Sun is, and a particle physicist knows the J/ψ), so it prompts a look rather than proving one; and a FIX in `REVIEW.md` is a label, not evidence that anything was fixed. Both are the leader's check: ask to see the page, and ask what changed. See `gatekit/README.md` section 11 in the builder repository.
+
+## 6. When something goes wrong
+
+| Symptom | Do |
+|---|---|
+| Group stuck | `./gate hint` (3 tiers), then a question. A stuck Level 1 is the likeliest. The last resort is `./gate skip --master` (needs the master passphrase), which opens the next level but installs no code. To let the group still test and review a real tool, copy `exercises/explorer/selftest/solution/explorer/` from the builder repo into the group's `explorer/` and have the group ask Claude to commit it (or commit it yourself in the gate terminal). |
+| Build too slow for the time | The same: `./gate skip --master`, then copy and commit the reference solution (above). Say so to the group. |
+| `./gate` says it is "for humans, in the gate terminal" | It was run from Claude's shell, or from a window opened from Claude Code. Use a fresh Terminal window. |
+| `make list` fails at Level 0 ("'explorer' is a package and cannot be directly executed") | Expected: the tool does not exist until Level 1. Ask Claude for the missing counts instead. |
+| `make open` does nothing | Open `out/explorer.html` from Finder, or `open out/explorer.html`. Check `out/` was written (`make explore` first). |
+| Page blank in the browser, or a JavaScript error | plotly.js not embedded, or a script error: open the browser console (Safari: Develop, Show JavaScript Console) and paste the message to Claude. `./gate check` names the embedding case. |
+| `data.json` check fails | Almost always `NaN` in a column of missing values. Paste the sentence to Claude: `allow_nan=False`, and write missing values as `null`. |
+| Claude's Bash command is refused as touching a read-only file when it only reads `data/` | The guard refuses any Bash command that has a write verb (`cp`, `mkdir`, `>`, `tee`) and also names `data/`, even `cp data/pulsars.csv /tmp/x.csv`. Ask Claude to read the data from Python, or to write a small test fixture by hand. |
+| `./gate unlock` says "no commit since start" or "N commits ... needs at least ..." | Claude has not committed. Ask it to commit, then `./gate status` shows commits since the last gate. |
+| Hooks not loaded | `/hooks`; if empty, exit, re-open `claude` in the repo and accept trust. |
+| `reviewer` agent not found | `/agents`: it should be listed as a project agent. If not, the workspace trust dialog was not accepted: `/exit`, re-open `claude`, accept. If it is still missing, the group can ask Claude to review in a fresh subagent with the same prompt (the file is `.claude/agents/reviewer.md`). Record whether the guard fires on the subagent's own tool calls. |
+| Claude names the wrong model | Not an override. Check `/status`. |
+| Page opens very slowly | The dimuon file has 60,000 rows, sampled to 20,000 by default; `--max-points 5000` makes it quicker. |
+
+## 7. Reset between runs
+
+In the repo (`dist/explorer` for the facilitator, your clone for a leader):
+
+```zsh
+./gate reset                       # confirms, wipes .workshop/ (and removes out/)
+git reset --hard start && git clean -fdx -e .venv -e .workshop   # restores PLAN.md, LOG.md and explorer/; removes out/ and other untracked files; keeps .venv
+```
+
+This is the canonical reset (`docs/DECISIONS.md`, 2026-10-13). `git reset --hard start` also reverts the `Dataset:` line, so set it again afterwards. The facilitator can instead rebuild (`tools/build.py … --keep-venv`), which also gives fresh packs and secrets; leaders then need a new bundle.
+
+## 8. What to record
+
+- `.workshop/state.json`: per-level times, hints, failed attempts and skips.
+- `LOG.md`: the Scribe's notes and the reflections.
+- The Level 1 play suggestions: each member's feature and the group's favourite.
+- `TESTS.md` (the group's list against Claude's plan) and `REVIEW.md` (guesses, findings, triage). These two comparisons are the show-and-tell material.
+- `git log --oneline`: the commits are the group's path through the plan.
+
+Copy them out before `./gate reset`, and leaders send their copies to the facilitator. For the show-and-tell, ask each group: one decision Claude made that they hadn't (and whether they changed it); one thing the tests did not catch; one finding they rejected, and why; and the moment the browser showed something the check could not. Also ask what time Level 1 finished: it is the calibration number for the next run.
