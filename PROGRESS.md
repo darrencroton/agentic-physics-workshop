@@ -31,4 +31,3 @@ Each self-test rebuilds its `dist/<name>` (keeping `.venv`) and leaves it clean 
 - Speed Run: room-wide leaderboard or within-group only (docs/02 §10)? The board is per repo; a facilitator can read `./race board` out.
 - Speed Run on Intel Macs: the FMA trap does not fire without `-mfma`; Apple silicon is assumed.
 - `BUILD-SPEC.md` still quotes the short reset (`git reset --hard start && ./gate reset`); left as the historical spec (the walkthroughs' reset is canonical).
-- Session timing: the `docs/00` run-sheet gives 40 minutes from Go to Stop; the built exercises are timed for 45. Recorded as open decision 6 in `docs/00` §11.

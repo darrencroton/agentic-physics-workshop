@@ -10,8 +10,10 @@
 |---|---|---|
 | **Lecture** | 15 min | The Verify-First Loop, healthy use, how the exercises work |
 | **Form groups** | 3 min | Groups of 2–5 sit with their leader; roles assigned; gate terminal opened |
-| **Hands-on** | 45–50 min | Gated exercise in Claude Code, on a weak model |
+| **Hands-on** | 45 min | Gated exercise in Claude Code, on a weak model. The built exercises are timed for 45 minutes from Go; TDD's 5-minute stretch level is for fast groups. |
 | **Show-and-tell** | 5 min | Each group: one moment the agent was wrong and how they caught it |
+
+**Total: about 70 minutes.** For a hard 60, run the lecture's essentials in 10 minutes and the show-and-tell in 2 (open decision 3, Section 11); don't cut the hands-on, because the exercises are calibrated for 45.
 
 ### The Four Exercises
 
@@ -203,7 +205,7 @@ This is a **learning scaffold, not an exam proctor.**
 - A human could launch with `claude --model opus`. A launch flag isn't a mid-session switch, so the model lock doesn't see it.
 - A human could ask Claude to reverse-engineer a gate.
 
-Say this openly in the lecture: *"You can cheat. You'd be cheating yourselves out of the one hour of practice you get today."* If a group tries, treat it as a teachable moment rather than a disciplinary one. The full list is in `gatekit/README.md`, section 11.
+Say this openly in the lecture: *"You can cheat. You'd be cheating yourselves out of the practice you came for."* If a group tries, treat it as a teachable moment rather than a disciplinary one. The full list is in `gatekit/README.md`, section 11.
 
 ### 5.7 Hints, Logging and the Master Key
 
@@ -296,10 +298,11 @@ Run each exercise in four ways before the trial:
 | 0 | Lecture starts |
 | 15 | Groups form; leaders allocate roles (card on table); gate terminal opened |
 | 18 | **Go.** Everyone reads the Level 0 brief (`README.md`) together |
-| 30 | Time call: each leader checks the group against the time checkpoints in their walkthrough. "If you're behind, take a hint." |
-| 45 | Time call: "Scribes, start capturing your 'caught it' moment." |
-| 58 | Stop. Scribes finalise `LOG.md` |
-| 60 | Show-and-tell: 45 seconds per group, maximum |
+| 33 | Time call (Go + 15): each leader checks the group against the time checkpoints in their walkthrough. "If you're behind, take a hint." |
+| 50 | Time call (Go + 32): "Scribes, start capturing your 'caught it' moment." |
+| 63 | Stop (Go + 45). Scribes finalise `LOG.md` |
+| 65 | Show-and-tell: 45 seconds per group, maximum |
+| 70 | Close |
 
 ### Facilitator Roaming Loop (Every ~10 min)
 
@@ -378,4 +381,3 @@ Capture the answers on a whiteboard. That list is the session's summary slide.
 3. **Lecture length:** 15 minutes as planned, or a 10-minute live demo added?
 4. **Competition:** run the Speed Run leaderboard as a room-wide event, or keep it within groups?
 5. **Take-home:** offer a public, ungated version of each repo afterwards for people to revisit?
-6. **Hands-on length:** the run-sheet gives 40 minutes from Go to Stop, but the built exercises are timed for 45 (each walkthrough's time checkpoints). Lengthen the session, shorten the lecture, or accept that most groups won't reach the last level?

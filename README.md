@@ -1,6 +1,6 @@
 # Agentic AI for Physics Research: Workshop Exercises
 
-Hands-on exercises for a one-hour workshop that teaches physicists to work well with coding agents. Groups of two to five sit with a leader, drive [Claude Code](https://code.claude.com) on a deliberately modest model, and climb through gated levels. The physics is the vehicle; the habit being drilled is the same every time: **understand, define the check, plan, small steps, evidence, review, recover.**
+Hands-on exercises for a workshop of about 70 minutes (a 15-minute lecture, then 45 minutes hands-on) that teaches physicists to work well with coding agents. Groups of two to five sit with a leader, drive [Claude Code](https://code.claude.com) on a deliberately modest model, and climb through gated levels. The physics is the vehicle; the habit being drilled is the same every time: **understand, define the check, plan, small steps, evidence, review, recover.**
 
 **This repository is public, so the answers are too.** Participants work in a small repo built from this one and never need to see it. If you run the workshop, point attendees at the built repo, not here.
 
