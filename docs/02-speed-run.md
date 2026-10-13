@@ -1,5 +1,7 @@
 # Exercise B — Speed Run: an Optimisation Race With a Correctness Gate
 
+> **Design document.** This is the pedagogical design the exercise was built from. For running the built exercise, the facilitator and the group leaders use [`exercises/speed-run/FACILITATOR-WALKTHROUGH.md`](../exercises/speed-run/FACILITATOR-WALKTHROUGH.md): set-up, levels, gate answers, coaching notes and troubleshooting. The built exercise has four levels, not five: profiling joined Level 0, so the memory wall is Level 1, the algorithm change Level 2 and the race Level 3. Deviations from this design are recorded in [`DECISIONS.md`](DECISIONS.md).
+
 | | |
 |---|---|
 | **One-liner** | A correct but painfully slow pair counter for the two-point correlation function. Make it as fast as you can, without ever getting a wrong answer. |
@@ -283,6 +285,8 @@ These are indicative figures; calibrate them on your hardware.
 ---
 
 ## 7. Group Leader Guide
+
+*Superseded for the built exercise by the walkthrough (sections 3 to 6), which adapts this guide to the levels as built.*
 
 ### Before the Session
 

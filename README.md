@@ -8,8 +8,8 @@ Hands-on exercises for a one-hour workshop that teaches physicists to work well 
 
 | You are | Start here |
 |---|---|
-| Organising the workshop for a group or department | [Quick start](#quick-start), then the walkthrough of the exercise you chose |
-| Leading one group on the day | [Lead a group](#lead-a-group) |
+| Organising the workshop (the facilitator) | [Run the workshop](#run-the-workshop) |
+| Leading one group on the day | The walkthrough for your exercise, from section 3 ("Group leaders: set up your laptop"). The facilitator sends it to you with your copy of the repo; you do not need this repository. |
 | Adapting or writing an exercise | [Build and extend](#build-and-extend) |
 
 ## The exercises
@@ -21,31 +21,7 @@ Hands-on exercises for a one-hour workshop that teaches physicists to work well 
 | A | **Two Roads.** Two H₀ engines disagree on the same catalogue. Find out why, fix it properly, and leave code you would trust. | Evidence-driven debugging; agreement is not correctness | Haiku | Designed | `docs/01-two-roads.md` |
 | C | **Fortran Archaeology.** Port legacy code and prove the port is equivalent. | Establish the oracle before you change anything | Sonnet | Designed | `docs/03-fortran-archaeology.md` |
 
-Each exercise's **facilitator walkthrough** is the authoritative guide to that exercise: its commands, levels, gate answers, what to watch for, the fallbacks, and how to reset and distribute it. It contains spoilers and is never copied into a participant repo. The pedagogical designs live in `docs/01`–`04`, and `docs/00-facilitator-guide.md` has the 15-minute lecture, group roles, the run-sheet and calibration advice for the whole session.
-
-## Quick start
-
-Requirements: macOS with the Xcode Command Line Tools (`xcode-select --install`; they provide `git` and `clang`), Python 3.11 or newer (for example `brew install python@3.13`), Claude Code **2.1.295 or newer** (`claude --version`), and a Claude account that can run Claude Code on Haiku.
-
-```zsh
-git clone <this repository> workshop && cd workshop
-
-# A facilitator passphrase, kept outside every repo (not echoed; at least 8 characters)
-mkdir -p ~/.config/workshop
-read -s "pass?Passphrase: " && print -r -- "$pass" > ~/.config/workshop/master-passphrase && unset pass
-chmod 600 ~/.config/workshop/master-passphrase
-
-# Build one participant repo and set up its Python environment (replace <name> with speed-run or tdd-ladder)
-python3 tools/build.py <name> --master-passphrase-file ~/.config/workshop/master-passphrase
-cd dist/<name>
-./preflight --setup      # creates .venv and installs the exercise's pinned packages (network, once)
-./preflight              # must end with "Preflight passed"
-claude                   # accept the workspace trust dialog once; type /hooks and check four events are listed; /exit
-```
-
-The build uses `/opt/homebrew/bin/python3.13` for the participant environment. If your Python 3.11+ lives elsewhere, add `--setup-python /path/to/python3`. The build tool itself runs on the system `python3` (3.9).
-
-Then open the exercise's walkthrough and play it through once yourself, on Haiku, before the day.
+Each exercise's **facilitator walkthrough** is the operating guide to that exercise, for the facilitator and the group leaders: building and distributing it, setting up a leader's laptop, running the session, every level with its gate answers, what to do when something goes wrong, and how to reset. It contains spoilers and is never copied into a participant repo. `docs/00-facilitator-guide.md` covers the whole session: the lecture, group roles, the leaders' briefing, the run-sheet and the trial. The pedagogical designs live in `docs/01`–`04`; where an exercise has been built, its walkthrough supersedes the design.
 
 ## How a session works
 
@@ -57,32 +33,25 @@ Then open the exercise's walkthrough and play it through once yourself, on Haiku
 
 This is a learning scaffold, not an exam proctor. A group can cheat; they would be cheating themselves out of their hour of practice. The limits are written down in [`gatekit/README.md`](gatekit/README.md#11-honest-limits) and are worth saying aloud in the lecture.
 
-## Lead a group
+## Run the workshop
 
-Open two Terminal windows in the participant repo. In the first, `claude`; in the second (a fresh window, not one opened from inside Claude Code), the gate commands. The session starts in plan mode: `Shift+Tab` leaves it once the group has agreed a plan. `/model` to anything but Haiku is refused until the facilitator grants a power-up. Confirm the model with `/status` (Haiku may misname itself when asked), and during setup check that `/model` to Sonnet is refused by the hook. The level brief is the participant repo's `README.md` at level 0 and `BRIEF.md` afterwards.
+You build one participant repo per exercise from this repository, rehearse it, and send each group leader a copy as a git bundle. Leaders and participants never need this repository.
 
-The gate commands are the same in every exercise:
+1. **Plan.** Choose the exercises and the group leaders, and check everyone's Claude accounts: `docs/00-facilitator-guide.md` sections 1, 7 and 11.
+2. **Install the requirements** on your Mac: the Xcode Command Line Tools (`xcode-select --install`; they provide `git` and `clang`), Python 3.11 or newer (for example `brew install python@3.13`), Claude Code **2.1.295 or newer** (`claude --version`), a Claude account that can run Claude Code on Haiku, and a git identity (`git config --global user.name` and `user.email`).
+3. **Clone this repository and create the master passphrase.** You type it to skip a stuck group or grant a power-up; it is kept outside every repo.
 
-| Command | What it does |
-|---|---|
-| `./gate status` | Level, persona, minutes on level, hints used |
-| `./gate brief` | Print the current brief |
-| `./gate hint` | Next hint tier (tiers unlock at 0, 5 and 10 minutes on the level) |
-| `./gate unlock` | Run the check, ask the gate question, open the next level, log a reflection |
-| `./gate skip --master` | Facilitator skip, with the passphrase and a logged reason |
-| `./gate allow-model sonnet` | Facilitator power-up to a stronger model |
+   ```zsh
+   git clone <this repository> workshop && cd workshop
+   mkdir -p ~/.config/workshop
+   read -s "pass?Passphrase: " && print -r -- "$pass" > ~/.config/workshop/master-passphrase && unset pass   # not echoed; at least 8 characters
+   chmod 600 ~/.config/workshop/master-passphrase
+   ```
 
-Each exercise adds its own tool (`./tdd` for the TDD Ladder, `./race` for the Speed Run) whose human-only commands are listed in the exercise's walkthrough and in the participant `README.md`. The commands that change progress refuse to run from Claude's shell and say why. Read refusals aloud: they are the lesson, not a bug.
-
-**Give the repo to group leaders** as a bundle of the built repo, never this repository:
-
-```zsh
-cd dist/<name>
-git bundle create ~/Desktop/<name>.bundle --all
-# leader: git clone <name>.bundle <name> && cd <name> && ./preflight --setup && ./preflight
-```
-
-**Reset between runs:** `./gate reset`, then `git reset --hard start && git clean -fdx -e .venv -e .workshop` (keeps `.venv`; `-x` also removes ignored build products such as old result plots and compiled `.so` files). The walkthroughs have the exercise-specific details.
+4. **Build, check and rehearse each exercise you will run:** section 1 of its walkthrough. Play it through once yourself, on Haiku, before the day; `docs/00` section 6 has the fuller calibration matrix.
+5. **Give each leader their repo:** section 2 of the walkthrough. You send a bundle made from a freshly built or reset repo, together with the walkthrough, and decide who types the master passphrase on the day. Leaders set up their own laptops with section 3.
+6. **Brief the leaders, then run the day:** `docs/00-facilitator-guide.md` has the leaders' briefing (section 7), the lecture (section 3) and the run-sheet and stuck protocol (section 8).
+7. **Afterwards:** each walkthrough says what to copy out for the record and how to reset between runs. For a trial run, `docs/00` section 9 says what to measure.
 
 ## Build and extend
 
@@ -96,12 +65,12 @@ docs/               the pedagogical designs and the decision log
 
 - The toolkit, its manifest schema, gate types and limits are documented in [`gatekit/README.md`](gatekit/README.md).
 - An exercise is a directory under `exercises/` with a `manifest.json`, a plaintext `level0/`, one directory per later level (`BRIEF.md`, `persona.txt`, `hints.json`, `guard.json`, any new files, all encrypted at build time), a participant `CLAUDE.md`, an optional exercise tool and hidden assets, a self-test and a facilitator walkthrough. The TDD Ladder and the Speed Run are the worked examples; `exercises/speed-run/PLAN.md` shows the design contract the Speed Run was built from.
-- Everything the participant repo runs is standard-library Python, except the exercise code itself.
+- Everything the participant repo runs is standard-library Python, except the exercise code itself. `tools/build.py` and `gatekit/` run on the system `python3` (3.9 or newer); the exercise code runs in the participant repo's `.venv` (Python 3.11 or newer).
 - `BUILD-SPEC.md`, `CLAUDE.md` and `PROGRESS.md` are the engineering spec, instructions and hand-off notes used to build this repository with Claude Code. `docs/DECISIONS.md` records the verified facts about Claude Code hooks and permissions, every deviation from the designs, and the review findings.
 
 ### Self-tests
 
-Run after the quick start. Each exercise self-test rebuilds its `dist/<name>` (keeping `.venv`), so do not run it on a repo a group is using.
+Run once the exercise has been built and its `.venv` set up (step 4 of [Run the workshop](#run-the-workshop)). Each exercise self-test rebuilds its `dist/<name>` (keeping `.venv`), so do not run it on a repo a group is using.
 
 ```zsh
 cd gatekit && python3 -m unittest discover -s . -t . -p 'test_*.py'; cd ..

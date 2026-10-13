@@ -1,5 +1,7 @@
 # Exercise D — The TDD Ladder: From "Just Build It" to Tests You Can Trust
 
+> **Design document.** This is the pedagogical design the exercise was built from. For running the built exercise, the facilitator and the group leaders use [`exercises/tdd-ladder/FACILITATOR-WALKTHROUGH.md`](../exercises/tdd-ladder/FACILITATOR-WALKTHROUGH.md): set-up, levels, gate answers, coaching notes and troubleshooting. Deviations from this design are recorded in [`DECISIONS.md`](DECISIONS.md).
+
 | | |
 |---|---|
 | **One-liner** | Implement one small feature several times, climbing from naive agent use to disciplined, physics-aware test-driven development, with an objective score showing how good your tests really are at each rung. |
@@ -403,6 +405,8 @@ Your behaviour depends on the PERSONA injected with each prompt. Follow it exact
 ---
 
 ## 10. Group Leader Guide
+
+*Superseded for the built exercise by the walkthrough (sections 3 to 6), which adapts this guide to the levels as built.*
 
 ### Before the Session
 

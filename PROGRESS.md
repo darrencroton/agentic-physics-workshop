@@ -7,6 +7,7 @@
 - **Phase 4, Exercise B, Speed Run** (`exercises/speed-run/` → `dist/speed-run/`): built and reviewed. Design contract in `exercises/speed-run/PLAN.md` (brainstormed with Codex gpt-6.1-sol, numbers measured on the build machine). Four levels (measure; vectorise and survive the memory wall; reduce the work and defend the answer; open race), crypto gates for 0–2 and a verified gate for the race, a signed bench log with stale-evidence checks, a hidden submission catalogue, a C cell-list solution and a numpy calibration counter. `selftest/run.py` passes 82 checks in ~3.7 minutes (verify_assets, every level, every refusal, submit, install-solution, skip, reset). External panel round 1 (Codex gpt-6.1-sol, Claude Opus 5.5) findings all fixed or accepted (`docs/DECISIONS.md`); round 2 verified the fixes.
 - `gatekit`: human-only commands come from the manifest (`human_only`), `race` is a frozen launcher, `model_check.py` reports the starting model, the template `.gitignore` covers compiled objects, `gate check` no longer double-prefixes failures.
 - `README.md` is generic and points at each exercise's `FACILITATOR-WALKTHROUGH.md` for the specifics.
+- Documentation by role (2026-10-13): `README.md` "Run the workshop" is the facilitator's checklist; each walkthrough is the operating guide for the facilitator (sections 1–2: build, rehearse, bundle, passphrase policy) and the group leaders (section 3 onwards: laptop set-up from the bundle, running the session, levels, troubleshooting, reset). `docs/00` §5 and §7 updated to match the build; `docs/02` and `docs/04` marked as designs superseded by the walkthroughs. Bundle clone and preflight verified for both exercises. Decisions in `docs/DECISIONS.md`.
 - Environment: `dist/tdd-ladder/.venv` (Python 3.13.2; numpy 2.3.2, matplotlib 3.10.5, pytest 9.1.1) and `dist/speed-run/.venv` (adds scipy 1.17.0). Master passphrase in `~/.config/workshop/master-passphrase`.
 
 ## How to re-run everything
@@ -29,3 +30,5 @@ Each self-test rebuilds its `dist/<name>` (keeping `.venv`) and leaves it clean 
 - Should `./tdd score` be allowed to Claude at Level 5 (collaborator)? Currently human-only at every level.
 - Speed Run: room-wide leaderboard or within-group only (docs/02 §10)? The board is per repo; a facilitator can read `./race board` out.
 - Speed Run on Intel Macs: the FMA trap does not fire without `-mfma`; Apple silicon is assumed.
+- `BUILD-SPEC.md` still quotes the short reset (`git reset --hard start && ./gate reset`); left as the historical spec (the walkthroughs' reset is canonical).
+- Session timing: the `docs/00` run-sheet gives 40 minutes from Go to Stop; the built exercises are timed for 45. Recorded as open decision 6 in `docs/00` §11.

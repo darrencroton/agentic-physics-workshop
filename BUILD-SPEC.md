@@ -234,7 +234,7 @@ WORKSHOP LEVEL n — <title> — persona: <mode>
 
 **`model_lock.py`** (`PreModelSwitch`): allows the switch only if the target matches an entry in `allowed_models`. Otherwise it denies with: *"Today's exercise uses <model>. Ask a facilitator for a power-up."*
 
-**`settings.json` template:** as in `docs/00` Section 5.5, corrected per Section 3 of this spec.
+**`settings.json` template:** as in `docs/00` Section 5.5, corrected per Section 3 of this spec. (As built: `gatekit/templates/.claude/settings.json`; `docs/00` no longer carries the skeleton.)
 
 ### 4.9 Participant `CLAUDE.md`
 

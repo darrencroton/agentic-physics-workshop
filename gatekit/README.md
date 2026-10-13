@@ -47,7 +47,7 @@ All commands run as `./gate <command>`. A TTY means both stdin and stdout are te
 | `hint` | Yes | Shows the first unused tier in `hints.json`, provided `unlock_after_minutes` has passed on this level; otherwise says when it unlocks. Records the tier in `hints_used` and appends the text to `LOG.md`. |
 | `skip --master` | Yes | Prompts for the master passphrase without echo, checks it against `.vault/master.check`, asks for a reason, records a skip, and unlocks the next level using the master slot (or marks the last level complete). Logs to `LOG.md`. A wrong passphrase is logged as a failed attempt of kind `master`. Without `--master` it errors. |
 | `allow-model <name>` | Yes, plus master passphrase | Verifies the master passphrase, lower-cases the name, appends it to `allowed_models` and logs the power-up. |
-| `reset` | Yes | Asks for confirmation (skipped with `--yes`), deletes `.workshop/`, copies `.gatekit/levels/0` to `.workshop/levels/0`, writes a fresh state and calls the tool's `on_reset(root)`. It does not touch the working tree; the message suggests `git reset --hard start`. |
+| `reset` | Yes | Asks for confirmation (skipped with `--yes`), deletes the files later levels unlocked into the working tree (each level's `BRIEF.md` and its `files` targets), deletes `.workshop/`, copies `.gatekit/levels/0` to `.workshop/levels/0`, writes a fresh state and calls the tool's `on_reset(root)`. It does not otherwise touch the working tree; the message suggests `git reset --hard start`. |
 
 `gate help`, `-h` and `--help` print usage.
 
@@ -177,7 +177,9 @@ An answer that cannot be parsed ("answer with a number, e.g. 0.0093 or 1.2e-3") 
 
 ## 7. State file
 
-`.workshop/state.json` is written only by `gate` and the exercise tool, atomically: a temporary file in `.workshop/` is written with sorted keys and indented, then renamed over the target. Loading fails with a clear message if the file is missing, corrupt, lacks `exercise`, `level`, `levels` or `allowed_models`, or has a non-integer `level`.
+`.workshop/state.json` is not in git, so a fresh clone (for example from a bundle) has none. Any `gate` command, and `./preflight`, then creates the level-0 state as `gate reset` would and says so.
+
+The file is written only by `gate` and the exercise tool, atomically: a temporary file in `.workshop/` is written with sorted keys and indented, then renamed over the target. Loading (after that first creation) fails with a clear message if the file is corrupt, lacks `exercise`, `level`, `levels` or `allowed_models`, or has a non-integer `level`.
 
 | Field | Meaning |
 |---|---|

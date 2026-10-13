@@ -1,6 +1,6 @@
 # Agentic AI for Physics Research — Facilitator Guide
 
-*For the session organiser. Covers the pre-session lecture, the shared "gate kit" that all four exercises use, setup, running the day, and the trial with your research group.*
+*For the session organiser (the facilitator). Covers the pre-session lecture, group roles, the shared "gate kit" in outline, calibration, the leaders' briefing, running the day, and the trial with your research group. How to build, distribute and operate a built exercise is in the repository `README.md` ("Run the workshop") and in that exercise's facilitator walkthrough, which is also the group leaders' guide.*
 
 ---
 
@@ -22,13 +22,15 @@
 | **C** | Fortran Archaeology (legacy port) | Establish the oracle before you change anything | Sonnet | Strongest leaders |
 | **D** | TDD Ladder (test-driven development) | You define "correct"; the agent cannot | Haiku | Groups who write shared code |
 
+Only B and D are built so far; A and C are designs (see the `README.md` exercise table).
+
 **Suggested assignment:** A for half the groups, then B and D split across the rest. C goes only to leaders who are comfortable with compilers and Fortran. Groups doing the *same* exercise make the show-and-tell more interesting, because their different paths are directly comparable.
 
 ---
 
 ## 2. Design Principles
 
-1. **One workflow, four vehicles.** Every exercise drills the same loop (Section 3.4). The physics is the vehicle; the loop is the take-home.
+1. **One workflow, four vehicles.** Every exercise drills the same loop (Section 3, Slide 4). The physics is the vehicle; the loop is the take-home.
 2. **The human owns the result.**
    - Gates require *human* judgement, typed by a human, to unlock the next level.
    - A weak model means the group must understand the problem to direct the agent.
@@ -138,64 +140,34 @@ Roles are responsibilities, not seats. Combine them in small groups and split th
 
 ## 5. The Gate Kit (Shared Infrastructure)
 
-All four repos share one small toolkit, written in Python using only the standard library. Build it once and reuse it.
+All the exercise repos share one small toolkit, written in Python using only the standard library. This section gives the design intent and what to say about it in the lecture. The toolkit as built (commands, manifest, hooks, settings, crypto) is documented in `gatekit/README.md`.
 
 ### 5.1 Goals
 
 - The group cannot reach Level N+1 until it has solved Level N **and** a human has demonstrated understanding.
 - Claude acts as a *teacher*: it runs experiments the group designs, but doesn't hand over answers.
 - Progress is logged, so you can measure timings in the trial and on the day.
-- Everything works offline and needs no third-party packages.
+- Everything works offline once set up, and the toolkit needs no third-party packages.
 
 ### 5.2 Repo Layout
 
-```
-exercise-repo/
-├── CLAUDE.md                     # teacher instructions (always loaded)
-├── README.md                     # Level 0 brief for humans
-├── LOG.md                        # Scribe's log (template)
-├── gate                          # CLI: status | check | unlock | hint (python3, stdlib)
-├── .claude/
-│   ├── settings.json             # model, permission mode, deny rules, hooks
-│   └── hooks/
-│       ├── teacher_context.py    # UserPromptSubmit: injects current level brief + persona
-│       ├── guard.py              # PreToolUse: blocks .vault access, gate unlock, pip, etc.
-│       └── model_lock.py         # PreModelSwitch: enforces the allowed model(s)
-├── .workshop/
-│   ├── state.json                # current level, timestamps, hints used (written by ./gate)
-│   └── levels/                   # unlocked level briefs appear here
-├── .vault/
-│   ├── level1.pack               # encrypted level packs (brief, checks, data, hints)
-│   ├── level2.pack
-│   └── ...
-└── src/, tests/, data/           # exercise content
-```
+A built participant repo holds the Level 0 files, the `gate` and `preflight` launchers, the Claude Code settings and hooks in `.claude/`, the toolkit in `.gatekit/`, the encrypted level packs in `.vault/`, and the runtime state in `.workshop/`. The full layout is in `gatekit/README.md`, section 1.
 
 `.workshop/` (and `.tdd/` in Exercise D) are **gitignored**, so `git checkout` or `git reset` during an exercise never rewinds gate progress or the logs.
 
 ### 5.3 How a Gate Works
 
-```
-  Level N work ──► ./gate check ──► machine token T  (derived from correct outputs)
-                                         │
-  Human answers gate question ──► A      │
-                                         ▼
-                         key = SHA-256(T ‖ normalise(A) ‖ salt)
-                                         │
-                         decrypt .vault/level{N+1}.pack  ──► .workshop/levels/N+1/
-```
-
-- **Machine token T.** `./gate check` runs the level's behaviour-based checks and, only if they pass, prints a short token derived from the *correct* outputs. A broken solution cannot produce it.
-- **Human answer A.** This is a short structured answer (a letter, number or keyword) to a debrief question about what the group observed or decided. Examples: "What functional form did the discrepancy have?" "What was the exponent you measured?"
-- **Key.** The key is derived from T and A together. Packs are encrypted with a SHAKE-256 keystream and authenticated with HMAC-SHA-256, all from Python's standard library. A wrong answer fails authentication cleanly, with the message "Not quite. Discuss and try again."
-- **TTY requirement.** `./gate unlock` reads the answer with `getpass` and refuses to run without an interactive terminal. Claude's Bash tool has no TTY, so humans unlock the gate in a **separate "gate terminal"** window. The physical separation is deliberate: the gate terminal belongs to the humans.
-- **Free-text reflection.** After a successful unlock, `./gate` asks one open question, such as "What would you do differently?". The answer is appended to `LOG.md` unchecked and feeds the show-and-tell.
+- **The check.** `./gate check` runs the level's behaviour-based checks and reports PASS or FAIL. A broken solution cannot pass, and the check never reveals the answer.
+- **The human answer.** A short structured answer (a letter, number or keyword) to a debrief question about what the group observed or decided. Examples: "What functional form did the discrepancy have?" "What was the exponent you measured?"
+- **The unlock.** The next level's files sit in an encrypted pack in `.vault/`. Some gates derive the key from the check's output and the human answer; others first verify the group's recorded evidence (a score, a bench run) and then release the key. Either way the pack opens only when the work passes and the human answer is right. A wrong answer fails cleanly, with "Not quite. Discuss and try again." or the reason the evidence was refused.
+- **The gate terminal.** `./gate unlock` reads the answer at an interactive prompt and refuses to run without a terminal, or from a shell that Claude Code started. Claude's Bash tool has no terminal, so humans unlock the gate in a **separate "gate terminal"** window. The physical separation is deliberate: the gate terminal belongs to the humans.
+- **Free-text reflection.** After a successful unlock, `./gate` asks one or two open questions, such as "What would you do differently?". The answer is appended to `LOG.md` unchecked and feeds the show-and-tell.
 
 ### 5.4 Teacher Mode
 
 **`CLAUDE.md`** holds the stable rules: the persona, what Claude must never do, and how to respond to "just fix it". Each exercise doc includes a draft.
 
-**`teacher_context.py`** (a `UserPromptSubmit` hook) injects a short, level-specific brief on every prompt. It covers the current level, the persona mode for that level, and any constraints. Its plain stdout is added to Claude's context. This keeps a weak model on track as the conversation grows.
+**A `UserPromptSubmit` hook** injects a short, level-specific brief on every prompt. It covers the current level, the persona mode for that level, and any constraints. This keeps a weak model on track as the conversation grows.
 
 **Persona modes** are set per level:
 
@@ -207,50 +179,10 @@ exercise-repo/
 
 ### 5.5 Guardrails
 
-**`.claude/settings.json` (shared skeleton):**
-
-```json
-{
-  "model": "haiku",
-  "permissions": {
-    "defaultMode": "plan",
-    "deny": [
-      "Read(./.vault/**)",
-      "Edit(./.vault/**)",
-      "Edit(./.workshop/state.json)",
-      "Bash(./gate unlock *)",
-      "Bash(pip *)",
-      "Bash(pip3 *)",
-      "Bash(python3 -m pip *)"
-    ]
-  },
-  "hooks": {
-    "UserPromptSubmit": [
-      { "hooks": [ { "type": "command", "command": "python3",
-                     "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/teacher_context.py"] } ] }
-    ],
-    "PreToolUse": [
-      { "matcher": "Read|Edit|Write|Bash|Grep|Glob",
-        "hooks": [ { "type": "command", "command": "python3",
-                     "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.py"],
-                     "onFailure": "block" } ] }
-    ],
-    "PreModelSwitch": [
-      { "matcher": ".*",
-        "hooks": [ { "type": "command", "command": "python3",
-                     "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/model_lock.py"] } ] }
-    ]
-  }
-}
-```
-
-**Notes:**
-
-- **`defaultMode: "plan"`** starts every session in read-only exploration, which reinforces *Understand* first. The Driver switches out with `Shift+Tab` once a plan is agreed.
-- **`guard.py`** blocks tool calls that touch `.vault/` or `state.json`, Bash commands containing `gate unlock`, and package installs. It exits with code 2 and a teaching message, e.g. "The vault is for humans to unlock. Ask the group what they observed."
-- **`model_lock.py`** reads the allowed models from `.workshop/state.json`, so a facilitator can grant a "Sonnet power-up". It denies any other switch.
-- **`onFailure: "block"`** makes a crashing guard fail *closed*. It requires a recent Claude Code version; pin the version (see Section 7).
-- **Verify before relying on it:** that the `"haiku"` alias is accepted in `settings.json` on the pinned version, and the exact canonical model names that `PreModelSwitch` matches against.
+- **Plan mode by default.** Every session starts in read-only exploration, which reinforces *Understand* first. The Driver switches out with `Shift+Tab` once a plan is agreed.
+- **A guard hook** (`PreToolUse`) blocks Claude from the vault, the workshop state, the human-only gate commands, package installs and the files a level has frozen. Each refusal carries a teaching message. If the guard crashes, the tool call is blocked (it fails closed), which needs Claude Code 2.1.295 or newer.
+- **A model lock** (`PreModelSwitch`) refuses `/model` to anything but the allowed model, until a facilitator grants a power-up.
+- **Workspace trust.** Project hooks load only after someone opens `claude` in the repo once and accepts the trust dialog; the walkthrough's setup checks confirm it.
 
 ### 5.6 Honest Limits
 
@@ -258,34 +190,31 @@ This is a **learning scaffold, not an exam proctor.**
 
 **Hard to bypass:**
 
-- **Encrypted packs.** No content is visible without T and A.
-- **The TTY requirement.** Claude can't type into the gate terminal.
+- **Encrypted packs.** No later-level content is visible without passing the gate.
+- **The gate terminal.** Claude can't type into it.
 
 **Soft (instructions and hooks Claude is asked to respect):**
 
 - The teacher persona.
-- Path guards on Bash. Hook `if` filtering on Bash is best-effort by design, which is why the vault is encrypted rather than merely hidden.
+- Path guards on Bash. Matching shell commands is best-effort by design, which is why the vault is encrypted rather than merely hidden.
 
 **Bypassable by a determined human:**
 
-- A human could launch with `claude --model opus`. A launch flag isn't a mid-session switch, so `PreModelSwitch` doesn't see it.
+- A human could launch with `claude --model opus`. A launch flag isn't a mid-session switch, so the model lock doesn't see it.
 - A human could ask Claude to reverse-engineer a gate.
 
-Say this openly in the lecture: *"You can cheat. You'd be cheating yourselves out of the one hour of practice you get today."* If a group tries, treat it as a teachable moment rather than a disciplinary one.
+Say this openly in the lecture: *"You can cheat. You'd be cheating yourselves out of the one hour of practice you get today."* If a group tries, treat it as a teachable moment rather than a disciplinary one. The full list is in `gatekit/README.md`, section 11.
 
 ### 5.7 Hints, Logging and the Master Key
 
 - **`./gate hint`** reveals tiered hints for the current level, three per level: *nudge → direction → near-answer*. Hints are time-locked: tier 2 opens after 5 minutes on the level and tier 3 after 10. Every hint is logged.
 - **`state.json`** records the level start time, unlock time, hints used and failed unlock attempts. This is your trial data.
-- **`./gate skip --master`** (prompts for a facilitator passphrase) unlocks the next level for a stuck group. Use it sparingly, and log why.
+- **The master passphrase** is yours. You type it in the group's gate terminal for `./gate skip --master` (unlocks the next level for a stuck group; use it sparingly, and give a reason), `./gate allow-model` (a power-up) and any exercise fallback. Who else may know it is decided in each walkthrough's section 2.
 - **`./gate status`** prints the level, time on level and hints used. Leaders call this out at time checks.
 
 ### 5.8 Building Level Packs
 
-- Keep a **private answer-key repo** containing the plaintext packs, reference solutions and `gate pack` tooling.
-- `gate pack <level-dir> --token-from <reference-solution> --answer <A>` runs the checks against the reference solution to derive T, then encrypts the next level's directory.
-- The public exercise repo contains only Level 0 plaintext plus the encrypted packs.
-- Tag the starting state `start`, so `git reset --hard start && ./gate reset` restores a clean state between trial runs.
+`tools/build.py` builds each participant repo from its private source in `exercises/<name>/`: it encrypts the later levels into packs, commits the result and tags it `start`. The answers never enter the participant repo except as encrypted packs and check values. See `README.md` ("Build and extend").
 
 ---
 
@@ -300,8 +229,11 @@ Say this openly in the lecture: *"You can cheat. You'd be cheating yourselves ou
 - [ ] Three hint tiers per level
 - [ ] `CLAUDE.md` teacher instructions and per-level persona briefs
 - [ ] Reference solution path (to derive tokens and test end-to-end)
-- [ ] `./preflight` script
-- [ ] Facilitator answer key (private)
+- [ ] Exercise-specific preflight checks
+- [ ] Facilitator walkthrough (gate answers, leader set-up, coaching notes)
+- [ ] Self-test that plays every level
+
+How to add an exercise to this repository is in `README.md` ("Build and extend").
 
 ### Calibration Matrix
 
@@ -330,14 +262,12 @@ Run each exercise in four ways before the trial:
 - Measure **usage consumed** per exercise in the trial. Haiku should stretch the allowance further, but confirm it.
 - Hold **one or two spare accounts** on a facilitator laptop for groups whose leader hits a usage limit.
 
-### Leader Machines (macOS)
+### Repos and Leader Machines (macOS)
 
-- [ ] Xcode Command Line Tools (`xcode-select --install`): provides `git` and `clang`
-- [ ] Python 3.11+ with `numpy` and `scipy` installed **in advance** (agents can't install packages during the session; the deny rules block `pip`)
-- [ ] Exercise C only: `gfortran` (e.g. via Homebrew `gcc`), compile-tested in preflight
-- [ ] Claude Code installed, version **pinned** to the one you calibrated against (`claude --version`)
-- [ ] Repo cloned; **`./preflight` passes**. It checks Python, packages, compilers, git identity, that hooks fire, the model setting and the TTY gate.
-- [ ] **Workspace trust accepted:** open `claude` in the repo once and accept the trust dialog. Project hooks and some settings wait for trust.
+- [ ] Each exercise built, checked and rehearsed by you on Haiku: walkthrough section 1.
+- [ ] Each leader sent a git bundle of the built repo and the walkthrough, at least a week before: walkthrough section 2. Never send this repository.
+- [ ] Each leader's laptop set up by the leader from walkthrough section 3, before the briefing, on the Claude Code version you calibrated against. Packages must be in place by then: agents can't install them during the session.
+- [ ] Exercise C only (when built): `gfortran` (e.g. via Homebrew `gcc`), compile-tested in preflight.
 - [ ] Two terminal windows arranged: **Claude** (large) and **Gate** (small)
 - [ ] An external screen or TV per group if the room allows. Otherwise the group gathers behind the leader's laptop.
 
@@ -345,13 +275,13 @@ Run each exercise in four ways before the trial:
 
 1. **(10 min)** Goals and principles (Section 2). Their role is *Coach*, not Driver.
 2. **(10 min)** The leader walks through their exercise's Levels 0–1 themselves.
-3. **(10 min)** The gate kit: gate terminal, hints, `./gate status`, what to do when something breaks.
+3. **(10 min)** The gate kit: gate terminal, hints, `./gate status`, what to do when something breaks (walkthrough section 6), and how to call you for a power-up or skip, since you hold the master passphrase.
 4. **(10 min)** Group management: roles by size, rotation, the "hands off the code" rule, handling the expert who wants to take over.
-5. **(5 min)** Preflight on their own machine; resolve any failures on the spot.
+5. **(5 min)** Confirm each leader's set-up passed (walkthrough section 3: preflight and the Claude Code checks); resolve any failures on the spot.
 
 ### Day Before
 
-- Re-run `./preflight`, then `git reset --hard start && ./gate reset`.
+- Leaders re-run `./preflight`, then reset any rehearsal as in walkthrough section 7, so the group starts at level 0 with an empty log.
 - Charge laptops; confirm power at tables.
 - Confirm nothing needs the network except Claude Code itself.
 
@@ -366,8 +296,8 @@ Run each exercise in four ways before the trial:
 | 0 | Lecture starts |
 | 15 | Groups form; leaders allocate roles (card on table); gate terminal opened |
 | 18 | **Go.** Everyone reads the Level 0 brief (`README.md`) together |
-| 30 | Time call: "You should be past Level 1. If not, take a hint." |
-| 45 | Time call: "Core levels should be done by 55. Scribes, start capturing your 'caught it' moment." |
+| 30 | Time call: each leader checks the group against the time checkpoints in their walkthrough. "If you're behind, take a hint." |
+| 45 | Time call: "Scribes, start capturing your 'caught it' moment." |
 | 58 | Stop. Scribes finalise `LOG.md` |
 | 60 | Show-and-tell: 45 seconds per group, maximum |
 
@@ -384,6 +314,8 @@ Run each exercise in four ways before the trial:
 3. **Facilitator nudge:** a question, not an answer.
 4. **Model power-up** (Sonnet), granted by the facilitator and logged. Use it when the group is directing well but the model can't execute.
 5. **`./gate skip --master`:** a last resort, so the group still experiences the later levels.
+
+Steps 4 and 5 need the master passphrase, typed in the group's gate terminal. Each walkthrough's "When something goes wrong" table has the exercise-specific options, such as installing a reference solution.
 
 ### Show-and-Tell Format
 
@@ -428,14 +360,14 @@ Capture the answers on a whiteboard. That list is the session's summary slide.
 | Risk | Likelihood | Mitigation |
 |---|---|---|
 | Leader hits a usage limit mid-session | Medium | Haiku by default; spare accounts; measure in the trial |
-| Environment failure (Python, compiler, hooks) | Medium | Preflight; pinned versions; leaders' briefing; spare configured laptop |
+| Environment failure (Python, compiler, hooks) | Medium | Leaders set up and run preflight before the briefing; pinned versions; spare configured laptop |
 | Haiku leaks answers despite teacher mode | Medium | Per-turn persona injection; calibration Run 1; answers are useless without the human gate answer anyway |
 | Haiku too weak for a level | Medium | Facilitator Sonnet power-up; calibration Run 2 |
-| Group finishes too early | Low–Medium | Stretch level in every exercise |
+| Group finishes too early | Low–Medium | A stretch level (D) or the open race (B) |
 | Group stalls on Level 0–1 | Medium | Time calls; tiered hints; master skip |
 | Leader dominates | Medium | Coach role; rotation rule; facilitator roaming |
 | Group bypasses gates or switches model | Low | Name it in the lecture; encrypted packs; treat it as a teaching moment |
-| Wi-Fi is poor | Low–Medium | Everything bundled; only Claude Code needs the network |
+| Wi-Fi is poor | Low–Medium | Packages installed by `./preflight --setup` before the day; on the day only Claude Code needs the network |
 
 ---
 
@@ -446,3 +378,4 @@ Capture the answers on a whiteboard. That list is the session's summary slide.
 3. **Lecture length:** 15 minutes as planned, or a 10-minute live demo added?
 4. **Competition:** run the Speed Run leaderboard as a room-wide event, or keep it within groups?
 5. **Take-home:** offer a public, ungated version of each repo afterwards for people to revisit?
+6. **Hands-on length:** the run-sheet gives 40 minutes from Go to Stop, but the built exercises are timed for 45 (each walkthrough's time checkpoints). Lengthen the session, shorten the lecture, or accept that most groups won't reach the last level?
