@@ -75,7 +75,10 @@ def spec_written_and_code_untouched(root, state, manifest):
                        "decision on its own line as 1. ..., 2. ... and keep interviewing "
                        "if you have fewer." % count)
     recorded = C.records(state).get("tree_hash", {}).get("level2")
-    if recorded and recorded != C.tree_hash(root, "src", "tests"):
+    if not recorded:
+        return False, ("the Level 2 start record is missing; ask a facilitator "
+                       "(./gate skip --master or a reset).")
+    if recorded != C.tree_hash(root, "src", "tests"):
         return False, ("src/ or tests/ changed during Level 2. This level is decisions only: "
                        "put them back exactly as they were when Level 2 began.%s"
                        % _level2_changes(root, state))

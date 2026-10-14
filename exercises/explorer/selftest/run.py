@@ -269,6 +269,11 @@ def level0(repo, plan_name):
                           "something you can run and look at")):
         repo.write("PLAN.md", plan_variant(sample, which))
         refused(repo, expected, "PLAN.md with %s broken" % which)
+    # A "#" comment inside a code fence under Steps is not a heading.
+    fenced = re.sub(r"(?m)^(## Steps.*)$",
+                    r"\1\n```bash\n# generate data.json\nmake explore\n```", sample, count=1)
+    repo.write("PLAN.md", fenced)
+    refused(repo, "no commit since start", "PLAN.md with a fenced # comment under Steps")
     repo.write("PLAN.md", sample)
     refused(repo, "no commit since start", "complete PLAN.md not committed")
     repo.commit("Plan", "PLAN.md")

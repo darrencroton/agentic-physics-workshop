@@ -19,6 +19,8 @@
 
 - **Explorer feedback round** (from a group playthrough to Level 3): plans have two steps (two or three at first, then two after the 2026-10-14 solo run) and Level 1 needs two commits; the Level 1 question is worded for the group's dataset and a wrong answer gives a hint (new optional gatekit question fields `text_from` and `wrong_hint`); every brief has one shape, with an "If it goes differently" section; review triage covers the top three to five findings, and fixes come with a test. The shared guard now reads quotes, heredocs and redirects: replaying the 29 refused playthrough commands allows 28 (the last is correctly refused). Self-tests: Explorer 136, TDD Ladder 109, Speed Run 82; gatekit 55 tests on Python 3.14 and 3.9.6. Details in `docs/DECISIONS.md`. Then tightened for time after the solo run: two steps, capped test plan and review (five to eight tests, three to five findings), prompts that write `TESTS.md` and `REVIEW.md` directly, one Level 0 prompt, one minute of play with one group feature, one fix at Level 3, and a Finished early section in the last brief. Explorer self-test: 137 checks.
 
+- **Release-readiness pass** (2026-10-14): a combined code review, code-health and simplification pass, triaged by an external two-reviewer panel (Codex gpt-6.1-sol, Claude Opus 5.5), then implemented. Report: `archive/REVIEW-2026-10-14-release-readiness.md` (archived, not shipped); decisions in `docs/DECISIONS.md`. Fixed: `./tdd green` accepts a `pytest.raises` red; Explorer plan sections ignore `#` inside code fences; `*.dSYM/` ignored so `./race submit` is not blocked; the guard denies `git clean -x/-X`, covers the `Monitor` tool, resolves redirects against the hook `cwd` and a literal `cd`, treats `sed -i` in any option position and `>!` as writes, and no longer refuses Grep regexes such as `def .*json`; the shipped manifest carries no answer keys for crypto questions; cleaner errors for a damaged scoring pack and a missing Level 2 record; top-level `PLAN.md` archived. Receipt: gatekit 65 tests on Python 3.14 and 3.9.6; self-tests TDD Ladder 112, Speed Run 82, Explorer 138; ruff clean.
+
 ## How to re-run everything
 
 ```zsh
@@ -41,4 +43,3 @@ Each self-test rebuilds its `dist/<name>` (keeping `.venv`) and leaves it clean 
 - Should `./tdd score` be allowed to Claude at Level 5 (collaborator)? Currently human-only at every level.
 - Speed Run: room-wide leaderboard or within-group only (docs/02 §10)? The board is per repo; a facilitator can read `./race board` out.
 - Speed Run on Intel Macs: the FMA trap does not fire without `-mfma`; Apple silicon is assumed.
-- `BUILD-SPEC.md` still quotes the short reset (`git reset --hard start && ./gate reset`); left as the historical spec (the walkthroughs' reset is canonical).

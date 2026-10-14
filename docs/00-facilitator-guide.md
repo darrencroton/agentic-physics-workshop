@@ -178,7 +178,7 @@ A built participant repo holds the Level 0 files, the `gate` and `preflight` lau
 |---|---|
 | `literal` | Does what is asked, literally. Volunteers no best practice. Used where the lesson is seeing what happens without discipline (TDD Levels 0–1). |
 | `coach` | Executes the group's experiments and reports evidence. Answers "just fix it" by asking for the group's hypothesis. Never names the bug or the fix first. Offers at most one leading question per turn. |
-| `collaborator` | Normal helpful behaviour, still evidence-first. Used in later "free" levels (Exercise B's open race). |
+| `collaborator` | Normal helpful behaviour, still evidence-first. Used in later "free" levels (Exercise B's open race; all four Explorer levels). |
 
 ### 5.5 Guardrails
 

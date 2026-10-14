@@ -16,6 +16,7 @@ import hmac
 import importlib.util
 import json
 import math
+from fractions import Fraction
 import os
 import re
 import subprocess
@@ -329,7 +330,12 @@ def allowed_shift(golden, division, sigma):
     """Largest |count - golden| that passes a bin."""
     if division == "exact":
         return 0
-    return int(math.floor(sigma * math.sqrt(golden)))
+    shift = sigma * math.sqrt(golden)
+    nearest = int(round(shift))
+    # sigma^2 * golden is an exact square: the float product may land just below it.
+    if Fraction(nearest * nearest) == Fraction(repr(float(sigma))) ** 2 * int(golden):
+        return nearest
+    return int(math.floor(shift))
 
 
 def compare(golden, got, division, sigma):

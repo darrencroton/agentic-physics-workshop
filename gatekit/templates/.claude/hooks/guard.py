@@ -93,8 +93,8 @@ def main():
 
     if tool in H.PATH_TOOLS:
         check_path_tool(tool, tool_input, editable, frozen_extra, message)
-    elif tool == "Bash":
-        check_bash(tool_input, editable, frozen_extra, message)
+    elif tool in ("Bash", "Monitor"):
+        check_bash(tool_input, editable, frozen_extra, message, data.get("cwd"))
     H.allow()
 
 
@@ -102,12 +102,18 @@ def check_path_tool(tool, tool_input, editable, frozen_extra, message):
     field = H.PATH_TOOLS[tool]
     path = tool_input.get(field)
     if tool in ("Glob", "Grep"):
-        for value in (tool_input.get("pattern"), tool_input.get("glob"),
-                      tool_input.get("type"), path):
+        pattern = str(tool_input.get("pattern") or "")
+        values = [tool_input.get("glob"), tool_input.get("type"), path]
+        if tool == "Grep":
+            if H.re.search(H.SECRET_RE, pattern, H.re.IGNORECASE):
+                refuse(MSG_SECRET)
+        else:
+            values.append(pattern)
+            if H.re.search(r"(^|/)\.", H.re.sub(r"^(\./)+", "", pattern)):
+                refuse(MSG_SECRET)
+        for value in values:
             if value and H.mentions_secret(str(value)):
                 refuse(MSG_SECRET)
-        if tool == "Glob" and H.re.search(r"(^|/)\.", str(tool_input.get("pattern") or "")):
-            refuse(MSG_SECRET)
         path = path or "."
     if not isinstance(path, str) or not path:
         refuse("Guard could not read the path for %s; failing closed." % tool)
@@ -142,40 +148,127 @@ def human_only_spec():
                "failing closed." % exc)
 
 
-def check_bash(tool_input, editable, frozen_extra, message):
+def hook_cwd(cwd):
+    """The hook's working directory when it is inside the repo, else the root."""
+    if not isinstance(cwd, str) or not cwd:
+        return ROOT
+    path = os.path.realpath(os.path.join(ROOT, cwd))
+    return path if path == ROOT or path.startswith(ROOT + os.sep) else ROOT
+
+
+MSG_CD = ("That redirect follows a cd the guard cannot read. Write the target "
+          "as a path from the repo root.")
+# A cd or pushd command word (group 1) and its argument text (group 2).
+CD_COMMAND = H.re.compile(
+    r"(?:^|[;&|({\n])\s*(?:(?:if|then|do|else|elif|while|until|!|time|"
+    r"command|builtin)\s+)*(cd|pushd)(?=\s|$|[;&|)])[ \t]*([^;&|\n)]*)")
+CD_FLAGS = H.re.compile(r"^(?:-[PL]+\s+)*")
+
+
+def first_word(arg):
+    """The first shell word of `arg` with its quotes removed."""
+    word, quote = [], None
+    for char in arg:
+        if quote:
+            quote = None if char == quote else quote
+            if quote:
+                word.append(char)
+        elif char in "'\"":
+            quote = char
+        elif char in " \t":
+            break
+        else:
+            word.append(char)
+    return "".join(word)
+
+
+def cd_target(verb, arg):
+    """The literal directory a cd or pushd names, or None when it is computed."""
+    arg = first_word(CD_FLAGS.sub("", arg.strip()))
+    if H.re.search(r"[$`*?\[{]", arg) or arg.startswith("-"):
+        return None
+    if not arg:
+        return None if verb == "pushd" else os.path.expanduser("~")
+    return os.path.expanduser(arg)
+
+
+def redirect_bases(parsed, cwd, end):
+    """Directories a relative redirect may resolve against: the hook cwd and
+    every literal cd or pushd before `end` in the code; None when one of
+    them is computed."""
+    bases = [cwd]
+    for match in CD_COMMAND.finditer(parsed.code, 0, end):
+        if parsed.quoted[match.start(1)]:
+            continue
+        target = cd_target(match.group(1), match.group(2))
+        if target is None:
+            return None
+        bases.append(os.path.normpath(os.path.join(bases[-1], target)))
+    return bases
+
+
+def redirect_end(parsed, word, start):
+    """Offset just past the first unquoted redirect to `word` after `start`."""
+    pattern = r"[>!|&]\s*[\"']?" + H.re.escape(word) + r"[\"']?(?=\s|$|[;&|)])"
+    for match in H.re.finditer(pattern, parsed.code[start:]):
+        if not parsed.quoted[start + match.start()]:
+            return start + match.end()
+    return len(parsed.code)
+
+
+def check_bash(tool_input, editable, frozen_extra, message, cwd=None):
     command = tool_input.get("command")
     if not isinstance(command, str) or not command.strip():
         refuse("Guard could not read the Bash command; failing closed.")
+    analyse_bash(command, frozen_extra, message, 0, hook_cwd(cwd))
+
+
+def strip_root(text):
+    """`text` with the repo's absolute prefix removed, so paths read repo-relative."""
     for prefix in {ROOT, os.environ.get("CLAUDE_PROJECT_DIR") or ROOT}:
-        command = command.replace(prefix.rstrip("/") + "/", "")
-    analyse_bash(command, frozen_extra, message, 0)
+        text = text.replace(prefix.rstrip("/") + "/", "")
+    return text
 
 
-def check_redirect(word, launchers, frozen_extra, message):
-    """Deny a redirect whose target is secret, build-frozen or level-frozen."""
+def check_redirect(word, launchers, frozen_extra, message, bases):
+    """Deny a redirect whose target is secret, build-frozen or level-frozen.
+
+    A relative `word` is tried against each directory in `bases`; None means
+    an unreadable cd, so a relative target is refused.
+    """
     if ".." in word.split("/"):
         for frozen in H.FROZEN_FILES + launchers + H.FROZEN_DIRS:
             if H.mentions_path(word, frozen):
                 refuse(MSG_FROZEN)
         if any(H.mentions_path(word, p) for p in frozen_extra):
             refuse(message)
-    lexical, resolved = H.relative_paths(ROOT, word)
-    for rel in (r for r in (lexical, resolved) if r is not None):
-        if H.is_secret(rel):
-            refuse(MSG_SECRET)
-        if H.is_frozen(rel, launchers):
-            refuse(MSG_FROZEN)
-        if any(H.pattern_hit(rel, p) for p in frozen_extra):
-            refuse(message)
+    if os.path.isabs(word) or word.startswith("~"):
+        targets = [word]
+    elif bases is None:
+        refuse(MSG_CD)
+    else:
+        targets = [os.path.join(base, word) for base in bases]
+    for target in targets:
+        lexical, resolved = H.relative_paths(ROOT, target)
+        for rel in (r for r in (lexical, resolved) if r is not None):
+            if H.is_secret(rel):
+                refuse(MSG_SECRET)
+            if H.is_frozen(rel, launchers):
+                refuse(MSG_FROZEN)
+            if any(H.pattern_hit(rel, p) for p in frozen_extra):
+                refuse(message)
 
 
-def analyse_bash(command, frozen_extra, message, depth):
+def analyse_bash(command, frozen_extra, message, depth, cwd):
     """Apply every Bash rule to `command`; heredoc bodies fed to a shell recurse."""
     if depth > MAX_DEPTH:
         refuse("Guard found shell input nested too deeply; failing closed.")
     re = H.re
-    command = H.strip_noise(command)
-    parsed = H.parse_shell(command)
+    full = H.parse_shell(H.strip_noise(command))
+    command = strip_root(H.strip_noise(command))
+    parsed = full._replace(code=strip_root(full.code), text=strip_root(full.text),
+                           masked=strip_root(full.masked),
+                           outside=strip_root(full.outside))
     if H.mentions_secret(command, parsed.masked):
         refuse(MSG_SECRET)
     text = H.normalise_command(command)
@@ -196,8 +289,14 @@ def analyse_bash(command, frozen_extra, message, depth):
     if any(re.search(p, text) for p in H.GIT_READERS):
         refuse("That git command can print the vault or the tool sources. "
                "Use git status, git diff, git log --stat and git add/commit.")
-    for word in parsed.redirects:
-        check_redirect(word, tuple(spec), frozen_extra, message)
+    if re.search(H.GIT_CLEAN_X, text):
+        refuse("git clean with -x or -X deletes the workshop state and .venv. "
+               "Use git clean without -x, or ask a facilitator to reset.")
+    seen = {}
+    for word in full.redirects:
+        seen[word] = redirect_end(full, word, seen.get(word, 0))
+        bases = redirect_bases(full, cwd, seen[word])
+        check_redirect(word, tuple(spec), frozen_extra, message, bases)
     if H.has_write_verb(parsed):
         for frozen in H.FROZEN_FILES + tuple(spec) + H.FROZEN_DIRS:
             if H.mentions_path(parsed.text, frozen):
@@ -206,7 +305,7 @@ def analyse_bash(command, frozen_extra, message, depth):
             if H.mentions_path(parsed.text, pattern):
                 refuse(message)
     for body in parsed.shell_bodies:
-        analyse_bash(body, frozen_extra, message, depth + 1)
+        analyse_bash(body, frozen_extra, message, depth + 1, cwd)
 
 
 if __name__ == "__main__":

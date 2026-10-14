@@ -369,10 +369,36 @@ Both reviewers judged every round-1 finding resolved as the table says and found
 
 ## Answer hints (2026-10-14; facilitator request)
 
-Every level with a graded gate question now has a fourth hint, 3 minutes after the third (13 minutes), that gives the answer and a one-line reason: Speed Run Levels 0–2, TDD Ladder Levels 0, 3 and 4 (Levels 0 and 3 point at the group's own `./tdd score` output, since the answer is the group's), Explorer Level 1. Explorer's answer depends on the dataset, so gatekit hint tiers gained an optional `text_from` (an exercise-tool `hints` function, falling back to the static text on any error), mirroring the question field. Hints are logged, so the facilitator sees who took the answer. Level 0 hint files sit unencrypted in `.workshop/` (which Claude cannot read); a human could read the Speed Run and TDD Level 0 answers there, a cheat that only costs the group its practice, consistent with the honest limits.
+Every level with a graded gate question now has a fourth hint, 3 minutes after the third (13 minutes), that gives the answer and a one-line reason: Speed Run Levels 0–2, TDD Ladder Levels 0, 3 and 4 (Levels 0 and 3 point at the group's own `./tdd score` output, since the answer is the group's), Explorer Level 1. Explorer's answer depends on the dataset, so gatekit hint tiers gained an optional `text_from` (an exercise-tool `hints` function, falling back to the static text on any error), mirroring the question field. Hints are logged, so the facilitator sees who took the answer. Level 0 hint files sit unencrypted in `.workshop/` (the guard refuses Claude's direct reads of it, but a Bash `grep -r` from the root reaches it: a soft limit); a human could read the Speed Run and TDD Level 0 answers there, a cheat that only costs the group its practice, consistent with the honest limits.
 
 Verification (same reviewers): both found no remaining problems with the one-dataset change.
 
 Review (Codex gpt-6.1-sol, Claude Fable 5.1): Claude found no problems and confirmed every answer against the gate ranges, the TDD validators and the shipped column file. Codex flagged that taking the answer hint writes its text to `LOG.md`, which Claude can read (serious in its view). Rejected: the text reaches the log only after a human has taken it from `./gate hint` and is about to type it, Claude can never run `./gate unlock`, and all hint tiers have always been logged for the show-and-tell.
 
 Wording (facilitator): every answer hint opens "The gate unlock answer is …", so it reads correctly when a group takes it before reaching the gate question. A group that still cannot unlock, or hits a broken check, is moved on with `./gate skip --master` (facilitator passphrase, reason logged), as each walkthrough's troubleshooting table says.
+
+## Release-readiness review (2026-10-14)
+
+A release-readiness review of the three built exercises and gatekit (full findings and triage in `archive/REVIEW-2026-10-14-release-readiness.md`, kept outside the release tree), checked against Claude Code 2.1.299 and its current docs.
+
+Verified against the Claude Code docs (2.1.299):
+
+- The `Monitor` tool takes a free-form `command`. Bash permission allow and deny rules apply to it, but a `Bash` PreToolUse hook matcher does not fire for it, so the guard's matcher now lists `Monitor` and the guard treats it as Bash.
+- The Grep tool is absent by default on macOS but present wherever an agent definition lists it (the Explorer reviewer agent does), so it stays in the matcher. The guard no longer applies dot-glob checks to Grep's regex `pattern`.
+
+Fixes applied:
+
+- `./tdd green` accepts a `pytest.raises` red (pytest's `Failed: DID NOT RAISE` is now recorded as an `AssertionError`).
+- Explorer `sections()` ignores `#` lines inside code fences.
+- `*.dSYM/` added to the template `.gitignore`, so `./race submit` is not blocked by clang debug folders.
+- The guard denies `git clean -x` and `-X`: they delete `.workshop/`, `.tdd/` and `.venv/`, and the next `./gate status` or `./preflight` would silently re-initialise to level 0.
+- `sed -E -i` is now a write verb.
+- Relative redirect targets are resolved against the hook's `cwd` and a literal `cd`.
+- zsh `>!` is a redirect.
+- The build strips `accept`, `lo` and `hi` from crypto questions in the shipped manifest (verified gates keep them). The answers remain in the hint files and, for the Explorer, the tool source, so `gatekit/README.md` section 11 now calls the crypto answer a guard-protected soft secret.
+- ruff B904 is ignored by policy.
+- Documentation: reset command corrected in `docs/01` and `BUILD-SPEC.md`; status banner on `BUILD-SPEC.md`; top-level `PLAN.md` archived to `archive/PLAN.md` (gitignored); stale counts and scope in `CLAUDE.md` and the Explorer walkthrough; `model_lock` and crypto-gate limits in `gatekit/README.md`; the never-created `level1-start` tag in `docs/04` replaced by the Level 0 unlock's `start_from_stub` and `./tdd new-attempt`; the embedded reviewer agent copy in `docs/05` replaced by a pointer to the shipped file.
+
+The implementation was reviewed by the same panel (Codex gpt-6.1-sol and Claude Opus 5.5, high effort, read-only, staggered parallel launches) over five rounds, each narrower than the last. Round 1 found that the first cwd-aware redirect check stripped the repo prefix before parsing (an absolute write into frozen `tests/` from a subdirectory `cwd` passed, and an absolute write into `src/` from `tests/` was refused), refused literal `cd` forms (a quoted path with a space, `~`, bare `cd`, a trailing slash, `-P`), positioned repeated redirect targets by their first occurrence, read quoted text as a `cd`, matched `-i` inside a quoted sed script, and that the sigma boundary fix used a blanket epsilon. All were fixed: the guard parses before the prefix strip, `Parsed` carries a quote mask, a `cd` argument is read as one shell word and is computed only when it contains `$`, a backtick or a glob, redirects are positioned per occurrence, the sed rule skips quoted arguments and counts `-ie`/`-i.bak`, and `allowed_shift` returns the nearest integer only when `sigma^2 * golden` is exactly its square. Rounds 2 to 5 closed the regressions each fix introduced (trailing tokens after a `cd` argument, a multi-line `-m` message, quoted or `=` option values before `-m`, and an unquoted option value swallowing `;`). The panel also removed bloat: a quote-aware line splitter, a duplicated `DID NOT RAISE` branch and an author-only build test. Each round's findings were reproduced in the main session before being accepted.
+
+Dropped as low value after the external panel: the `.*` matcher, extra guard write verbs and path identity hardening, a bench-harness watchdog, Explorer value checks, all decompositions and simplifications, a new exercise-tool test tree, and splitting `BUILD-SPEC.md` and `DECISIONS.md`. The full list is in `archive/REVIEW-2026-10-14-release-readiness.md`.

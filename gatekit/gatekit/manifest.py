@@ -32,6 +32,7 @@ import os
 MANIFEST_FILE = "manifest.json"
 GATE_TYPES = ("verified", "crypto", "crypto-reflection", "none")
 PERSONAS = ("literal", "coach", "collaborator")
+QUESTION_KINDS = ("keyword", "choice", "numeric", "numeric-log", "free")
 
 
 class ManifestError(Exception):
@@ -71,6 +72,10 @@ def validate(manifest):
             if "id" not in question or "prompt" not in question:
                 raise ManifestError("level %d: question needs id and prompt"
                                     % index)
+            kind = question.get("kind", "free")
+            if kind not in QUESTION_KINDS:
+                raise ManifestError("level %d: question '%s': unknown kind '%s'"
+                                    % (index, question["id"], kind))
             for key in ("wrong_hint", "text_from"):
                 if key in question and not isinstance(question[key], str):
                     raise ManifestError(

@@ -9,7 +9,7 @@ import tempfile
 import time
 import xml.etree.ElementTree as ET
 
-from gatekit import packs, state as st
+from gatekit import crypto, packs, state as st
 from tddtool import common as C
 
 RUN_TIMEOUT = 120
@@ -95,10 +95,18 @@ def score(root, state, quiet=False):
     base = tempfile.mkdtemp(prefix="tdd-score-")
     try:
         hidden = os.path.join(base, "hidden")
-        with open(os.path.join(root, ".vault", "scoring.pack"), "rb") as fh:
-            packs.unpack_to(fh.read(), [bytes.fromhex(keys["scoring"])], hidden)
-        with open(os.path.join(hidden, "mutants.json"), encoding="utf-8") as fh:
-            mutants = json.load(fh)
+        try:
+            with open(os.path.join(root, ".vault", "scoring.pack"), "rb") as fh:
+                packs.unpack_to(fh.read(), [bytes.fromhex(keys["scoring"])], hidden)
+        except (OSError, crypto.PackError) as exc:
+            raise C.TddError("cannot read .vault/scoring.pack (%s). Ask a "
+                             "facilitator for help." % exc)
+        try:
+            with open(os.path.join(hidden, "mutants.json"), encoding="utf-8") as fh:
+                mutants = json.load(fh)
+        except (OSError, ValueError) as exc:
+            raise C.TddError("the mutants list inside .vault/scoring.pack is "
+                             "unreadable (%s). Ask a facilitator for help." % exc)
         reference = os.path.join(hidden, "reference", "binning.py")
         src_dir = os.path.join(root, "src")
         tests_dir = os.path.join(root, "tests")

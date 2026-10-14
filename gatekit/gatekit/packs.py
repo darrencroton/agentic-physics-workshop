@@ -109,9 +109,12 @@ def open_pack(pack_bytes, secrets_list):
     key = None
     for secret in secrets_list:
         for slot in slots:
-            raw = {"salt": _unb64(slot["salt"]),
-                   "wrapped": _unb64(slot["wrapped"]), "tag": slot["tag"]}
-            key = crypto.unwrap_key(raw, secret)
+            try:
+                raw = {"salt": _unb64(slot["salt"]),
+                       "wrapped": _unb64(slot["wrapped"]), "tag": slot["tag"]}
+                key = crypto.unwrap_key(raw, secret)
+            except (KeyError, TypeError, ValueError) as exc:
+                raise crypto.PackError("malformed pack slot: %s" % exc)
             if key is not None:
                 break
         if key is not None:

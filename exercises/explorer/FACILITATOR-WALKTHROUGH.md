@@ -32,7 +32,7 @@ Then do the Claude Code checks in section 3, step 4, play the whole exercise thr
 - `--keep-venv` preserves an existing `dist/explorer/.venv` across rebuilds. Everything else in `dist/explorer` is regenerated, including the git history, so rebuild only between runs.
 - The participant `.venv` is made with `/opt/homebrew/bin/python3.13` when that exists, otherwise `python3`; the build machine used Python 3.13.2. Pass `--setup-python /path/to/python3` to the build to bake in another Python 3.11+.
 - The master passphrase stays in `~/.config/workshop/master-passphrase`, outside every repo. The build reads it; the repo stores only a check value. You type it at the prompt for `./gate skip --master`.
-- `exercises/explorer/selftest/run.py` plays the whole exercise with a reference solution (134 checks, about a minute). It proves the gates, not the timing; the rehearsal is where you learn the timing.
+- `exercises/explorer/selftest/run.py` plays the whole exercise with a reference solution (138 checks, about a minute). It proves the gates, not the timing; the rehearsal is where you learn the timing.
 
 ### Optional: a calibration run
 

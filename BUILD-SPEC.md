@@ -2,6 +2,8 @@
 
 *Engineering spec for building the participant repos described in `docs/`. The docs define what each exercise teaches; this spec defines how the repos are built. It also resolves the gaps and contradictions in the docs.*
 
+> **Status:** the built exercises (TDD Ladder, Speed Run, Explorer) are described as built by their `FACILITATOR-WALKTHROUGH.md` files and `gatekit/README.md`. This spec remains the TDD Ladder build contract (Sections 5 to 7) and the gap list for Exercises A and C (Section 9); deviations are in `docs/DECISIONS.md`.
+
 ---
 
 ## 0. Scope and Build Order
@@ -385,7 +387,7 @@ Write `exercises/tdd-ladder/FACILITATOR-WALKTHROUGH.md`. Keep it out of the part
 
 - exact zsh commands to set up and run a manual walkthrough with Claude Code on Haiku;
 - what to observe at each level;
-- how to reset (`git reset --hard start && ./gate reset`).
+- how to reset (`./gate reset`, then `git reset --hard start && git clean -fdx -e .venv -e .workshop`).
 
 ---
 

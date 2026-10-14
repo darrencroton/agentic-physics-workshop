@@ -1,14 +1,14 @@
 # Workshop Exercise Builder
 
-This folder builds the four hands-on exercise repos for a 1-hour "Agentic AI for physics research" workshop. Attendees are cosmologists, dark-matter and gravitational-wave physicists, working in groups of 2–5 with Claude Code.
+This folder builds the hands-on exercise repos (five designed, three built so far) for a roughly 70-minute "Agentic AI for physics research" workshop. Attendees are cosmologists, dark-matter and gravitational-wave physicists, working in groups of 2–5 with Claude Code.
 
 ## Read First
 
-1. `BUILD-SPEC.md`: the engineering spec. It is authoritative for how things are built.
-2. `docs/00-facilitator-guide.md` and the exercise doc for the current task (`docs/01`–`04`). These are authoritative for pedagogy: levels, lessons, gates, hints, personas.
+1. `BUILD-SPEC.md`: the engineering spec. It is authoritative for how the unbuilt exercises are to be built; for the built ones, see the rule below.
+2. `docs/00-facilitator-guide.md` and the exercise doc for the current task (`docs/01`–`05`). These are authoritative for pedagogy: levels, lessons, gates, hints, personas.
 3. `PROGRESS.md`, if it exists: where the last session stopped.
 
-Where `BUILD-SPEC.md` and `docs/` conflict, `BUILD-SPEC.md` wins. Record every further deviation from `docs/` in `docs/DECISIONS.md` with a one-line reason.
+For the built exercises, the `FACILITATOR-WALKTHROUGH.md` files and `gatekit/README.md` describe the behaviour as built and win over both `BUILD-SPEC.md` and `docs/`; `BUILD-SPEC.md` governs the unbuilt exercises. Record every further deviation from `docs/` in `docs/DECISIONS.md` with a one-line reason.
 
 ## Layout
 

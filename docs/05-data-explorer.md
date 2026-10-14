@@ -504,28 +504,7 @@ prompt; follow them.
 
 A custom subagent shipped in the participant repo. A subagent starts with a fresh context (only its own prompt, the task message and `CLAUDE.md`), which is exactly the "fresh pair of eyes" the lecture asks for, and its output is text that Claude can paste into `REVIEW.md`. The built-in `/code-review` also runs as a fresh-context subagent but prints to the conversation and cannot be told to write a file, so it is the playbook's one-liner for home, not the default here.
 
-```markdown
----
-name: reviewer
-description: Fresh-context code reviewer. Reviews the changes since the start tag against PLAN.md and returns ranked findings. Never edits.
-tools: Read, Grep, Glob, Bash
-model: sonnet
----
-
-You are reviewing a small prototype written in the last half hour. You have not seen
-the conversation that produced it; judge the code and PLAN.md only.
-
-1. Read PLAN.md and README.md. Run `git diff start --stat` and read every changed or
-   new file under explorer/ and tests/.
-2. Find real problems: behaviour that contradicts PLAN.md or the README's interface,
-   wrong or missing error handling, a hover or colour that could show the wrong row,
-   invalid JSON, a test that cannot fail, duplicated or dead code.
-3. Report between three and five findings, ranked by severity, as a Markdown table with
-   columns: #, Finding (file and line), Severity (high / medium / low), Why it matters.
-   One line each. Do not propose fixes beyond a phrase. Do not edit anything.
-4. Do not spend time reproducing findings: read the code. You may run `make test` and
-   the tool once each if you need to. Mark a finding you only read as "(not run)".
-```
+The shipped definition, which is the authoritative copy, is `exercises/explorer/workshop/.claude/agents/reviewer.md` in the source tree.
 
 The model line is a decision for calibration (Section 12): Sonnet by default, so the review is at least as good as the author.
 

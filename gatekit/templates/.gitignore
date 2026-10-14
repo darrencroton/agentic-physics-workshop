@@ -10,5 +10,6 @@ mutants/
 *.so
 *.dylib
 *.o
+*.dSYM/
 out/
 .coverage

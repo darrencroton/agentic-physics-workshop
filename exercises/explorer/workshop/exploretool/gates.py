@@ -230,8 +230,11 @@ def sections(text):
     """[(heading text, [lines])] for each level-2 heading; comments removed."""
     found = []
     current = None
+    fenced = False
     for line in COMMENT_RE.sub("", text).splitlines():
-        match = HEADING_RE.match(line)
+        if line.strip().startswith(("```", "~~~")):
+            fenced = not fenced
+        match = None if fenced else HEADING_RE.match(line)
         if match and len(match.group(1)) <= 2:
             current = (match.group(2), []) if len(match.group(1)) == 2 else None
             if current is not None:

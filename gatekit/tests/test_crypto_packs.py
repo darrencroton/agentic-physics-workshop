@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import tempfile
@@ -65,6 +66,16 @@ class PackTests(unittest.TestCase):
         bad_header = header.replace(b'"level":1', b'"level":2') + b"\n" + body
         with self.assertRaises(crypto.PackError):
             packs.open_pack(bad_header, [b"s"])
+
+    def test_malformed_slot_raises_pack_error(self):
+        pack = packs.pack_directory(self.src, [b"s"], "ex", 1)
+        header, _, body = pack.partition(b"\n")
+        data = json.loads(header)
+        for broken in ({}, {"salt": "!!", "wrapped": "", "tag": ""},
+                       {"salt": "", "wrapped": "", "tag": None}):
+            data["slots"] = [broken]
+            with self.assertRaises(crypto.PackError):
+                packs.open_pack(json.dumps(data).encode() + b"\n" + body, [b"s"])
 
     def test_seal_json(self):
         key = crypto.obfuscation_key("a", "b")

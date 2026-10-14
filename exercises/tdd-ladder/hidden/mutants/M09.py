@@ -86,7 +86,8 @@ def binned_weighted_mean(x, y, sigma, edges) -> BinnedResult:
     w = 1.0 / si**2
     sw = np.bincount(idx, weights=w, minlength=n_bins)
     swy = np.bincount(idx, weights=w * yi, minlength=n_bins)
-    swx = np.bincount(idx, weights=w * xi, minlength=n_bins)
+    # The unused weighted-x sum is the mutation.
+    swx = np.bincount(idx, weights=w * xi, minlength=n_bins)  # noqa: F841
     n = np.bincount(idx, minlength=n_bins).astype(np.int64)
 
     nonempty = n > 0

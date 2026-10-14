@@ -184,7 +184,6 @@ def main():
         own = merged_tests([c / "tests" for c in cycle_dirs[:i]])
         out, _, _, _ = run_suite(cycle_dirs[i - 1] / "binning.py", own)
         check(out and not bad(out), f"cycle{i} binning fails its own tests")
-        new_tests = merged_tests([cycle_dirs[i - 1] / "tests"])
         prev = (cycle_dirs[i - 2] / "binning.py" if i > 1
                 else SRC / "hzbin" / "binning.py")
         out, _, _, _ = run_suite(prev, merged_tests(

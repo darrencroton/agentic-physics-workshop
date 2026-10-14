@@ -11,6 +11,7 @@ assets, write .workshop/, git init, commit "Workshop start" and tag `start`.
 """
 
 import argparse
+import copy
 import itertools
 import json
 import os
@@ -83,6 +84,18 @@ def crypto_secrets(gate, level_answers, master):
         secrets_list.append(crypto.crypto_slot_secret(token, canon))
     secrets_list.append(crypto.master_secret(master))
     return secrets_list
+
+
+def shipped_manifest(manifest):
+    """Copy of the manifest without the answer keys of crypto gates."""
+    shipped = copy.deepcopy(manifest)
+    for level in shipped["levels"]:
+        gate = level.get("gate", {})
+        if gate.get("type") in ("crypto", "crypto-reflection"):
+            for question in gate.get("questions", []):
+                for key in ("accept", "lo", "hi"):
+                    question.pop(key, None)
+    return shipped
 
 
 def build(exercise, passphrase_file, out, setup_python, keep_venv,
@@ -233,7 +246,7 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
 
     with open(os.path.join(out, ".gatekit", "manifest.json"), "w",
               encoding="utf-8") as fh:
-        json.dump(manifest, fh, indent=2, sort_keys=True)
+        json.dump(shipped_manifest(manifest), fh, indent=2, sort_keys=True)
         fh.write("\n")
 
     from gatekit import cli

@@ -308,7 +308,7 @@ The current level and its rules are injected with each prompt; follow them.
 
 ### Before the Session
 
-- Run `./preflight`, then `git reset --hard start && ./gate reset`.
+- Run `./preflight`, then reset: `./gate reset`, then `git reset --hard start && git clean -fdx -e .venv -e .workshop`.
 - Do Levels 0–1 yourself once, so you've seen the ratio plot. **Don't** read the answer key unless the facilitator has given it to you. Your coaching is better when you're also curious.
 - Arrange two windows: **Claude** (large, visible to the group) and **Gate** (small).
 

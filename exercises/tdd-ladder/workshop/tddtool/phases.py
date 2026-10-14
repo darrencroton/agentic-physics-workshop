@@ -225,7 +225,7 @@ def cmd_abort(root, args):
 def new_attempt(root, state, reason):
     """Branch off the current work and restore the stub and empty tests."""
     level = state.get("level", 0)
-    stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")  # noqa: DTZ005
     branch = "attempt-L%d-%s" % (level, stamp)
     if C.dirty_paths(root, "."):
         C.git(root, "add", "-A")

@@ -44,12 +44,16 @@ PTY_TRICKS = (r"\bpty\b", r"\bopenpty\b", r"(^|[;&|]\s*)script\s", r"(^|[;&|]\s*
 GIT_READERS = (r"\bgit\b[^|;&\n]*\b(show|cat-file|archive|bundle|fast-export|"
                r"grep|ls-tree|rev-list|format-patch|diff-tree|worktree)\b",
                r"\bgit\b[^|;&\n]*\bdiff\b[^|;&\n]*--no-index",
-               r"\bgit\b[^|;&\n]*\blog\b[^|;&\n]*\s(-p|--patch|-u|--full-diff)\b",
+               r"\bgit\b[^|;&\n]*\blog\b[^|;&\n]*\s(-p|--patch|-u|-U\d*|--full-diff)\b",
                r"\bgit\b[^|;&\n]*\bconfig\b[^|;&\n]*core\.hooksPath")
+# git clean with -x or -X deletes ignored files (.workshop, .venv).
+GIT_CLEAN_X = r"\bgit\b[^|;&\n]*\bclean\b[^|;&\n]*\s-[a-zA-Z]*[xX]"
 DOT_GLOBS = (r"(^|[\s/=:,{(])\.[\w-]*[\[\*\?{]", r"\{[^}]*,\s*\.", r"\.\*/")
 SECRET_RE = r"\.(vault|workshop|gatekit|claude|git|tdd(-tools)?)\b"
 # Shell commands that can modify files; a redirect is handled separately.
-WRITE_VERBS = (r"\btee\b", r"\bsed\s+-[a-zA-Z]*i", r"\bcp\b",
+WRITE_VERBS = (r"\btee\b",
+               r"\bsed\b(?:\s+(?:-[a-zA-Z]+|'[^']*'|\"[^\"]*\"))*\s+"
+               r"(-[a-zA-Z]*i[a-zA-Z]*|--in-place)", r"\bcp\b",
                r"\bmv\b", r"\brm\b", r"\btouch\b", r"\bchmod\b",
                r"\bln\b", r"\bpatch\b", r"\bgit\s+(checkout|restore|reset|"
                r"stash|revert|rebase|clean|apply|cherry-pick|merge)\b",
@@ -259,6 +263,15 @@ def _strip_heredoc_messages(text):
         pos = match.start(1)
 
 
+_QUOTED = r"(?:\"[^\"]*\"|'[^']*')"
+# A git commit and the arguments on its line, quoted messages included.
+_COMMIT_RE = re.compile(
+    r"\bgit[ \t]+commit\b(?:[ \t]+(?:-[a-zA-Z]*m[ \t]*" + _QUOTED
+    + r"|--message(?:=|[ \t]+)" + _QUOTED + r"|-[a-zA-Z]+"
+    + r"|--[\w-]+(?:=(?:[^\s\"'|;&]+|" + _QUOTED + r"))?|" + _QUOTED + r"|[^\s\"'|;&]+))*")
+_MESSAGE_RE = re.compile(r"(\s-[a-zA-Z]*m|\s--message(=|\s))\s*" + _QUOTED)
+
+
 def strip_noise(command):
     """Drop literal commit messages and fd redirections, which are not writes.
 
@@ -266,14 +279,10 @@ def strip_noise(command):
     contains any substitution syntax ($(, backtick, ${, <( ) nothing is
     stripped, so a path hidden in a message is inspected.
     """
-    message = r"(\s-[a-zA-Z]*m|\s--message(=|\s))\s*(\"[^\"]*\"|'[^']*')"
     text = _strip_heredoc_messages(command)
     if not re.search(r"\$\(|`|\$\{|<\(", text):
-        parts = re.split(r"([|;&]+)", text)
-        for index, part in enumerate(parts):
-            if re.match(r"\s*git\s+commit\b", part):
-                parts[index] = re.sub(message, " -m MSG", part)
-        text = "".join(parts)
+        text = _COMMIT_RE.sub(
+            lambda m: _MESSAGE_RE.sub(" -m MSG", m.group(0)), text)
     text = re.sub(r"\d*>&\d+", " ", text)
     text = re.sub(r">\s*/dev/null", " ", text)
     text = re.sub(r"python3?\s+-m\s+pytest\b", "pytest", text)
@@ -288,9 +297,10 @@ class Unparsable(ValueError):
 # heredoc bodies (write APIs, path mentions); masked: whole command with quoted
 # regex-only spellings neutralised; outside: text outside quotes and heredocs;
 # redirects: target words; shell_bodies: heredoc bodies fed to a shell;
-# node: node code present; wild_gt: a '>' that is not a parsed redirect.
+# node: node code present; wild_gt: a '>' that is not a parsed redirect;
+# quoted: per character of code, True inside quotes or a comment.
 Parsed = collections.namedtuple(
-    "Parsed", "code text masked outside redirects shell_bodies node wild_gt")
+    "Parsed", "code text masked outside redirects shell_bodies node wild_gt quoted")
 
 _SHELLS = ("sh", "bash", "zsh", "dash", "ksh", "eval", "source", ".")
 _WRAPPERS = ("env", "sudo", "time", "command", "exec", "nohup", "then", "do",
@@ -448,7 +458,7 @@ def _scan(text):
                 i += 2
                 continue
             j = i + 1
-            while j < n and text[j] in ">|&":
+            while j < n and text[j] in ">|&!":
                 j += 1
             redirects.append(_redirect_word(text, j))
             i = j
@@ -480,7 +490,8 @@ def _scan(text):
 def _fallback(command):
     """Whole-text conservative view used when parsing fails."""
     return Parsed(command, command, command, command, (), (),
-                  bool(_NODE_RE.search(command)), ">" in command)
+                  bool(_NODE_RE.search(command)), ">" in command,
+                  (False,) * len(command))
 
 
 def parse_shell(command):
@@ -495,6 +506,7 @@ def parse_shell(command):
     except Unparsable:
         return _fallback(command)
     code = "".join(c for c, f in zip(command, flags) if f != 2)
+    quoted = tuple(f == 1 for f in flags if f != 2)
     text = "\n".join([code] + [body for _, body in interp])
     outside, in_quote = [], False
     for char, flag in zip(command, flags):
@@ -511,7 +523,7 @@ def parse_shell(command):
         lambda m: "X" if flags[m.start()] else m.group(0), command)
     node = bool(_NODE_RE.search(code)) or any(k == "node" for k, _ in interp)
     return Parsed(code, text, masked, "".join(outside), tuple(redirects),
-                  tuple(shell_bodies), node, wild_gt)
+                  tuple(shell_bodies), node, wild_gt, quoted)
 
 
 def glob_match(rel, pattern):

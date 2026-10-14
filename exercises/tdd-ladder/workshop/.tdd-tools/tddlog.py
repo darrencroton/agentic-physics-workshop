@@ -48,6 +48,9 @@ def pytest_runtest_makereport(item, call):
         entry["outcome"] = "failed" if report.when == "call" else "error"
         if call.excinfo is not None:
             entry["exc_type"] = call.excinfo.typename
+            if (entry["exc_type"] == "Failed"
+                    and str(call.excinfo.value).startswith("DID NOT RAISE")):
+                entry["exc_type"] = "AssertionError"
         else:
             entry["exc_type"] = _exception_name(report.longrepr)
 

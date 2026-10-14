@@ -327,6 +327,20 @@ def level3(repo):
     check(code == 0 and "restored" in out and not os.path.exists(os.path.join(repo.root, "tests", "test_wrong.py")),
           "abort from GREEN restores tests/")
     check(repo.git("status", "--porcelain", "--", "tests") == "", "restore is committed")
+    # A pytest.raises test that fails with DID NOT RAISE counts as an assertion red.
+    code, out = repo.tdd("red", "a behaviour with a pytest.raises test")
+    check(code == 0, "red opened for the pytest.raises case")
+    with open(os.path.join(repo.root, "tests", "test_raises.py"), "w") as fh:
+        fh.write("import pytest\n\nfrom hzbin.binning import binned_weighted_mean\n\n\n"
+                 "def test_raises():\n"
+                 "    with pytest.raises(ValueError):\n"
+                 "        binned_weighted_mean([0.5], [2.0], [1.0], [0.0, 1.0])\n")
+    repo.commit_all("pytest.raises test")
+    code, out = repo.tdd("green")
+    check(code == 0 and repo.phase() == "green", "green accepts a DID NOT RAISE red", out[-300:])
+    code, out = repo.tdd("abort", "raises case", answers=[("Keep the test", "n")])
+    check(code == 0 and not os.path.exists(os.path.join(repo.root, "tests", "test_raises.py")),
+          "abort from GREEN restores tests/ after the pytest.raises case")
     code, out = repo.tdd("red", "restart after abort")
     check(code == 0, "red restarts after the restore")
     code, out = repo.tdd("abort", "cleanup", answers=[("Keep the test", "y")])
@@ -349,7 +363,7 @@ def level3(repo):
     repo.commit_all("remove skipped test")
     cycles = [json.loads(line) for line in open(os.path.join(repo.root, ".tdd", "cycles.jsonl"))]
     check(sum(1 for c in cycles if c["valid"]) == 5, "5 valid cycles recorded")
-    check(sum(1 for c in cycles if not c["valid"]) == 3, "aborted cycles recorded without credit")
+    check(sum(1 for c in cycles if not c["valid"]) == 4, "aborted cycles recorded without credit")
     code, out = repo.gate("unlock")
     check(code == 1 and "no score" in out, "unlock refused without a score")
     # The group's finished Rung-4 suite.

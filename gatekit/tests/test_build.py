@@ -88,6 +88,28 @@ class BuildAndUnlockTests(unittest.TestCase):
                              "new-attempt")])
         self.assertEqual(build_tool.deny_entries({"human_only": {}}), [])
 
+    def test_shipped_manifest_drops_crypto_answer_keys(self):
+        path = os.path.join(self.exercises, "fixture", "manifest.json")
+        with open(path) as fh:
+            manifest = json.load(fh)
+        manifest["levels"][0]["gate"]["questions"].append(
+            {"id": "kw", "prompt": "Which?", "kind": "keyword", "accept": ["a"]})
+        with open(path, "w") as fh:
+            json.dump(manifest, fh)
+        self.build()
+        with open(os.path.join(self.out, ".gatekit", "manifest.json")) as fh:
+            questions = json.load(fh)["levels"][0]["gate"]["questions"]
+        self.assertEqual([q["id"] for q in questions], ["h0", "kw"])
+        for question in questions:
+            for key in ("accept", "lo", "hi"):
+                self.assertNotIn(key, question)
+        spec = importlib.util.spec_from_file_location("build_tool", BUILD)
+        build_tool = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(build_tool)
+        verified = {"levels": [{"id": 0, "gate": {"type": "verified", "questions": [
+            {"id": "v", "prompt": "?", "kind": "keyword", "accept": ["a"]}]}}]}
+        self.assertEqual(build_tool.shipped_manifest(verified), verified)
+
     def test_check_unlock_wrong_then_right(self):
         self.build()
         gate = [PY, os.path.join(self.out, "gate")]
@@ -116,6 +138,7 @@ class BuildAndUnlockTests(unittest.TestCase):
         self.assertEqual(code, 0, out)
         self.assertIn("Final level complete", out)
         self.assertTrue(st.load_state(self.out)["complete"])
+
 
     def test_last_level_crypto_gate_rejects_graded_questions(self):
         path = os.path.join(self.exercises, "fixture", "manifest.json")

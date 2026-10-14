@@ -5,6 +5,9 @@
 target-version = "py39"
 
 [lint]
+# Every B904 hit is a deliberate re-raise as a user-facing error; the original
+# traceback is not wanted in participant output.
+ignore = ["B904"]
 select = [
   "F",     # pyflakes: unused imports and variables, undefined names, f-string
            # bugs. The core of the tool -- F841 is the dead-local class that

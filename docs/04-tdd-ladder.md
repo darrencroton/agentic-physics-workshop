@@ -215,7 +215,7 @@ tdd-ladder/
 
 ### Level 1 — "Use TDD, Please" (6 min) · Rung 2
 
-**Brief:** "`git checkout level1-start` (stub restored, tests cleared). Same request, plus: *'Use test-driven development.'* Watch closely. Did any test fail before code existed? Where did the expected numbers come from?"
+**Brief:** "The Level 0 unlock saved your work on a branch and restored the stub with empty tests; there is nothing to run first. Same request, plus: *'Use test-driven development.'* Watch closely. Did any test fail before code existed? Where did the expected numbers come from?"
 
 **What typically happens with Haiku in literal mode:**
 
@@ -474,7 +474,7 @@ Your behaviour depends on the PERSONA injected with each prompt. Follow it exact
    - phase state and transition checks (git diff, pytest JUnit XML parsed with the standard library for failure types);
    - TTY requirement on transitions;
    - `score`: temp-dir runs, swapping `binning.py` for each mutant and for the reference.
-5. Create the `level1-start` tag (stub + empty tests).
+5. Build the Level 0 unlock's `start_from_stub` hook (saves the current work on a branch, then restores the stub and clears the tests) and `./tdd new-attempt` for restarting a level, so Level 1 needs no per-level tag.
 6. **Calibrate:**
    - Literal-persona Haiku at Levels 0–1 should score low. If it scores well, the persona isn't literal enough, or Haiku is better than expected (a good problem; tighten the scorecard).
    - Coach-persona Haiku must not hand out expected values.

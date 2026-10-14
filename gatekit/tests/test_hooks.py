@@ -118,7 +118,9 @@ class GuardTests(unittest.TestCase):
         self.deny(tool("Glob", pattern="**/.vault/*"))
         for cmd in ("cat .VAULT/keys.bin", "printf '' > .CLAUDE/hooks/guard.py",
                     "git show start:.vault/keys.bin", "git show HEAD", "git cat-file -p HEAD:x",
-                    "git archive HEAD | tar -x -C /tmp", "git log -p", "git grep PEPPER",
+                    "git archive HEAD | tar -x -C /tmp", "git log -p", "git log -U3", "git grep PEPPER",
+                    'python3 -m "pip" install numpy\ngit commit -m "x"',
+                    'git commit -m "x" --cleanup=strip;python3 -m "pip" install numpy',
                     "git config core.hooksPath hooks", "cat .v*ult/keys.bin", "cat .[v]ault/x",
                     "cat {x,.vault}/keys.bin", "cat \".\"vault/keys.bin", "cat .\\vault/x",
                     "./g''ate unlock 1", "./tdd 'r'ed x", "T=red; ./tdd $T", "sh -c './g''ate unlock'",
@@ -157,6 +159,23 @@ class GuardTests(unittest.TestCase):
                     "cat src/hzbin/binning.py", "ls -la", "cat .gitignore", "./tdd test -q",
                     ".venv/bin/python -m pytest tests/test_x.py -k mean"):
             self.allow(tool("Bash", command=cmd))
+
+    def test_git_clean_x_denied(self):
+        for cmd in ("git clean -fdx", "git clean -f -X", "git -C . clean -xdf"):
+            self.deny(tool("Bash", command=cmd), "git clean")
+        self.allow(tool("Bash", command="git clean -fd"))
+
+    def test_monitor_is_checked_like_bash(self):
+        self.deny(tool("Monitor", command="./gate unlock"), "humans")
+        self.allow(tool("Monitor", command="ls src"))
+
+    def test_grep_regex_and_glob_dot_prefix_allowed(self):
+        self.allow(tool("Grep", pattern="def .*json", path="explorer"))
+        self.allow(tool("Grep", pattern=".*TODO"))
+        self.deny(tool("Grep", pattern="secret", path=".vault"))
+        self.deny(tool("Grep", pattern=".workshop"))
+        self.allow(tool("Glob", pattern="./src/**/*.py"))
+        self.deny(tool("Glob", pattern=".vault/*"))
 
     def test_malformed_input_denies(self):
         for raw in ("", "not json", "[1,2]", '{"tool_name": "Read"}',
@@ -292,6 +311,9 @@ class GuardBashParsingTests(unittest.TestCase):
             ("sed 's/=.*//' out/x.txt", None),
             ("node -e \"require('fs').openSync('out/x','r')\"", None),
             ("bash -x run.sh; env sh script.sh", None),
+            ("git status\ngit commit -m \"note about .tdd phase\"", None),
+            ("git commit -m \"Add test\n\nReady for ./tdd green\"", None),
+            ("git commit --cleanup=\"strip\" --author \"A <a@b>\" -m \"x .tdd\"", None),
         ]
         for command, root in cases:
             decision, reason = self.decision(command, root)
@@ -387,6 +409,52 @@ class GuardPhaseTests(unittest.TestCase):
             self.assertIn("GREEN", reason)
         _, decision, _ = run_hook(self.root, "guard.py", tool("Bash", command="pytest tests/"))
         self.assertIsNone(decision)
+
+
+class GuardGreenBashTests(unittest.TestCase):
+    """Bash writes into frozen tests in the green phase, however they are spelt."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.root = fakerepo.make(guard=fakerepo.GUARD_PHASES, phase="green")
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.root)
+
+    def decision(self, command, cwd="."):
+        payload = tool("Bash", command=command)
+        payload["cwd"] = cwd
+        _, decision, reason = run_hook(self.root, "guard.py", payload)
+        return decision, reason
+
+    def test_sed_in_place_after_other_options(self):
+        decision, reason = self.decision("sed -E -i 's/a/b/' tests/test_x.py")
+        self.assertEqual(decision, "deny")
+        self.assertIn("GREEN", reason)
+        self.assertEqual(self.decision("sed -ie 's/a/b/' tests/test_x.py")[0], "deny")
+        self.assertIsNone(self.decision("sed -n 1p tests/test_x.py")[0])
+        self.assertIsNone(self.decision("sed -n '/ -inf/p' src/x.py")[0])
+        self.assertEqual(self.decision("cd tests 2>/dev/null && cat > test_new.py")[0], "deny")
+        self.assertEqual(self.decision('cd "%s"/tests && cat > t.py' % self.root)[0], "deny")
+
+    def test_redirect_resolved_against_cwd_and_cd(self):
+        for cwd in ("tests", os.path.join(self.root, "tests")):
+            decision, reason = self.decision("cat > test_new.py", cwd)
+            self.assertEqual(decision, "deny", cwd)
+            self.assertIn("GREEN", reason)
+        for command in ("cd tests && cat > test_new.py", "cd \"$X\" && cat > test_new.py"):
+            self.assertEqual(self.decision(command)[0], "deny", command)
+        self.assertIsNone(self.decision("cd src && cat > notes.txt")[0])
+        self.assertIsNone(self.decision("cat > out/x.txt && cd tests && pytest")[0])
+        absolute = os.path.join(self.root, "tests", "test_x.py")
+        self.assertEqual(self.decision("echo x > " + absolute, "src")[0], "deny")
+        self.assertIsNone(self.decision("echo x > " + os.path.join(self.root, "src", "n.py"), "tests")[0])
+        self.assertEqual(self.decision("cat > c.py; cd tests && cat > c.py")[0], "deny")
+        self.assertIsNone(self.decision('cd "%s" && make test > out/log.txt' % self.root)[0])
+
+    def test_zsh_clobber_redirect_denied(self):
+        self.assertEqual(self.decision("echo x >! tests/test_x.py")[0], "deny")
 
 
 class ModelLockTests(unittest.TestCase):
