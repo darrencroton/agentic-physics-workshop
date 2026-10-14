@@ -3,11 +3,12 @@
     "explorer/**",
     "tests/**",
     "TESTS.md",
-    "LOG.md"
+    "LOG.md",
+    "out/**"
   ],
   "frozen": [
     "PLAN.md",
     "PLAYBOOK.md"
   ],
-  "message": "At this level Claude may edit explorer/, tests/, TESTS.md and LOG.md; PLAN.md is frozen now that the build is done."
+  "message": "At this level Claude may edit explorer/, tests/, TESTS.md and LOG.md (scratch files go in out/); PLAN.md is frozen now that the build is done."
 }

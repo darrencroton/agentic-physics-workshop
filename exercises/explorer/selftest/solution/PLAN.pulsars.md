@@ -17,12 +17,14 @@ A command-line tool that reads a CSV (with an optional columns.json sidecar) and
 - explorer/__main__.py: command line (argparse), --list, write data.json (strict JSON) and explorer.html, clean errors.
 - tests/test_explorer.py: pytest checks for the acceptance criteria.
 
-## Steps (each small enough to check on its own)
-1. data.py: load pulsars.csv and print the column table with --list; check counts by eye.
-2. __main__.py: write data.json and print n_read and n_written; parse it strictly.
-3. page.py: write explorer.html with controls and a 2D plot; check ids and size.
-4. Add 3D, colour bar, log toggles and hover text.
-5. Add the sampling option and the clean error for a bad path.
+## Steps (a numbered list of two or three, each ending in something we can run and look at)
+1. data.py and __main__.py: load pulsars.csv, write data.json strictly, add --max-points sampling and the clean error for a bad path.
+   - Run `make list` and `make explore` and read the column table, n_read and n_written.
+   - Check data.json parses and a missing file gives one line, not a traceback.
+2. page.py: write explorer.html with every control, 2D and 3D plots, the colour bar, log toggles, hover text and the count line.
+   - Run `make open` and try each control on the pulsars.
+3. Check against the acceptance criteria and commit.
+   - Run `make explore` on both datasets and compare the counts with the criteria below.
 
 ## Acceptance criteria (at least three, each something we can check)
 - `python -m explorer data/pulsars.csv` exits 0, prints n_read 4503 and n_written 4503, in under 5 seconds.

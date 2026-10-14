@@ -92,7 +92,9 @@ The manifest lives at `exercises/<name>/manifest.json` and is copied to `.gateki
             "decimals": 1,               // numeric (default 2), numeric-log (default 1)
             "lo": 69.9, "hi": 70.1,      // numeric / numeric-log accepted range (inclusive grid)
             "accept": ["a", "b"],        // keyword / choice: accepted synonyms or letters
-            "validator": "tdd.equals_last_acceptance_count"   // verified: default "gate.answer"
+            "validator": "tdd.equals_last_acceptance_count",  // verified: default "gate.answer"
+            "wrong_hint": "Printed after a wrong answer.",    // optional
+            "text_from": "tool.name"     // optional: "tool.name" in tool.questions
           }
         ],
         "reflection": "What surprised you?",           // one logged question, or
@@ -106,6 +108,8 @@ The manifest lives at `exercises/<name>/manifest.json` and is copied to `.gateki
 ```
 
 `human_only` maps an exercise launcher name (the executable at the repo root, such as `race`) to the subcommands Claude must never run. Names and subcommands must match `[A-Za-z0-9][A-Za-z0-9_-]*`. The guard builds its Bash patterns from it and the build renders the `settings.json` deny rules from it (section 8). When the field is absent the hard-coded TDD Ladder list applies (`tdd red|green|refactor|done|abort|score|new-attempt`); `{}` means no human-only exercise commands. Every launcher named in `human_only` is also frozen against edits and added to the build's executable launchers, alongside the hard-coded `gate`, `preflight`, `tdd` and `race`. The `gate` list is always hard-coded. A malformed field makes the build fail and the guard deny every Bash call.
+
+`wrong_hint` is printed as `Hint: <text>` after "Not quite. Discuss and try again." when the gate rejects an answer. A `verified` gate prints the hint of the question that failed; a `crypto` gate cannot tell which question failed, so it prints the hint of every question asked. `text_from` names a `questions` function that returns `{"prompt": ..., "wrong_hint": ...}` to replace the static fields (for example to tailor the question to the group's own data). Either key may be omitted, and an exception or a bad return falls back silently to the static text, so the static `prompt` is still required. Both must be strings; `text_from` must be `tool.name`.
 
 A level with no `gate` is treated as `{"type": "none"}`. For `verified` gates the only built-in validator is `gate.answer`, which checks the answer locally against the question's `accept`/range (`answers.matches`); anything else must be `tool.<name>`. `crypto` and `crypto-reflection` gates ignore `condition` and `validator`.
 
@@ -238,15 +242,24 @@ Always blocked, whatever the level (`hooklib.py`):
 
 ### Bash matching is best effort
 
-`guard.py` applies regexes to the command text. It denies a command that:
+`guard.py` reads the command's quotes, heredocs and redirects (`hooklib.parse_shell`), then applies regexes. It denies a command that:
 
 - mentions a secret directory as a path component (for example `cat .vault/level1.pack`, `ls .workshop`);
 - runs `gate unlock|hint|skip|reset|allow-model` or one of the manifest's `human_only` exercise commands (default `tdd red|green|refactor|done|abort|score|new-attempt`), including the indirect `<launcher> $VAR` form; the guard reads `.gatekit/manifest.json` on each Bash call and denies when it cannot be read or `human_only` is malformed;
-- invokes a package manager (`pip`, `python -m pip`, `uv`, `brew`, `npm`, `conda`, `pipx`, `poetry`, `easy_install`);
+- invokes a package manager (`pip`, `python -m pip`, `uv`, `brew`, `npm`, `conda`, `pipx`, `poetry`, `easy_install`), or pipes code into a bare `sh`, `bash`, `zsh` or `python` (`| sh`, `| bash -e`, `| python3 -`; `| python3 -m json.tool`, `| python3 -c ...` and `||` are fine; the pipe is looked for only outside quotes and heredocs);
 - uses pty tricks (`pty`, `openpty`, `script `, `expect`, `unbuffer`, `socat`, `faketty`);
-- contains a write verb (redirection, `tee`, `sed -i`, `cp`, `mv`, `rm`, `touch`, `mkdir`, `chmod`, `ln`, `patch`, mutating `git` subcommands, or `python`, `perl`, `ruby`, `node`) and also mentions a frozen file, a frozen directory or the base of a frozen glob.
+- redirects (`>`, `>>`, `>|`, `&>`, `N>`) to a secret path, a build-frozen file or directory, or a path matching the level's `frozen` globs (the target is resolved against the repo, so `out/README.md` is fine; only a target with a `..` component is also matched by name). Only a real shell redirect counts: a `>` inside quotes or a quoted heredoc body is text. Mentions of frozen paths elsewhere in the command are reads;
+- contains another write verb (`tee`, `sed -i`, `cp`, `mv`, `rm`, `touch`, `chmod`, `ln`, `patch`, mutating `git` subcommands, `python script.py`, `node script.js`, `perl`, `ruby`) or interpreter code with a file-writing API (Python `open(..., 'w')`, `write_text`, `shutil.`, `os.remove` and friends; Node `writeFileSync`, `writeSync`, `openSync` with a writable flag, `rmSync`, `mkdir` and friends; `awk` `print`/`printf` redirected with `>`, `>>` or `|`, even over several lines; a `>` inside parentheses, as in `print ($1 > 0)`, is a comparison), and also mentions a frozen file, a frozen directory or the base of a frozen glob. `python -c`, `node -e` and interpreter heredocs with no write API are reads.
 
-It cannot catch: paths built at run time (variables, string concatenation, `base64`/`eval` tricks); a script that was written earlier and then run; commands that reach a protected path through a glob or `cd` without naming it; a symlink created elsewhere; write verbs missing from the list; shell wrappers and alternative interpreters; or phase edits through tools the regex does not know. Reading frozen (non-secret) files through Bash is allowed. The Bash rules are a speed bump and a teaching message, not a security boundary.
+How the command is read, before those tests:
+
+- A `git commit -m "$(cat <<'EOF' ... EOF)"` message is dropped (a quoted delimiter makes the body literal). Any other command substitution in a commit message keeps the whole command under inspection.
+- A heredoc with a quoted delimiter (`<<'X'`, `<<"X"`, `<<\X`) has a literal body. If a shell (`sh`, `bash`, `zsh`, `eval`, `source`, `.`) reads it, the body is checked as a command in its own right. If `python`, `node`, `perl`, `ruby` or any other command reads it (wrappers such as `env`, `timeout 30`, `nice` and `stdbuf` are skipped), it is interpreter code. Only `cat`, `tee` and `git` make it data (for example `cat > out/x.js <<'EOF'`): it is ignored for write and frozen-path checks, but still searched for secret names. Unquoted heredocs expand, so they stay in the full analysis.
+- Inside quotes or a quoted heredoc, regex-only spellings (a group such as `(.*?)`, an escaped dot `\.`, or `.*`/`.+` followed by a word or regex character) are not treated as dot-globs reaching `.vault`. Neither is a `.*` inside a word before a slash (`s/=.*//`), but one directly after a slash (`./.*/x`, `explorer/.*/foo`) is; a bare quoted `'.*'` or `'.v*'` or `'.*/x'` still is, and secret names are matched everywhere.
+- Unbalanced quotes, an unterminated heredoc, a substitution inside double quotes or a computed redirect target or a shell run with `-c` (`sh -c`, `bash -lc`, also via `env` or a path), whose quoted script is hidden from the parser, make the guard fall back to the whole-text rules, where any `>` counts as a write.
+- Every Bash and path-tool refusal ends with a shared sentence telling Claude not to reword or retry it to slip past the guard, but to tell the group and use a make target or the tests.
+
+It cannot catch: paths built at run time (variables, including a redirect to `$VAR`, string concatenation, `base64`/`eval` tricks); a script that was written earlier and then run; commands that reach a protected path through a glob or `cd` without naming it; a symlink created elsewhere; write verbs missing from the list; alternative interpreters and shell wrappers other than `sh -c`, `bash -c` and the like; or phase edits through tools the regex does not know. Reading frozen (non-secret) files through Bash is allowed. The Bash rules are a speed bump and a teaching message, not a security boundary.
 
 ## 9. Exercise tool interface
 
@@ -257,6 +270,7 @@ An exercise tool is a package (named by `manifest.tool`) shipped in `.gatekit/`.
 | `conditions` | `{name: fn(root, state, manifest) -> (ok, reason)}` | `gate.condition = "tool.name"` for `verified` gates; `check` and `unlock` print the reason. |
 | `validators` | `{name: fn(root, state, question, answer) -> (ok, reason)}` | `question.validator = "tool.name"`. May compare the answer with local results. The built-in `gate.answer` checks `accept` or the numeric range. |
 | `post_unlock` | `{name: fn(root, state, manifest, new_level) -> message}` | `gate.post_unlock`; runs after the new level is installed and may change `state`, which is then saved; a returned message is printed. |
+| `questions` | `{name: fn(root, state, question) -> {"prompt": str, "wrong_hint": str}}` | `question.text_from = "tool.name"`; both keys optional, a non-empty string replaces the static field. Any exception falls back to the static text. |
 | `level_secret` | `fn(root, level) -> bytes` | Returns the secret for the pack that level `level + 1` needs (unseals `keys.bin`). Called only for `verified` gates that are not on the last level. |
 | `status_lines` | `fn(root, state) -> [str]` | Extra lines for `gate status`. |
 | `teacher_context_extra` | `fn(root, state) -> str` | Text appended to the `UserPromptSubmit` context. |
@@ -278,7 +292,7 @@ cd gatekit && python3 -m unittest discover -s . -t . -p 'test_*.py'
 | `test_answers_state.py` | Keyword synonyms and Greek, choice, numeric grid and units, numeric-log, free, crypto slot enumeration; state round-trip, level advance and corrupt state. |
 | `test_build.py` | Builds the fixture exercise: layout and determinism, rendered `human_only` deny rules and the tdd fallback, wrong then right answer through the real `gate`, master skip and model power-up, and that `preflight` runs. |
 | `test_hooks.py` | `guard.py` against synthetic hook JSON (vault read, `gate unlock`, package managers and pty, secret paths, frozen edits, normal work, malformed input, missing state, phase rules); `model_lock.py` allow, deny and power-up; `teacher_context.py` persona per level; `model_check.py` (model line and warning); manifest-driven `human_only` denials and the fail-closed bad-manifest case. |
-| `test_tty_cli.py` | Human-only commands refuse without a TTY; `hint` and `reset` succeed through a pty. |
+| `test_tty_cli.py` | Human-only commands refuse without a TTY; `hint` and `reset` succeed through a pty; question `text_from` and `wrong_hint` (static, tool-supplied, failing tool). |
 
 `tests/fakerepo.py` builds a throwaway repo and `tests/fixture_exercise/` is the small exercise the build tests use.
 

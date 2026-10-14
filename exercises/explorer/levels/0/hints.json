@@ -10,7 +10,7 @@
     },
     {
       "unlock_after_minutes": 6,
-      "text": "Acceptance criteria are things you could check by eye or by test: 'the 3D view rotates', 'hovering shows the unit', 'the dropped-row count changes when I pick P1'. Then: 'commit PLAN.md'."
+      "text": "Two or three steps, each ending in something you can run and look at. Acceptance criteria you can check by eye or by test: 'the 3D view rotates', 'hovering shows the unit', 'the left-out count changes when I pick P1'. Then: 'commit PLAN.md'."
     }
   ]
 }

@@ -34,7 +34,12 @@ SOLUTION = os.path.join(HERE, "solution")
 SOLUTION_NAN = os.path.join(HERE, "solution_nan")
 PY = sys.executable
 EXPLORE_LIMIT_S = 5.0
-L1_QUESTION = "in a word or two.)"
+L1_PROMPTS = {
+    "pulsars": ("What is at that point? (A word or two.)",
+                "Hint: XX, YY and ZZ are Galactic coordinates"),
+    "dimuons": ("Which particle makes it? (A word or two.)",
+                "Hint: Each narrow band along M is a particle"),
+}
 checks = []
 timings = []
 
@@ -204,6 +209,8 @@ def plan_variant(text, which):
         return re.sub(r"(?m)^(- Missing values in a selected column:).*$", r"\1", text)
     if which == "dataset":
         return re.sub(r"(?m)^Dataset: (\S+)$", r"Dataset: `\1`", text)
+    if which == "manysteps":
+        return text.replace("## Acceptance", "4. A fourth step.\n\n## Acceptance", 1)
     heading = {"criteria": "## Acceptance criteria", "steps": "## Steps"}[which]
     keep = {"criteria": 2, "steps": 1}[which]
     out, inside, seen = [], False, 0
@@ -256,7 +263,10 @@ def level0(repo, plan_name):
             ("decision", 'decision "Missing values in a selected column" is blank'),
             ("dataset", "it must be exactly data/pulsars.csv or data/dimuons.csv"),
             ("criteria", "PLAN.md lists 2 acceptance criteria; it needs at least 3"),
-            ("steps", "PLAN.md lists 1 step; it needs at least 2")):
+            ("steps", "PLAN.md lists 1 step; it needs two or three, each ending in something "
+                      "you can run and look at"),
+            ("manysteps", "PLAN.md lists 4 steps; merge them into two or three, each ending "
+                          "in something you can run and look at")):
         repo.write("PLAN.md", plan_variant(sample, which))
         refused(repo, expected, "PLAN.md with %s broken" % which)
     repo.write("PLAN.md", sample)
@@ -298,7 +308,7 @@ def level1_pulsars(repo):
     section("Level 1: build (pulsars)")
     guard_probe(repo, denied=("tests/test_x.py", "PLAYBOOK.md", "Makefile", "data/pulsars.csv"),
                 allowed=("explorer/data.py", "PLAN.md"))
-    refused(repo, "`python -m explorer` has no __main__.py yet: build step 1 first",
+    refused(repo, "there is no explorer/__main__.py yet: ask Claude to add the command line",
             "no __main__.py")
     install_solution(repo, nan=True)
     repo.commit("Step 1 (writes NaN)", "explorer")
@@ -307,9 +317,9 @@ def level1_pulsars(repo):
     nan_main = read(os.path.join(SOLUTION_NAN, "explorer", "__main__.py"))
     check('float("nan")' in nan_main, "solution_nan writes float('nan')")
     install_solution(repo)
+    refused(repo, "1 commit since the last gate; this level needs at least 2: ask Claude to "
+            "commit each step that works (two commits or more)", "1 commit")
     repo.commit("Step 1: strict JSON", "explorer")
-    refused(repo, "2 commits since the last gate; this level needs at least 3: ask Claude to "
-            "commit each working step", "2 commits")
     repo.install(os.path.join(SOLUTION_NAN, "explorer", "__main__.py"),
                  os.path.join("explorer", "__main__.py"))
     mutation(repo, "explorer/__main__.py", 'float("nan")', 'float("inf")',
@@ -358,13 +368,14 @@ def level1_pulsars(repo):
     status = repo.run(["git", "status", "--porcelain"]).stdout.splitlines()
     check(not any(line[3:].startswith("out") for line in status), "out/ is ignored by git")
     timings.append(("gate check, level 1", "%.1f s" % passes(repo, "level 1")))
-    code, out = repo.gate("unlock", answers=[(L1_QUESTION, "the moon")])
-    check(code == 1 and "Not quite" in out and repo.level() == 1,
-          "wrong answer 'the moon' is rejected", flat(out)[-200:])
+    prompt, hint = L1_PROMPTS["pulsars"]
+    code, out = repo.gate("unlock", answers=[(prompt, "the moon")])
+    check(code == 1 and "Not quite" in out and hint in flat(out) and repo.level() == 1,
+          "wrong answer 'the moon' is rejected with the pulsar hint", flat(out)[-300:])
     check(repo.state()["levels"]["1"]["failed_attempts"] == 1, "failed attempt counted")
     head = repo.git("rev-parse", "HEAD")
     answer = "a slider for the colour range"
-    code, out = repo.gate("unlock", answers=[(L1_QUESTION, "The Sun"), ("like best?", answer)])
+    code, out = repo.gate("unlock", answers=[(prompt, "The Sun"), ("like best?", answer)])
     check(code == 0 and "Level 2 unlocked" in out and repo.level() == 2,
           "'The Sun' opens level 2", flat(out)[-300:])
     check("TESTS.md" in out and os.path.isfile(repo.path("TESTS.md")), "TESTS.md arrived")
@@ -489,7 +500,11 @@ def dimuons(repo):
     check(data["labels"] == {} and len(data["columns"]) == 17,
           "dimuons: 17 numeric columns, no labels")
     passes(repo, "level 1 (dimuons)")
-    code, out = repo.gate("unlock", answers=[(L1_QUESTION, "jpsi"), ("like best?", "a mass cut")])
+    prompt, hint = L1_PROMPTS["dimuons"]
+    code, out = repo.gate("unlock", answers=[(prompt, "the moon")])
+    check(code == 1 and "Not quite" in out and hint in flat(out) and repo.level() == 1,
+          "dimuons: a wrong answer is rejected with the dimuon hint", flat(out)[-300:])
+    code, out = repo.gate("unlock", answers=[(prompt, "jpsi"), ("like best?", "a mass cut")])
     check(code == 0 and "Level 2 unlocked" in out and repo.level() == 2,
           "'jpsi' opens level 2", flat(out)[-300:])
 

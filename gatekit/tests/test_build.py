@@ -97,6 +97,7 @@ class BuildAndUnlockTests(unittest.TestCase):
         code, out = ptyhelper.run_pty(gate + ["unlock"], [("H0 to 1 d.p.?", "68")], cwd=self.out)
         self.assertEqual(code, 1, out)
         self.assertIn("Not quite", out)
+        self.assertIn("Hint: Fit the slope of v against d.", out)
         self.assertEqual(st.load_state(self.out)["levels"]["0"]["failed_attempts"], 1)
         code, out = ptyhelper.run_pty(gate + ["unlock"], [("H0 to 1 d.p.?", "70.04 km/s/Mpc"),
                                                           ("surprised you?", "the gate")], cwd=self.out)

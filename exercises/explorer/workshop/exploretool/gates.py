@@ -29,7 +29,7 @@ RUN_TIMEOUT = 30
 PYTEST_TIMEOUT = 120
 MIN_TESTS = 5
 MIN_HTML_BYTES = 1000000
-REQUIRED_COMMITS = {0: 1, 1: 3, 2: 1, 3: 1}
+REQUIRED_COMMITS = {0: 1, 1: 2, 2: 1, 3: 1}
 CHECKED_PATHS = {
     0: ("PLAN.md",),
     1: ("explorer", "PLAN.md"),
@@ -38,7 +38,7 @@ CHECKED_PATHS = {
 }
 COMMIT_FIX = {
     0: "ask Claude to commit PLAN.md",
-    1: "ask Claude to commit each working step or fix (three commits or more)",
+    1: "ask Claude to commit each step that works (two commits or more)",
     2: "ask Claude to commit the tests and TESTS.md",
     3: "ask Claude to commit each fix and REVIEW.md",
 }
@@ -259,6 +259,19 @@ def _bullets(lines):
     return [line for line in lines if BULLET_RE.match(line)]
 
 
+def _steps(lines):
+    """Level-3 headings if there are any, else list items at the shallowest indent."""
+    matches = (HEADING_RE.match(line) for line in lines)
+    headings = [m.group(0) for m in matches if m and len(m.group(1)) == 3]
+    if headings:
+        return headings
+    items = [line for line in lines if BULLET_RE.match(line)]
+    if not items:
+        return []
+    indent = min(len(line) - len(line.lstrip()) for line in items)
+    return [line for line in items if len(line) - len(line.lstrip()) == indent]
+
+
 def _decision_answer(lines, name, keys):
     """None if no line names the decision, else its answer text ('' if blank)."""
     for index, line in enumerate(lines):
@@ -329,10 +342,17 @@ def _check_plan(root):
                           "can check by eye or by test"
                           % _plural(len(criteria), "acceptance criterion",
                                     "acceptance criteria"))
-    steps = _bullets(find_section(found, "steps"))
+    steps = _steps(find_section(found, "steps"))
+    if not steps and _meaningful(find_section(found, "steps"), template):
+        raise CheckFailed("PLAN.md's Steps section has no list: write the two or three "
+                          "steps as a numbered list")
     if len(steps) < 2:
-        raise CheckFailed("PLAN.md lists %s; it needs at least 2, each small enough to "
-                          "check on its own" % _plural(len(steps), "step"))
+        raise CheckFailed("PLAN.md lists %s; it needs two or three, each ending in "
+                          "something you can run and look at" % _plural(len(steps), "step"))
+    if len(steps) > 3:
+        raise CheckFailed("PLAN.md lists %s; merge them into two or three, each ending "
+                          "in something you can run and look at"
+                          % _plural(len(steps), "step"))
 
 
 def plan_complete(root):
@@ -753,8 +773,8 @@ def _check_html(folder, what, names):
 
 def _tool_checks(root, dataset):
     if not os.path.isfile(os.path.join(root, "explorer", "__main__.py")):
-        raise CheckFailed("`python -m explorer` has no __main__.py yet: build step 1 "
-                          "first")
+        raise CheckFailed("there is no explorer/__main__.py yet: ask Claude to add the "
+                          "command line")
     all_columns, numeric = _sidecar(root, dataset)
     header = _csv_header(root, dataset)
     work = tempfile.mkdtemp(prefix="explore-check-")

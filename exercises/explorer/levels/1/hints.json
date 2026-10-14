@@ -2,7 +2,7 @@
   "tiers": [
     {
       "unlock_after_minutes": 0,
-      "text": "Ask for one step, the command and its output. Then make open and look. Then commit."
+      "text": "Ask for one step, the command and its output, and what you can run to check it. Run that, look, then commit."
     },
     {
       "unlock_after_minutes": 5,

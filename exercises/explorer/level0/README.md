@@ -4,7 +4,7 @@
 
 Your group has a dataset and a question you can't answer from a table: **what does it look like?** You want a quick tool that lets you pick any columns as the axes of a 2D or 3D plot, colour the points by another column, and explore in a browser: rotate, zoom, hover. Nothing does exactly this for your data, so Claude will build it.
 
-It's a prototype: quick and dirty is fine. But you'll build it the way you'd want a careful student to: **plan it, build it in checked steps, test it, and have it reviewed**, committing each step that works. Each step is a gate.
+It's a prototype: quick and dirty is fine. But you'll build it the way you'd want a careful student to: **plan it, build it in checked steps, test it, and have it reviewed**, committing each step that works. Each stage is a gate.
 
 The big idea: **a good agentic workflow is a habit, not a technique.** `PLAYBOOK.md` is that habit on one page. Every level uses one part of it, and it's yours to take home.
 
@@ -71,7 +71,7 @@ Axis titles show the column name and unit. Hovering a point shows every numeric 
 
 - **Driver:** types the prompts into Claude Code. Rotates at each gate.
 - **Navigator:** owns the plan and the scope, and watches the clock. Asks "is it in the plan?"
-- **Sceptic:** owns the acceptance criteria and the evidence. Nothing is committed until the Sceptic has seen the command and its output, and someone has looked at the page.
+- **Sceptic:** owns the acceptance criteria and the evidence. Nothing is committed until the Sceptic has seen the command and its output and, once the page exists, someone has looked at it.
 - **Scribe:** keeps `LOG.md`: prompts that worked, prompts that failed, the "caught it" moment, the decisions Claude made for you.
 - **Coach:** your leader. Asks questions rather than giving answers, and steps in on tooling problems.
 
@@ -90,33 +90,47 @@ The Claude session starts in **plan mode**: Claude reads and proposes, but chang
 No code yet. Agree a plan, write it down, commit it.
 
 1. Read this README together.
-2. In Claude (plan mode), use the playbook's *Understand* prompt:
+2. In Claude (plan mode), the playbook's *Understand* prompt:
 
    > "Read README.md, data/README.md and the column file for our dataset. Summarise what the code and data contain and what the task asks. List anything unclear or ambiguous. Don't write any code."
 
-   Ask which columns have missing values, and how many. (`make list` will answer that once the tool exists.)
+   Ask which columns have missing values, and how many.
 3. Then the *Plan* prompt:
 
-   > "Propose a plan: the goal, the decisions it depends on, the design, steps small enough to check one at a time, acceptance criteria we can check, and what's out of scope. Ask me about any decision you're unsure of."
+   > "Propose a plan: the goal, the decisions it depends on, the design, two or three build steps that each end in something we can run and look at, acceptance criteria we can check, and what's out of scope. Ask me about any decision you're unsure of."
 
 4. Read it. Argue about it. Change it. The four decisions in `PLAN.md` are the group's, not Claude's. The Sceptic owns the acceptance criteria (at least three, each something you can check by eye or by test). The Navigator cuts anything beyond the interface above.
 5. Approve the plan and ask Claude to write it into `PLAN.md`, keeping the template's headings and the `Dataset:` line exactly as `Dataset: data/pulsars.csv` or `Dataset: data/dimuons.csv`. Then ask Claude to commit it.
-6. `./gate check` names the first thing still missing. When it passes, run `./gate unlock` in the gate terminal. It asks one reflection question (logged, not graded): one thing in Claude's plan you changed, and why.
+6. `./gate check` names the first thing still missing. When it passes, run `./gate unlock` in the gate terminal.
+
+## If it goes differently
+
+- The plan has more than three steps: ask Claude to merge them into two or three, each ending in something you can run and look at. One split that works: the command line, `--list` and `data.json`; then the page; then your decisions and the other dataset. Fewer, bigger steps get you to the page sooner, and the gate checks it.
+- Claude asks something nobody knows: pick a reasonable answer, write it in `PLAN.md` and move on.
+- Claude tries to write code: at this level the guard refuses everything except `PLAN.md` and `LOG.md`. Read the refusal aloud: it's on purpose.
 
 ## What to watch for
 
 - Decisions Claude makes silently: dropping rows, clipping logs, which columns the page opens on. Each one belongs in `PLAN.md`, decided by you.
 - A plan bigger than the job: class hierarchies, config systems, a build step for the JavaScript. It's a prototype.
-- Claude trying to write code. At this level the guard refuses everything except `PLAN.md` and `LOG.md`. When that happens, read the refusal aloud: it's on purpose.
+- A step that ends in nothing you can see, such as "set up the package". Each step should end in a command you can run.
+
+## Opening the gate
+
+`./gate check` needs every section of `PLAN.md` filled in: the four decisions answered, two or three steps, at least three acceptance criteria, and at least 1 commit with `PLAN.md` committed.
+
+The reflection (logged): one thing in Claude's plan you changed, and why.
+
+When the check passes: `./gate unlock`.
 
 ## Commands
 
 | Command | Where | What it does |
 |---|---|---|
-| `make explore` | Claude or gate terminal | Runs the tool on the `PLAN.md` dataset into `out/` |
+| `make explore` | Claude or gate terminal | Runs the tool on the `PLAN.md` dataset into `out/` (once Claude has built it) |
 | `make explore DATA=path/to/other.csv` | Either | Runs it on another CSV |
 | `make open` | Gate terminal | Opens `out/explorer.html` in your browser |
-| `make list` | Either | Lists the columns, units and missing counts |
+| `make list` | Either | Lists the columns, units and missing counts (once the tool has `--list`) |
 | `make test` | Either | Runs the tests (`pytest -q`) |
 | `make coverage` | Either | Runs the tests and shows the lines no test runs |
 | `make status` | Either | Same as `./gate status` |

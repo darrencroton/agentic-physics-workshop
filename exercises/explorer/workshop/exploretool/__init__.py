@@ -10,7 +10,32 @@ import shutil
 
 from exploretool import gates
 
+BROWSER_QUESTIONS = {
+    "data/pulsars.csv": {
+        "prompt": "Plot XX, YY and ZZ in 3D and rotate it: the known pulsars crowd "
+                  "around one point. What is at that point? (A word or two.)",
+        "wrong_hint": "XX, YY and ZZ are Galactic coordinates: data/pulsars.columns.json "
+                      "says where they are measured from. Why would the pulsars we know "
+                      "cluster there?",
+    },
+    "data/dimuons.csv": {
+        "prompt": "Plot M against pt1 with log axes: there is a sharp band near "
+                  "M = 3.1 GeV. Which particle makes it? (A word or two.)",
+        "wrong_hint": "Each narrow band along M is a particle that decays to two muons. "
+                      "The one near 3.1 GeV is a charm-anticharm meson with a two-letter "
+                      "name.",
+    },
+}
+
 post_unlock = {"record_head": gates.record_head}
+
+
+def browser_question(root, state, question):
+    """The Level 1 question and hint for the dataset named in PLAN.md."""
+    return BROWSER_QUESTIONS[gates.plan_dataset(root)]
+
+
+questions = {"browser_question": browser_question}
 
 
 def status_lines(root, state):

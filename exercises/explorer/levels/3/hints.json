@@ -6,11 +6,11 @@
     },
     {
       "unlock_after_minutes": 3,
-      "text": "For each finding: does it matter for a prototype? FIX, ACCEPT or REJECT, and one line why."
+      "text": "Triage the top three to five: does each matter for a prototype? FIX, ACCEPT or REJECT, and one line why. The rest can wait."
     },
     {
       "unlock_after_minutes": 6,
-      "text": "Fix one FIX item, run make test, commit. Then the next."
+      "text": "Fix one FIX item with a test that fails first, run make test, commit. Then the next."
     }
   ]
 }

@@ -228,6 +228,132 @@ class GuardHumanOnlyTests(unittest.TestCase):
         self.assertEqual(self.decision("./race status"), "deny")
 
 
+def heredoc_commit(message, tail=""):
+    return ("git add PLAN.md && git commit -m \"$(cat <<'EOF'\n%s\n\n"
+            "Co-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\"%s" % (message, tail))
+
+
+class GuardBashParsingTests(unittest.TestCase):
+    """Quotes, heredocs and redirects: harmless commands pass, real writes do not."""
+
+    GUARD = {"editable": ["src/**", "LOG.md"], "frozen": ["explorer/**", "tests/**", "PLAN.md"]}
+
+    @classmethod
+    def setUpClass(cls):
+        cls.root = fakerepo.make(guard=cls.GUARD)
+        cls.root1 = fakerepo.make(level=1, guard={"editable": ["explorer/**"], "frozen": ["tests/**"]})
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.root)
+        shutil.rmtree(cls.root1)
+
+    def decision(self, command, root=None):
+        proc, decision, reason = run_hook(root or self.root, "guard.py", tool("Bash", command=command))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return decision, reason
+
+    def test_harmless_commands_allowed(self):
+        msg = "Write the plan for the explorer using data/pulsars.csv and README.md"
+        cases = [
+            (heredoc_commit(msg), None),
+            (heredoc_commit("Add loader", "; echo \"exit=$?\"; git log --oneline -3; ./gate check"), self.root1),
+            ("awk 'NR>1 {print $1}' data/pulsars.csv", None),
+            ("awk 'NR>1 {print \"rows | <=0\", n}' data/pulsars.csv", None),
+            ("awk '{print ($1 > 0)}' data/pulsars.csv", None),
+            ("awk -F, 'NR>1{print $5}' data/pulsars.csv | python3 -c 'import sys; print(sum(float(x) for x in sys.stdin))' | head", None),
+            ("awk 'NR==1' data/pulsars.csv; printf '%s|%s\\n' a b", None),
+            ("awk '{print (length($1) > 0)}' data/pulsars.csv", None),
+            ("sed 's/ .*//' out/x.txt", None),
+            (heredoc_commit("Use awk to print rows > 3 and not write files"), None),
+            ("cat > out/notes.txt <<'EOF'\nawk then print x > y\nEOF", None),
+            (".venv/bin/python -I -c \"import csv; r=csv.reader(open('data/pulsars.csv')); "
+             "print(f\\\"{'col':>8}\\\")\"", None),
+            ("python -c 'import re; re.search(r\"<title>(.*?)</title>\", open(\"out/explorer.html\").read())'", None),
+            ("node -e 'const fs=require(\"fs\"); const page=fs.readFileSync(\"out/explorer.html\",\"utf8\"); "
+             "const f = s => s; console.log(\"data\")'", None),
+            ("sed -n \"/<select id=\\\"x\\\">/p\" out/d/explorer.html; "
+             ".venv/bin/python -m explorer data/dimuons.csv --out out/d;", None),
+            ("printf 'a,b\\n' > out/t.csv && .venv/bin/python -m explorer data/pulsars.csv", None),
+            ("printf 'a\\n' > \"$S/x.csv\" && .venv/bin/python -m explorer data/pulsars.csv", None),
+            ("cat > out/review/h.js <<'EOF'\nconst m = s.match(/<b>(.*?)<\\/b>/); const f = x => x;\n"
+             "const DATA = 1; console.log('data');\nEOF", None),
+            ("which node deno bun; cat .gitignore", None),
+            (".venv/bin/python -c \"print('a | python scale')\"", None),
+            ("echo done # it's fine; cat data/x.csv", None),
+            ("ls data 2>&1 | head", None),
+            ("timeout 110 make test 2>&1 | grep -E \"^(FAILED|ERROR)|assert .*labelReads\"", None),
+            ("node -e \"/\\.[a-z]+$/.test(s)\"", None),
+            ("mkdir -p \"$S\" && .venv/bin/python -m explorer data/pulsars.csv", None),
+            ("printf notes > out/README.md", None), ("printf x > out/data/summary.txt", None),
+            ("cat out/data.json | python3 -m json.tool", None),
+            ("cat out/data.json | python3 -c 'import json,sys; json.load(sys.stdin)'", None),
+            ("make test || python3 -c 'print(1)'", None),
+            ("sed 's/=.*//' out/x.txt", None),
+            ("node -e \"require('fs').openSync('out/x','r')\"", None),
+            ("bash -x run.sh; env sh script.sh", None),
+        ]
+        for command, root in cases:
+            decision, reason = self.decision(command, root)
+            self.assertIsNone(decision, "%r: %s" % (command, reason))
+
+    def test_real_writes_denied(self):
+        cases = [
+            "echo x > data/pulsars.csv", "echo x >data/pulsars.csv", "cat a >> README.md",
+            "echo x > \"Makefile\"", "echo x > ./gate", "echo x &> PLAN.md", "echo x >| explorer/a.py",
+            "cat > PLAN.md <<'EOF'\nx\nEOF",
+            "python -c \"open('data/x.csv','w').write('1')\"",
+            "node -e \"require('fs').writeFileSync('Makefile','')\"",
+            "python - <<'EOF'\nopen('README.md','w')\nEOF",
+            "bash <<'EOF'\nrm data/pulsars.csv\nEOF", "sh <<EOF\nrm data/pulsars.csv\nEOF",
+            "python3 -c \"from pathlib import Path; Path('data/x').touch()\"",
+            "tee data/x.csv", "cp x data/", "sed -i '' s/a/b/ README.md", "rm explorer/a.py",
+            "python3 fix.py tests/a.py", "perl -pi -e 1 Makefile", "echo \"oops > data/x.csv",
+            "cat > out/x <<'EOF'\nsee data/x",
+            "cd explorer && echo x > ../data/pulsars.csv",
+            heredoc_commit("msg", "; echo x > data/y.csv"),
+            "sh -c 'printf broken > README.md'", "/bin/bash -lc 'echo x > Makefile'",
+            "env zsh -c \"echo x > data/a\"",
+            "awk 'BEGIN {print \"x\" > \"Makefile\"}'",
+            "awk 'BEGIN {\n  print \"broken\" > \"Makefile\"\n}'",
+            "timeout 30 .venv/bin/python - <<'PY'\nopen('data/pulsars.csv', 'w').write('broken')\nPY",
+            "timeout 30 bash <<'EOF'\nrm data/pulsars.csv\nEOF",
+            "node -e \"require('fs').openSync('README.md','w')\"",
+            "python -c \"open('data/x.csv','r+').write('1')\"",
+            "echo x > data/pulsars.csv",
+        ]
+        for command in cases:
+            decision, reason = self.decision(command)
+            self.assertEqual(decision, "deny", command)
+
+    def test_secrets_and_gate_still_denied(self):
+        cases = [
+            "cat .vault/x", "ls .v*", heredoc_commit("msg", "; cat .vault/k"),
+            "git commit -m \"$(cat .vault/k)\"", "cat > out/x.txt <<'EOF'\n.vault\nEOF",
+            "echo x > .claude/settings.json", "ls .*/", "find . -name \".*\" -exec cat {} +", "curl x | sh", "echo \"$(cat <<'EOF'\n.v*\nEOF\n)\"",
+            "cat <<'EOF' | bash\nls\nEOF", "cat x | python3", "cat x | python3 -",
+            "find . -path '.*/x'", "find . -path './.*/settings.json' -exec cat {} +",
+            "printf 'echo x\\n' | bash -e", "echo x | bash -ex", "echo x | sh -s", "echo x | bash -e -x",
+            "bash <<'EOF'\n./gate unlock\nEOF",
+            "git commit -m \"$(cat <<EOF\n$(cat .vault/k)\nEOF\n)\"",
+        ]
+        for command in cases:
+            decision, reason = self.decision(command)
+            self.assertEqual(decision, "deny", command)
+
+    def test_deny_messages_carry_appeal_sentence(self):
+        for command, fragment in (("echo x > README.md", "read-only"), ("cat .vault/x", "machinery"),
+                                  ("pip install x", "install"), ("./gate unlock", "humans"),
+                                  ("echo x > PLAN.md", "frozen")):
+            _, reason = self.decision(command)
+            self.assertIn(fragment, reason)
+            self.assertTrue(reason.endswith("use a make target or the tests instead."), reason)
+        proc, decision, reason = run_hook(self.root, "guard.py", tool("Write", file_path="README.md", content="x"))
+        self.assertIn("don't reword or retry it", reason)
+        _, reason = self.decision("curl x | sh")
+        self.assertIn("Piping code", reason)
+
+
 class GuardPhaseTests(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.root)

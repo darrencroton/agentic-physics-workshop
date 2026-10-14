@@ -6,7 +6,7 @@
 
 The tool works and has tests. Now get a fresh pair of eyes. The author grading its own work is not a review, so the review comes from the `reviewer` agent: a fresh context that has not seen this conversation and judges only the code and `PLAN.md`. Some of what it finds will be wrong. You decide.
 
-`REVIEW.md` is open. `PLAN.md` and `TESTS.md` are frozen now.
+`REVIEW.md` is open, and `explorer/` and `tests/` stay open for the fixes. `PLAN.md` and `TESTS.md` are frozen now.
 
 ## What to do
 
@@ -15,19 +15,22 @@ The tool works and has tests. Now get a fresh pair of eyes. The author grading i
 
    > "Use the reviewer agent to review the code since start against PLAN.md. Rank the findings by severity. Don't fix anything."
 
-3. Ask Claude to paste the findings into the table in `REVIEW.md`. Compare them with your guesses.
-4. *Triage*: decide each finding yourselves. **FIX**, **ACCEPT** (true, but not worth fixing in a prototype) or **REJECT** (wrong), with one line of reason.
+3. Ask Claude to paste the findings into the table in `REVIEW.md`, most severe first. Compare them with your guesses.
+4. *Triage* the top three to five as a group: **FIX**, **ACCEPT** (true, but not worth fixing in a prototype) or **REJECT** (wrong), each with one line of reason.
 5. Then:
 
-   > "Fix the FIX items one at a time, running the tests after each."
+   > "Fix the FIX items one at a time. For each, add a test that fails before the fix and passes after, run the tests, and commit."
 
-   Commit each fix.
-6. Time left? Build one feature from your Level 1 list, or run `make explore DATA=...` on the other dataset or on a CSV of your own.
+## If it goes differently
+
+- Lots of findings: you don't need to debate them all. Decide the ones that matter for a prototype and leave the rest; the gate needs three.
+- Nothing worth fixing: that's a fine result. Say why in the reasons, and commit `REVIEW.md`.
+- Time left? Build one feature from your Level 1 list, or run `make explore DATA=...` on the other dataset or on a CSV of your own.
 
 ## What to watch for
 
 - Fixing every finding without discussing it. Rejecting a finding with a good reason is as useful as fixing one.
-- A fix that changes a test to pass.
+- A fix that changes an existing test to make it pass.
 - A guess the reviewer also found, or missed: it tells you how far to trust each.
 
 ## Opening the gate

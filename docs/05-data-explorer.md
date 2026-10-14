@@ -49,7 +49,7 @@ By the end, every group member should be able to:
 
 1. **Use plan mode to agree a plan before any code exists**, and edit the agent's plan rather than accept it.
 2. **Write acceptance criteria** the group can check, before building.
-3. **Direct a build in small steps**, asking for the command and output at each step, looking at the result themselves, and committing each step that works.
+3. **Direct a build in two or three checked steps**, asking for the command and output at each step, looking at the result themselves, and committing each step that works.
 4. **Say what the tests should cover before asking the agent**, then ask the agent for its test plan and what it will *not* cover, and compare the two.
 5. **Get an independent review** from a fresh context, after predicting what it will find, and triage each finding as FIX, ACCEPT or REJECT with a reason.
 6. **Recognise the red flags** of agentic coding: claimed success without output, tests changed to pass, code outside the plan, confident recall of an API.
@@ -183,7 +183,7 @@ Dataset: data/pulsars.csv
 - Initial selection when the page opens:
 - Sampling above --max-points:
 ## Design (modules and what each does)
-## Steps (each small enough to check on its own)
+## Steps (two or three, each ending in something we can run and look at)
 ## Acceptance criteria (at least three, each something we can check)
 ## Out of scope
 ```
@@ -229,7 +229,7 @@ Dataset: data/pulsars.csv
 | Level | Title | Min | Gate: machine check | Gate: human question |
 |---|---|---|---|---|
 | 0 | Plan | 8 | `PLAN.md` complete (3.5) and committed; ≥ 1 commit since `start` | Logged: "One thing in Claude's plan you changed, and why." |
-| 1 | Build the prototype | 18 | The tool runs on the group's dataset (3.1–3.3); ≥ 3 commits since Level 0; clean tree | **Graded:** a question that prompts a look in the browser |
+| 1 | Build the prototype | 18 | The tool runs on the group's dataset (3.1–3.3); ≥ 2 commits since Level 0; clean tree | **Graded:** a question that prompts a look in the browser |
 | 2 | Test | 8 | `TESTS.md` both lists filled; ≥ 5 tests pass, importing `explorer`; ≥ 1 commit; clean tree | Logged: "What did Claude's plan cover that yours didn't, or the reverse?" |
 | 3 | Review (last) | 8 | `REVIEW.md`: ≥ 2 guesses, ≥ 3 triaged findings; tests pass; the tool runs on **both** datasets; ≥ 1 commit; clean tree | Logged: "What did the review find that the tests didn't?" |
 
@@ -269,9 +269,9 @@ All gates are `crypto-reflection` except Level 1 (`crypto`, one keyword question
 
 ### Level 1 — Build the prototype (18 min)
 
-**Brief:** "Build it, one step of the plan at a time. After each step, ask for the command and its output, look at the result yourselves (`make open`), and commit. When `./gate check` passes, play with the page for two minutes: each of you names one feature you'd add. Keep those for later; they go in the reflection."
+**Brief:** "Build it, one step of the plan at a time (two or three steps). After each step, ask for the command and its output and what you can run to check it, run that yourselves (once the page exists, `make explore` then `make open`), and commit. When `./gate check` passes, play with the page for two minutes: each of you names one feature you'd add. Keep those for later; they go in the reflection."
 
-**Playbook prompts used:** *Build in small steps*; *Evidence*.
+**Playbook prompts used:** *Build in checked steps*; *Evidence*.
 
 **What the group does:**
 
@@ -292,14 +292,14 @@ All gates are `crypto-reflection` except Level 1 (`crypto`, one keyword question
 
 **Gate:**
 
-- *Machine:* the check runs the tool on the dataset named in `PLAN.md`, into a temporary directory: once with defaults, once with `--max-points 500`, once with `--list`, and once on a file that does not exist. It requires: exit 0 within 30 s for the valid runs; a non-zero exit and no `Traceback` for the invalid one; `--list` naming every column in the sidecar; `data.json` valid under strict parsing with the structure in 3.2 and `n_written` equal to 500 on the sampled run; and `explorer.html` containing plotly.js inline, no external script, the controls in 3.3 with every numeric column as an option, and the strings `scattergl` and `scatter3d`. Also ≥ 3 commits since the Level 0 unlock and a clean tree under `explorer/` and `PLAN.md`.
-- *Human (graded, keyword):* dataset-specific, asked as one question: "Pulsars: plot `XX`, `YY`, `ZZ` and rotate it; the known pulsars crowd around one point. What is there? Dimuons: plot `M` against `pt1` with log axes; which particle makes the sharp band near 3.1 GeV?" Accept `sun`, `solar system`, `earth`, `us`, `solar neighbourhood`, `jpsi`, `j/psi`, `jψ`, `psi`, each also with an article ("the sun", "the j/psi") since keyword matching keeps articles. Both sets are accepted for either dataset (honest limit; Section 12).
+- *Machine:* the check runs the tool on the dataset named in `PLAN.md`, into a temporary directory: once with defaults, once with `--max-points 500`, once with `--list`, and once on a file that does not exist. It requires: exit 0 within 30 s for the valid runs; a non-zero exit and no `Traceback` for the invalid one; `--list` naming every column in the sidecar; `data.json` valid under strict parsing with the structure in 3.2 and `n_written` equal to 500 on the sampled run; and `explorer.html` containing plotly.js inline, no external script, the controls in 3.3 with every numeric column as an option, and the strings `scattergl` and `scatter3d`. Also ≥ 2 commits since the Level 0 unlock and a clean tree under `explorer/` and `PLAN.md`.
+- *Human (graded, keyword):* asked only for the group's dataset (gatekit `text_from` reads the `Dataset:` line; a static prompt pointing at `BRIEF.md` is the fallback), with a dataset hint after a wrong answer (`wrong_hint`). Pulsars: "Plot `XX`, `YY` and `ZZ` in 3D and rotate it: the known pulsars crowd around one point. What is at that point?" Dimuons: "Plot `M` against `pt1` with log axes: there is a sharp band near M = 3.1 GeV. Which particle makes it?" Accept `sun`, `solar system`, `earth`, `us`, `solar neighbourhood`, `jpsi`, `j/psi`, `jψ`, `psi`, each also with an article ("the sun", "the j/psi") since keyword matching keeps articles. Both sets are accepted for either dataset (honest limit; Section 12).
 
 **Teaching point:** the agent cannot see the browser. The humans are the only ones who can check what the tool actually shows, and the check only knows what can be read from a file.
 
 **Hints:**
 
-1. "Ask for one step, the command and its output. Then `make open` and look. Then commit."
+1. "Ask for one step, the command and its output, and what you can run to check it. Run that, look, then commit."
 2. "`./gate check` prints the first thing that is missing. Paste that line to Claude."
 3. Dataset-specific: "Where is the Sun in this coordinate system? Look in `pulsars.columns.json`." / "Put `M` on X with log on. The dense vertical lines are particles."
 
@@ -339,7 +339,7 @@ All gates are `crypto-reflection` except Level 1 (`crypto`, one keyword question
 
 ### Level 3 — Review (8 min, last level)
 
-**Brief:** "Before you ask, write two things in `REVIEW.md` that you think a reviewer will find. Then ask Claude for a review from the `reviewer` agent: a fresh context that has not seen this conversation. Paste the findings in, decide each one yourselves (FIX, ACCEPT or REJECT, one line of reason), and fix only the FIX items, one at a time, running the tests after each. Commit, then unlock."
+**Brief:** "Before you ask, write two things in `REVIEW.md` that you think a reviewer will find. Then ask Claude for a review from the `reviewer` agent: a fresh context that has not seen this conversation. Paste the findings in, decide the top three to five yourselves (FIX, ACCEPT or REJECT, one line of reason), and fix only the FIX items, one at a time, each with a test that fails before the fix, running the tests after each. Commit, then unlock."
 
 **Playbook prompts used:** *Independent review*; *Triage*.
 
@@ -364,8 +364,8 @@ All gates are `crypto-reflection` except Level 1 (`crypto`, one keyword question
 **Hints:**
 
 1. "Ask: 'Use the reviewer agent to review the code against PLAN.md. Rank the findings. Don't fix anything.'"
-2. "For each finding: does it matter for a prototype? FIX, ACCEPT or REJECT, and one line why."
-3. "Fix one FIX item, run `make test`, commit. Then the next."
+2. "Triage the top three to five: does each matter for a prototype? FIX, ACCEPT or REJECT, and one line why. The rest can wait."
+3. "Fix one FIX item with a test that fails first, run `make test`, commit. Then the next."
 
 ---
 
@@ -378,7 +378,7 @@ The lecture (docs/00, Slide 4) teaches the Verify-First Loop. Every step of it i
 | Understand | 0 | *Understand* | — (the plan shows it) |
 | Define the check | 0, 2 | *Plan* (acceptance criteria); *Test plan, then tests* | Acceptance criteria in `PLAN.md`; the group's own list in `TESTS.md` |
 | Plan | 0 | *Plan* | `PLAN.md` complete and committed |
-| Small steps | 1 | *Build in small steps* | ≥ 3 commits during the build |
+| Small steps | 1 | *Build in checked steps* | ≥ 2 commits during the build (the plan has two or three steps) |
 | Evidence | 1, 2 | *Evidence*; *Does the alarm ring?* | The tool runs; the tests run; a human looked (the graded question) |
 | Independent review | 3 | *Independent review*; *Triage* | Findings triaged with reasons |
 | Recover | any | *Recover* | — (hints and the leader) |
@@ -406,14 +406,16 @@ The agent is a fast, tireless, literal collaborator. You own the decisions and t
  List anything unclear or ambiguous. Don't write any code."
 
 ## 2. Define the check, then plan
-"Propose a plan: the goal, the decisions it depends on, the design, steps small enough
- to check one at a time, acceptance criteria we can check, and what's out of scope.
- Ask me about any decision you're unsure of."
+"Propose a plan: the goal, the decisions it depends on, the design, a few steps
+ (two or three for a small job) that each end in something we can run and look at,
+ acceptance criteria we can check, and what's out of scope. Ask me about any
+ decision you're unsure of."
 - Read it. Change it. The decisions are yours. Save it as PLAN.md. Commit it.
 
-## 3. Build in small steps
-"Implement step 1 of PLAN.md only. Run it and show me the exact command and output."
-- Look at the result yourself. Commit. Then: "Next step."
+## 3. Build in checked steps
+"Implement step 1 of PLAN.md only. Run it, show me the exact command and output,
+ and tell me what I can run to check it myself."
+- Run that yourself and look at the result. Commit. Then: "Next step."
 - Stop it (Esc) if it starts doing more than one step.
 
 ## 4. Evidence: test plan, then tests
@@ -431,8 +433,10 @@ The agent is a fast, tireless, literal collaborator. You own the decisions and t
 "Use a subagent with no context from this session to review the code against
  PLAN.md. Rank the findings by severity. Don't fix anything."
   (or /code-review, which does the same on the current diff)
-- Decide each finding yourself: FIX, ACCEPT or REJECT, with a reason.
-"Fix the FIX items one at a time, running the tests after each." Commit each.
+- Decide the findings that matter: FIX, ACCEPT or REJECT, with a reason.
+  Many low ones? Triage the top few; the rest can wait.
+"Fix the FIX items one at a time. For each, add a test that fails before the fix
+ and passes after, then run the tests." Commit each.
 
 ## 6. Recover
 - Esc stops it. Esc Esc or /rewind undoes. After two failed corrections: /clear and
@@ -531,7 +535,7 @@ The model line is a decision for calibration (Section 12): Sonnet by default, so
 | Level | Check passes when | Human answer |
 |---|---|---|
 | 0 | `PLAN.md` complete per 3.5, committed | Logged |
-| 1 | Three valid runs and one clean error per Level 1; ≥ 3 commits; clean tree | Pulsars: `sun` (synonyms above). Dimuons: `jpsi` (synonyms above). |
+| 1 | Three valid runs and one clean error per Level 1; ≥ 2 commits; clean tree | Pulsars: `sun` (synonyms above). Dimuons: `jpsi` (synonyms above). |
 | 2 | `TESTS.md` filled; ≥ 5 tests pass; `explorer` imported; ≥ 1 commit; clean tree | Logged |
 | 3 | `REVIEW.md` triaged (three findings, reasons); tests pass; runs on both datasets; ≥ 1 commit; clean tree | Logged |
 
@@ -567,7 +571,7 @@ There are no planted bugs. What the agent gets wrong is whatever it gets wrong o
 
 ### Opening (60 Seconds, Read Aloud)
 
-> "Today we build a real tool, a 3D explorer for our data, and we build it the way you'd want a careful student to: plan, build in small steps, test, review, and commit as we go. Claude is a normal, helpful collaborator today; the gates just make sure we do each step. The gate terminal is ours: Claude can't type there, and that's where we run the tests ourselves. Roles: [assign]. The keyboard rotates at each gate. All code goes through Claude; we read, look, decide. At the end, `PLAYBOOK.md` is yours to take home."
+> "Today we build a real tool, a 3D explorer for our data, and we build it the way you'd want a careful student to: plan, build in two or three checked steps, test, review, and commit as we go. Claude is a normal, helpful collaborator today; the gates just make sure we do each step. The gate terminal is ours: Claude can't type there, and that's where we run the tests ourselves. Roles: [assign]. The keyboard rotates at each gate. All code goes through Claude; we read, look, decide. At the end, `PLAYBOOK.md` is yours to take home."
 
 ### Coaching by Level
 

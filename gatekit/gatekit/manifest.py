@@ -16,7 +16,9 @@ Schema (documented in gatekit/README.md):
               "questions": [{"id": "...", "prompt": "...",
                              "kind": "numeric", "decimals": 2,
                              "lo": 0, "hi": 1,         # crypto kinds
-                             "validator": "tool.function"}],  # verified
+                             "validator": "tool.function",    # verified
+                             "wrong_hint": "...",             # optional
+                             "text_from": "tool.function"}],  # optional
               "reflection": "..." | "reflections": ["...", "..."],
               "post_unlock": "tool.function",
               "pre_reflection_note": "..."}}
@@ -69,6 +71,17 @@ def validate(manifest):
             if "id" not in question or "prompt" not in question:
                 raise ManifestError("level %d: question needs id and prompt"
                                     % index)
+            for key in ("wrong_hint", "text_from"):
+                if key in question and not isinstance(question[key], str):
+                    raise ManifestError(
+                        "level %d: question '%s': %s must be a string"
+                        % (index, question["id"], key))
+            name = question.get("text_from")
+            if name is not None and (name.count(".") != 1
+                                     or not all(name.split("."))):
+                raise ManifestError(
+                    "level %d: question '%s': text_from must look like "
+                    "'tool.function'" % (index, question["id"]))
     models = manifest.get("models", {})
     if "allowed" in models and not isinstance(models["allowed"], list):
         raise ManifestError("models.allowed must be a list")

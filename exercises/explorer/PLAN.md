@@ -7,7 +7,7 @@ Version 1 (2026-10-13). Every build task works from this file. `docs/05-data-exp
 | L | Title | Min | Persona | Gate type | Machine check (`.gatekit/exploretool/checks/levelN.py`, venv python) | Graded question | Reflection (logged) |
 |---|---|---|---|---|---|---|---|
 | 0 | Plan | 8 | collaborator | crypto-reflection | `PLAN.md` complete (section 5); ≥ 1 commit since `start`; `PLAN.md` clean | — | "One thing in Claude's plan you changed, and why." |
-| 1 | Build the prototype | 18 | collaborator | crypto | tool runs (section 4) on the `PLAN.md` dataset; ≥ 3 commits since the L0 unlock; `explorer/` and `PLAN.md` clean | keyword: "Pulsars: plot XX, YY, ZZ and rotate it; the known pulsars crowd around one point. What is there? Dimuons: plot M against pt1 with log axes; which particle makes the sharp band near 3.1 GeV?" accept `sun`, `solar system`, `earth`, `us`, `solar neighbourhood`, `jpsi`, `j/psi`, `jψ`, `psi` | "Each of you: one feature you would add. Which did the group like best?" |
+| 1 | Build the prototype | 18 | collaborator | crypto | tool runs (section 4) on the `PLAN.md` dataset; ≥ 2 commits since the L0 unlock; `explorer/` and `PLAN.md` clean | keyword, worded for the `PLAN.md` dataset via `text_from: explore.browser_question` (pulsars: what is where the known pulsars crowd in XX, YY, ZZ; dimuons: which particle makes the band near 3.1 GeV), with a dataset `wrong_hint`; static fallback points at `BRIEF.md`; accept `sun`, `solar system`, `earth`, `us`, `solar neighbourhood`, `jpsi`, `j/psi`, `jψ`, `psi` | "Each of you: one feature you would add. Which did the group like best?" |
 | 2 | Test | 8 | collaborator | crypto-reflection | `TESTS.md` ≥ 3 bullets under "Our list" and non-template text under "Claude's plan"; pytest collects ≥ 5 tests, all pass; ≥ 1 test module imports `explorer`; ≥ 1 commit since the L1 unlock; `explorer/`, `tests/`, `TESTS.md` clean | — | "What did Claude's plan cover that yours didn't, or the reverse?" |
 | 3 | Review | 8 | collaborator | crypto-reflection (last level; marks complete) | `REVIEW.md` ≥ 2 guess bullets, ≥ 3 table rows with decision in {FIX, ACCEPT, REJECT} and non-empty reason; pytest ≥ 5 pass; the section-4 run checks pass on **both** shipped datasets; ≥ 1 commit since the L2 unlock; `explorer/`, `tests/`, `REVIEW.md` clean | — | "What did the review find that the tests didn't?" |
 
@@ -102,8 +102,8 @@ status:
 - `post_unlock` `explore.record_head` (every level's gate): stores `git rev-parse HEAD` in `state["records"]["heads"][str(new_level)]`; level 0's baseline is the `start` tag.
 - `commits_since(root, level)`: `git rev-list --count <base>..HEAD` where base = `records.heads[str(level)]` if present else `start`.
 - `dirty(root, paths)`: `git status --porcelain -- <paths>` non-empty.
-- Required commits: L0 ≥ 1, L1 ≥ 3, L2 ≥ 1, L3 ≥ 1. Checked paths: L0 `PLAN.md`; L1 `explorer PLAN.md`; L2 `explorer tests TESTS.md`; L3 `explorer tests REVIEW.md`.
-- Failure sentences name the fix: "2 commits since the last gate; this level needs at least 3: ask Claude to commit each working step" / "explorer/ has uncommitted changes: ask Claude to commit, then unlock".
+- Required commits: L0 ≥ 1, L1 ≥ 2, L2 ≥ 1, L3 ≥ 1. Checked paths: L0 `PLAN.md`; L1 `explorer PLAN.md`; L2 `explorer tests TESTS.md`; L3 `explorer tests REVIEW.md`.
+- Failure sentences name the fix: "1 commit since the last gate; this level needs at least 2: ask Claude to commit each step that works (two commits or more)" / "explorer/ has uncommitted changes: ask Claude to commit, then unlock".
 
 ### 3.8 Manifest (shape)
 
@@ -142,7 +142,7 @@ Check `gatekit/gatekit/manifest.py` and `cli.py` for the exact accepted keys (th
 | 2 | `explorer/**`, `tests/**`, `TESTS.md`, `LOG.md` | `PLAN.md` |
 | 3 | `explorer/**`, `tests/**`, `REVIEW.md`, `LOG.md` | `PLAN.md`, `TESTS.md` |
 
-`PLAYBOOK.md` and `data/` are frozen at every level (add `PLAYBOOK.md` to each level's `frozen`; `data/` is always frozen by gatekit). Each guard has a one-sentence `message`.
+`out/**` is editable at every level (scratch files). `PLAYBOOK.md` and `data/` are frozen at every level (add `PLAYBOOK.md` to each level's `frozen`; `data/` is always frozen by gatekit). Each guard has a one-sentence `message`.
 
 ## 4. The Level 1/3 run checks (`exploretool/gates.py: run_tool_checks(root, dataset) -> (ok, sentence)`)
 
@@ -153,11 +153,11 @@ In a temporary directory `T`, with the venv python and a 30 s timeout per comman
 3. `python -m explorer <dataset> --list`: exit 0; stdout contains every column name of the sidecar.
 4. `python -m explorer T/does-not-exist.csv --out T/c`: non-zero exit; combined output lacks `Traceback`.
 
-The first failing item gives the sentence, naming the run and what was wrong (for example: `data.json is not valid JSON (NaN is not JSON; write it with allow_nan=False)`; `explorer.html has no <select id="colour">`; `--max-points 500 wrote 4503 rows`). `explorer/__init__.py` present but empty gives: "`python -m explorer` has no __main__.py yet: build step 1 first".
+The first failing item gives the sentence, naming the run and what was wrong (for example: `data.json is not valid JSON (NaN is not JSON; write it with allow_nan=False)`; `explorer.html has no <select id="colour">`; `--max-points 500 wrote 4503 rows`). `explorer/__init__.py` present but empty gives: "there is no explorer/__main__.py yet: ask Claude to add the command line".
 
 ## 5. `PLAN.md` completeness (Level 0 check)
 
-Template in `docs/05` section 3.5. Pass when: `Dataset:` is one of the two paths; each of the four decision bullets has text after the colon; each `##` section has at least one non-empty line that is not the template's own text; "Acceptance criteria" has ≥ 3 bullets; "Steps" has ≥ 2 bullets or numbered items.
+Template in `docs/05` section 3.5. Pass when: `Dataset:` is one of the two paths; each of the four decision bullets has text after the colon; each `##` section has at least one non-empty line that is not the template's own text; "Acceptance criteria" has ≥ 3 bullets; "Steps" has 2 or 3 top-level bullets or numbered items (sub-bullets do not count).
 
 ## 6. Reference solution (`selftest/solution/`)
 
@@ -167,7 +167,7 @@ Built by a Sonnet subagent following `PLAYBOOK.md` against the frozen interfaces
 
 1. Build (`--keep-venv`), `./preflight` through a pty.
 2. L0: unlock refused (template `PLAN.md`, no commit); install `PLAN.pulsars.md`, refused ("no commit since start"); commit; unlock with a reflection → Level 1; `BRIEF.md` present; reflection in `LOG.md`; `records.heads["1"]` set.
-3. L1: `gate check` refused (no `__main__.py`); install `solution_nan`, commit, refused with the NaN sentence; install the solution, commit once, refused ("2 commits ... needs at least 3"); two more commits (touch `LOG.md`? no: `LOG.md` is outside the checked paths but commits count; make two small commits to `explorer/` files, e.g. a comment line); edit `explorer/data.py` without committing → refused ("uncommitted changes"); commit; `make explore` → `out/explorer.html` and `data.json` exist, `make list` prints the columns; wrong answer `moon` rejected; `sun` unlocks Level 2; `TESTS.md` present.
+3. L1: `gate check` refused (no `__main__.py`); install `solution_nan`, commit, refused with the NaN sentence; install the solution uncommitted, refused ("1 commit since the last gate; this level needs at least 2"); commit; small further commits to `explorer/` files; edit `explorer/data.py` without committing → refused ("uncommitted changes"); commit; `make explore` → `out/explorer.html` and `data.json` exist, `make list` prints the columns; wrong answer `the moon` rejected with the pulsar hint; `sun` unlocks Level 2 (the dimuon pass checks its own prompt and hint); `TESTS.md` present.
 4. L2: refused (empty `TESTS.md`); install the sample `TESTS.md` and a 4-test file → refused ("4 tests ... needs at least 5"); install the full tests, commit; `make test` passes; unlock → Level 3; `REVIEW.md` present.
 5. L3: refused (untriaged `REVIEW.md`); install the sample `REVIEW.md`; refused (no commit); commit; switch `PLAN.md` dataset? No: Level 3 runs both datasets regardless; unlock → complete; completion note printed.
 6. Dimuons path: after the reset, repeat L0–L1 with `PLAN.dimuons.md` and the answer `jpsi` (covers the second dataset and the keyword set).

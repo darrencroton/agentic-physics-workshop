@@ -162,7 +162,7 @@ A built participant repo holds the Level 0 files, the `gate` and `preflight` lau
 
 - **The check.** `./gate check` runs the level's behaviour-based checks and reports PASS or FAIL. A broken solution cannot pass, and the check never reveals the answer.
 - **The human answer.** A short structured answer (a letter, number or keyword) to a debrief question about what the group observed or decided. Examples: "What functional form did the discrepancy have?" "What was the exponent you measured?"
-- **The unlock.** The next level's files sit in an encrypted pack in `.vault/`. Some gates derive the key from the check's output and the human answer; others first verify the group's recorded evidence (a score, a bench run) and then release the key. Either way the pack opens only when the work passes and the human answer is right. A wrong answer fails cleanly, with "Not quite. Discuss and try again." or the reason the evidence was refused.
+- **The unlock.** The next level's files sit in an encrypted pack in `.vault/`. Some gates derive the key from the check's output and the human answer; others first verify the group's recorded evidence (a score, a bench run) and then release the key. Either way the pack opens only when the work passes and the human answer is right. A wrong answer fails cleanly, with "Not quite. Discuss and try again." (and a hint, where the exercise gives one) or the reason the evidence was refused.
 - **The gate terminal.** `./gate unlock` reads the answer at an interactive prompt and refuses to run without a terminal, or from a shell that Claude Code started. Claude's Bash tool has no terminal, so humans unlock the gate in a **separate "gate terminal"** window. The physical separation is deliberate: the gate terminal belongs to the humans.
 - **Free-text reflection.** After a successful unlock, `./gate` asks one or two open questions, such as "What would you do differently?". The answer is appended to `LOG.md` unchecked and feeds the show-and-tell.
 
@@ -269,7 +269,7 @@ Run each exercise in four ways before the trial (Explorer runs on Sonnet, so its
 
 - [ ] Each exercise built, checked and rehearsed by you on the exercise's model (Haiku; Sonnet for Explorer): walkthrough section 1.
 - [ ] Each leader sent a git bundle of the built repo and the walkthrough, at least a week before: walkthrough section 2. Never send this repository.
-- [ ] Each leader's laptop set up by the leader from walkthrough section 3, before the briefing, on the Claude Code version you calibrated against. Packages must be in place by then: agents can't install them during the session.
+- [ ] Each leader's laptop set up by the leader from the walkthrough's "Group leaders: set up your laptop" section, before the briefing, on the Claude Code version you calibrated against. Packages must be in place by then: agents can't install them during the session.
 - [ ] Exercise C only (when built): `gfortran` (e.g. via Homebrew `gcc`), compile-tested in preflight.
 - [ ] Two terminal windows arranged: **Claude** (large) and **Gate** (small)
 - [ ] An external screen or TV per group if the room allows. Otherwise the group gathers behind the leader's laptop.

@@ -12,14 +12,16 @@ The agent is a fast, tireless, literal collaborator. You own the decisions and t
  List anything unclear or ambiguous. Don't write any code."
 
 ## 2. Define the check, then plan
-"Propose a plan: the goal, the decisions it depends on, the design, steps small enough
- to check one at a time, acceptance criteria we can check, and what's out of scope.
- Ask me about any decision you're unsure of."
+"Propose a plan: the goal, the decisions it depends on, the design, a few steps
+ (two or three for a small job) that each end in something we can run and look at,
+ acceptance criteria we can check, and what's out of scope. Ask me about any
+ decision you're unsure of."
 - Read it. Change it. The decisions are yours. Save it as PLAN.md. Commit it.
 
-## 3. Build in small steps
-"Implement step 1 of PLAN.md only. Run it and show me the exact command and output."
-- Look at the result yourself. Commit. Then: "Next step."
+## 3. Build in checked steps
+"Implement step 1 of PLAN.md only. Run it, show me the exact command and output,
+ and tell me what I can run to check it myself."
+- Run that yourself and look at the result. Commit. Then: "Next step."
 - Stop it (Esc) if it starts doing more than one step.
 
 ## 4. Evidence: test plan, then tests
@@ -37,8 +39,10 @@ The agent is a fast, tireless, literal collaborator. You own the decisions and t
 "Use a subagent with no context from this session to review the code against
  PLAN.md. Rank the findings by severity. Don't fix anything."
   (or /code-review, which does the same on the current diff)
-- Decide each finding yourself: FIX, ACCEPT or REJECT, with a reason.
-"Fix the FIX items one at a time, running the tests after each." Commit each.
+- Decide the findings that matter: FIX, ACCEPT or REJECT, with a reason.
+  Many low ones? Triage the top few; the rest can wait.
+"Fix the FIX items one at a time. For each, add a test that fails before the fix
+ and passes after, then run the tests." Commit each.
 
 ## 6. Recover
 - Esc stops it. Esc Esc or /rewind undoes. After two failed corrections: /clear and

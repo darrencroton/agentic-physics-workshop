@@ -4,7 +4,7 @@
 
 ## Where we are
 
-The tool works, and you've seen it work. Now make sure it keeps working. You'll write your own list first, then ask Claude for its test plan, and compare: writing your list first shows you what you'd have missed, and asking for the plan before the tests changes what you get.
+The tool works, and you've seen it work. Now make sure it keeps working. Write your own list first, then ask Claude for its test plan, and compare: your list shows you what you'd have missed, and asking for the plan before the tests changes what you get.
 
 `tests/` and `TESTS.md` are open. `PLAN.md` is frozen now.
 
@@ -15,21 +15,24 @@ The tool works, and you've seen it work. Now make sure it keeps working. You'll 
 
    > "Talk me through the tests this code needs: what each one checks, what coverage that gives, and what it won't cover. Don't write them yet."
 
-3. Paste Claude's plan into `TESTS.md`. Compare it with your list, and agree what to write under "What we agreed to write, and why". pytest can't see what the page does in the browser: what *can* be tested, and what still needs a human?
+3. Ask Claude to paste its plan into `TESTS.md`. Compare it with your list and agree what to write under "What we agreed to write, and why". pytest can't see the page in a browser: what *can* be tested, and what still needs a human?
 4. Then:
 
    > "Write them. Run them and show me the output."
 
-5. Ask Claude to commit the tests and `TESTS.md`. Run `make test` yourselves in the gate terminal and, if there's time, `make coverage`: which lines does no test run?
-6. Optional, one minute, *Does the alarm ring?*:
+5. Run `make test` yourselves in the gate terminal and, if there's time, `make coverage`: which lines does no test run? Then ask Claude to commit the tests and `TESTS.md`.
 
-   > "Break <one behaviour> on purpose and run the tests. Do they fail? Then revert."
+## If it goes differently
+
+- Claude's plan is long: agree the handful of tests that matter most and write those. The gate needs five.
+- A test fails: that's a finding, not a nuisance. Ask Claude whether the code or the test is wrong, and why, before anything changes.
+- Time left? *Does the alarm ring?* "Break <one behaviour> on purpose and run the tests. Do they fail? Then revert."
 
 ## What to watch for
 
 - Claude writing tests before the group says go.
 - Only the easy functions tested, and the page left untested. Coverage shows it.
-- A failing test "fixed" by changing the test. Never accept it: a failing test is a finding. Fix the code, or decide the test was wrong and say why.
+- A failing test "fixed" by changing the test. Never accept it: fix the code, or decide the test was wrong and say why.
 
 ## Opening the gate
 

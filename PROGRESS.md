@@ -17,6 +17,8 @@
 - `gatekit` fixes found by building E: the last level's crypto gate now gets a verify token in `tools/build.py` (an exercise ending on a crypto gate could never complete); the build wipe tolerates a Finder `.DS_Store` and always restores a stashed `.venv`; `out/` and `.coverage` added to the template `.gitignore`. Unit tests added for the first two.
 - Environment: `dist/explorer/.venv` (Python 3.13.2; numpy 2.3.2, plotly 7.1.0, pytest 9.1.1, pytest-cov 7.1.0). Decisions and deviations from `docs/05` in `docs/DECISIONS.md`.
 
+- **Explorer feedback round** (from a group playthrough to Level 3): plans have two or three steps and Level 1 needs two commits; the Level 1 question is worded for the group's dataset and a wrong answer gives a hint (new optional gatekit question fields `text_from` and `wrong_hint`); every brief has one shape, with an "If it goes differently" section; review triage covers the top three to five findings, and fixes come with a test. The shared guard now reads quotes, heredocs and redirects: replaying the 29 refused playthrough commands allows 28 (the last is correctly refused). Self-tests: Explorer 136, TDD Ladder 109, Speed Run 82; gatekit 55 tests on Python 3.14 and 3.9.6. Details in `docs/DECISIONS.md`.
+
 ## How to re-run everything
 
 ```zsh
@@ -31,7 +33,7 @@ Each self-test rebuilds its `dist/<name>` (keeping `.venv`) and leaves it clean 
 ## Next
 
 1. Human calibration runs on Haiku for both exercises (`exercises/<name>/FACILITATOR-WALKTHROUGH.md`), then a trial with the research group. Watch, in particular: whether "Explain as you go" makes the literal persona narrate its design choices at TDD Level 0; whether a Haiku-written cell list fits the 14-minute Speed Run Level 2; the Speed Run Level 3 pacing with the ~20 s submit.
-2. Calibration run on Sonnet for Explorer, with a stopwatch (walkthrough section 1): record Level 1's time above all; if it runs over 20 minutes, move part of Level 0 into the README. Also confirm in that run that plan mode's plan file is written without a guard refusal (the guard now allows `~/.claude/plans`), and that the `reviewer` agent runs cleanly under the guard (hooks do run inside subagents per the docs).
+2. Calibration run on Sonnet for Explorer, with a stopwatch (walkthrough section 1): record Level 1's time above all, now with two or three steps; if it still runs over 20 minutes, move part of Level 0 into the README. Watch that the heredoc commit, data reads and the reviewer's commands pass the guard in a live session. Also confirm in that run that plan mode's plan file is written without a guard refusal (the guard now allows `~/.claude/plans`), and that the `reviewer` agent runs cleanly under the guard (hooks do run inside subagents per the docs).
 3. Phases 3 and 5 (Exercises A and C): not started. Gaps in BUILD-SPEC §9.
 
 ## Open questions

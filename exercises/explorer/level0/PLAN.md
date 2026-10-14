@@ -14,7 +14,7 @@ Dataset: data/pulsars.csv
 
 ## Design (modules and what each does)
 
-## Steps (each small enough to check on its own)
+## Steps (a numbered list of two or three, each ending in something we can run and look at)
 
 ## Acceptance criteria (at least three, each something we can check)
 

@@ -210,33 +210,61 @@ def _reflections(gate):
     return []
 
 
+def _question_text(root, state, manifest, question):
+    """Return (prompt, wrong_hint), preferring the text_from function."""
+    prompt = question["prompt"]
+    hint = question.get("wrong_hint", "")
+    name = question.get("text_from")
+    if name:
+        try:
+            fn = exercise.resolve(_tool(manifest), "questions", name)
+            text = fn(root, state, question)
+            if isinstance(text.get("prompt"), str) and text["prompt"]:
+                prompt = text["prompt"]
+            if isinstance(text.get("wrong_hint"), str) and text["wrong_hint"]:
+                hint = text["wrong_hint"]
+        except Exception:
+            pass
+    return prompt, hint
+
+
+def _with_hints(message, hints):
+    """Append a 'Hint:' line for each non-empty wrong-answer hint."""
+    return "\n".join([message] + ["Hint: %s" % h for h in hints if h])
+
+
 def _ask_graded_verified(root, state, manifest, gate):
     tool = _tool(manifest)
     for question in _questions(gate):
-        answer = tty.ask(question["prompt"].rstrip() + " ")
+        prompt, hint = _question_text(root, state, manifest, question)
+        answer = tty.ask(prompt.rstrip() + " ")
         validator = exercise.resolve(tool, "validators",
                                      question.get("validator", "gate.answer"))
         ok, reason = validator(root, state, question, answer)
         if not ok:
             st.log_failed_attempt(state, "verified")
             st.save_state(root, state)
-            raise GateError(reason or NOT_QUITE)
+            raise GateError(_with_hints(reason or NOT_QUITE, [hint]))
     return None
 
 
-def _ask_graded_crypto(root, state, gate, token):
+def _ask_graded_crypto(root, state, manifest, gate, token):
+    """Return (slot secrets, hints of the questions asked)."""
     canons = []
+    hints = []
     for question in _questions(gate):
-        answer = tty.ask(question["prompt"].rstrip() + " ")
+        prompt, hint = _question_text(root, state, manifest, question)
+        hints.append(hint)
+        answer = tty.ask(prompt.rstrip() + " ")
         try:
             canon = answers.canonicalise(question, answer)
         except answers.AnswerError as exc:
             st.log_failed_attempt(state, "crypto-format")
             st.save_state(root, state)
-            raise GateError("Please %s." % exc)
+            raise GateError(_with_hints("Please %s." % exc, hints))
         if canon is not None:
             canons.append(canon)
-    return [crypto.crypto_slot_secret(token, "|".join(canons))]
+    return [crypto.crypto_slot_secret(token, "|".join(canons))], hints
 
 
 def _install_pack(root, manifest, state, secrets_list, new_level):
@@ -334,6 +362,7 @@ def cmd_unlock(root, args):
         return 1
     kind = gate.get("type", "none")
     last = mf.is_last_level(manifest, level)
+    hints = []
     if kind == "verified":
         _ask_graded_verified(root, state, manifest, gate)
         secrets_list = None
@@ -341,7 +370,8 @@ def cmd_unlock(root, args):
             tool = _tool(manifest)
             secrets_list = [tool.level_secret(root, level)]
     elif kind in ("crypto", "crypto-reflection"):
-        secrets_list = _ask_graded_crypto(root, state, gate, token)
+        secrets_list, hints = _ask_graded_crypto(root, state, manifest, gate,
+                                                 token)
     else:
         secrets_list = [b""]
     if last:
@@ -357,7 +387,7 @@ def cmd_unlock(root, args):
         except crypto.PackError:
             st.log_failed_attempt(state, kind)
             st.save_state(root, state)
-            raise GateError(NOT_QUITE)
+            raise GateError(_with_hints(NOT_QUITE, hints))
     _reflect(root, state, gate, level)
     return 0
 

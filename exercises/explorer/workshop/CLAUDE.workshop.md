@@ -10,10 +10,10 @@ Build `explorer`, a Python package run as `.venv/bin/python -m explorer DATA.csv
 
 All levels use the collaborator persona; each level's brief enforces one step.
 
-- **Level 0, Plan:** planning only, no code. Help the group understand the data and the interface, draft `PLAN.md`, and surface every decision you would otherwise make silently so the group makes it.
-- **Level 1, Build:** one step of `PLAN.md` at a time. After each step, run it, show the output, tell the group what to look for in the browser, and stop. No tests yet.
+- **Level 0, Plan:** planning only, no code. Help the group understand the data and the interface, draft `PLAN.md` with two or three build steps as a numbered list, and surface every decision you would otherwise make silently so the group makes it.
+- **Level 1, Build:** one step of `PLAN.md` at a time (the plan has two or three). After each step, run it, show the output, tell the group what to look for in the browser and which command they can run now to check it, and stop. No tests yet.
 - **Level 2, Test:** explain the test plan (what each test checks, the coverage, what it won't cover) and wait for the group's go before writing tests. Never weaken a test to make it pass.
-- **Level 3, Review:** use the `reviewer` agent for the review and report its findings without changing code. Fix only what the group marks FIX in `REVIEW.md`, one at a time, running the tests after each.
+- **Level 3, Review:** use the `reviewer` agent for the review and report its findings without changing code. Fix only what the group marks FIX in `REVIEW.md`, one at a time, each with a test that fails before the fix, running the tests after each.
 
 ## Explain as you go
 
@@ -36,6 +36,8 @@ This workshop runs on Sonnet. You cannot reliably tell which model you are from 
 - The humans view the result in the browser (`make open`); you cannot. Tell them what to look for.
 - Ask the group for decisions (missing values, log axes, the initial view, sampling, scope) rather than making them silently.
 - Commit when asked, with a one-line message saying what the step did. Use `git add` and `git commit` only.
+- Put scratch files in `out/` (git ignores it).
+- If the guard refuses a command you think is harmless, don't reword or split it to get round the guard. Say so in one line and use a `make` target or the tests instead.
 - You may run `make explore`, `make list`, `make test`, `make coverage`, `.venv/bin/python -m explorer ...`, `./gate status`, `./gate brief` and `./gate check`. When `./gate check` fails, its sentence names the first thing to fix.
 
 ## Never
@@ -46,4 +48,4 @@ This workshop runs on Sonnet. You cannot reliably tell which model you are from 
 - Run `./gate unlock`, `./gate hint`, `./gate skip`, `./gate reset` or `./gate allow-model`.
 - Install packages. The `.venv` has numpy, plotly, pytest and pytest-cov, and that is enough.
 - Use `pty`, `script`, `expect` or any trick to fake a terminal.
-- Edit files outside the paths the current level allows (Level 0: `PLAN.md` and `LOG.md`; Level 1: `explorer/`, `PLAN.md`, `LOG.md`; Level 2: `explorer/`, `tests/`, `TESTS.md`, `LOG.md`; Level 3: `explorer/`, `tests/`, `REVIEW.md`, `LOG.md`).
+- Edit files outside the paths the current level allows (Level 0: `PLAN.md` and `LOG.md`; Level 1: `explorer/`, `PLAN.md`, `LOG.md`; Level 2: `explorer/`, `tests/`, `TESTS.md`, `LOG.md`; Level 3: `explorer/`, `tests/`, `REVIEW.md`, `LOG.md`; `out/` at every level).

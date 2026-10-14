@@ -2,9 +2,11 @@ import os
 import shutil
 import subprocess
 import sys
+import types
 import unittest
+from unittest import mock
 
-from gatekit import ptyhelper, state as st
+from gatekit import cli, exercise, ptyhelper, state as st
 from tests import fakerepo
 
 PY = sys.executable
@@ -52,6 +54,31 @@ class TtyTests(unittest.TestCase):
         self.assertEqual(st.load_state(self.root)["level"], 0)
         code, out = ptyhelper.run_pty([PY, self.gate, "reset"], [("level 0?", "n")], cwd=self.root)
         self.assertEqual(code, 1)
+
+
+class QuestionTextTests(unittest.TestCase):
+    QUESTION = {"id": "q", "prompt": "Static?", "wrong_hint": "Static hint.",
+                "text_from": "tool.text"}
+
+    def text(self, fn):
+        tool = types.SimpleNamespace(questions={"text": fn})
+        with mock.patch.object(cli, "_tool", return_value=tool):
+            return cli._question_text("/root", {}, {}, self.QUESTION)
+
+    def test_text_from_replaces_static_fields(self):
+        self.assertEqual(self.text(lambda r, s, q: {"prompt": "Dynamic?", "wrong_hint": "Dynamic hint."}),
+                         ("Dynamic?", "Dynamic hint."))
+        self.assertEqual(self.text(lambda r, s, q: {"prompt": "Dynamic?", "wrong_hint": ""}),
+                         ("Dynamic?", "Static hint."))
+
+    def test_text_from_failure_falls_back_to_static(self):
+        def broken(root, state, question):
+            raise RuntimeError("no data")
+        static = ("Static?", "Static hint.")
+        self.assertEqual(self.text(broken), static)
+        self.assertEqual(self.text(lambda r, s, q: None), static)
+        with mock.patch.object(cli, "_tool", side_effect=exercise.ExerciseError("no tool")):
+            self.assertEqual(cli._question_text("/root", {}, {}, self.QUESTION), static)
 
 
 if __name__ == "__main__":

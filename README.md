@@ -1,6 +1,6 @@
 # Agentic AI for Physics Research: Workshop Exercises
 
-Hands-on exercises for a workshop of about 70 minutes (a 15-minute lecture, then 45 minutes hands-on) that teaches physicists to work well with coding agents. Groups of two to five sit with a leader, drive [Claude Code](https://code.claude.com) on a deliberately modest model, and climb through gated levels. The physics is the vehicle; the habit being drilled is the same every time: **understand, define the check, plan, small steps, evidence, review, recover.**
+Hands-on exercises for a workshop of about 70 minutes (a 15-minute lecture, then 45 minutes hands-on) that teaches physicists to work well with coding agents. Groups of two to five sit with a leader, drive [Claude Code](https://code.claude.com) on a modest model (Haiku or Sonnet), and climb through gated levels. The physics is the vehicle; the habit being drilled is the same every time: **understand, define the check, plan, small steps, evidence, review, recover.**
 
 **This repository is public, so the answers are too.** Participants work in a small repo built from this one and never need to see it. If you run the workshop, point attendees at the built repo, not here.
 
@@ -9,27 +9,27 @@ Hands-on exercises for a workshop of about 70 minutes (a 15-minute lecture, then
 | You are | Start here |
 |---|---|
 | Organising the workshop (the facilitator) | [Run the workshop](#run-the-workshop) |
-| Leading one group on the day | The walkthrough for your exercise, from section 3 ("Group leaders: set up your laptop"). The facilitator sends it to you with your copy of the repo; you do not need this repository. |
+| Leading one group on the day | Your exercise's facilitator walkthrough (linked in the table below), from its section "Group leaders: set up your laptop" onwards. The facilitator sends it to you with your copy of the repo, so you do not need this repository. |
 | Adapting or writing an exercise | [Build and extend](#build-and-extend) |
 
 ## The exercises
 
-| | Exercise | Core lesson | Model | Status | Facilitator walkthrough |
+| | Exercise | Core lesson | Model | Status | Guide |
 |---|---|---|---|---|---|
-| **B** | **Speed Run.** A correct but painfully slow pair counter for galaxy clustering. Make it fast without ever getting a wrong answer: measure first, survive the memory wall, change the algorithm, then race. Every run is checked against golden counts you cannot see; a wrong answer scores zero, and "correct" is a decision the group must declare. | Measure first; a correctness gate is non-negotiable | Haiku | **Ready** (self-tested; live calibration pending) | [`exercises/speed-run/FACILITATOR-WALKTHROUGH.md`](exercises/speed-run/FACILITATOR-WALKTHROUGH.md) |
-| **D** | **The TDD Ladder.** Implement one small binning function several times, from "just build it" to tests you can trust. At every step an objective scorecard runs the group's tests against deliberately broken copies of the function and reports how many they catch. | You define "correct"; the agent cannot | Haiku | **Ready** (self-tested; live calibration pending) | [`exercises/tdd-ladder/FACILITATOR-WALKTHROUGH.md`](exercises/tdd-ladder/FACILITATOR-WALKTHROUGH.md) |
-| **E** | **Explorer.** Have Claude build a small browser tool that plots any columns of a real physics dataset (ATNF pulsars or CMS dimuons) against each other, in 2D or 3D, coloured by any other column, with every axis chosen from a drop-down menu. Do it the way the lecture says to: plan in plan mode, build in small checked steps, write your own test list before Claude's, then get a fresh-context `reviewer` agent to review it and triage its findings yourselves, committing each step that works. Each gate checks that the step happened and that the tool runs; a human has to look at the page to answer the graded question. The group leaves with `PLAYBOOK.md`, a one-page script to reuse on their own code. | Plan, build, test, review: the workflow as a habit | Sonnet | **Ready** (self-tested; live calibration pending) | [`exercises/explorer/FACILITATOR-WALKTHROUGH.md`](exercises/explorer/FACILITATOR-WALKTHROUGH.md) |
-| A | **Two Roads.** Two H₀ engines disagree on the same catalogue. Find out why, fix it properly, and leave code you would trust. | Evidence-driven debugging; agreement is not correctness | Haiku | Designed | `docs/01-two-roads.md` |
-| C | **Fortran Archaeology.** Port legacy code and prove the port is equivalent. | Establish the oracle before you change anything | Sonnet | Designed | `docs/03-fortran-archaeology.md` |
+| **B** | **Speed Run.** Make a correct but painfully slow galaxy pair counter fast, without ever getting a wrong answer. Every run is checked against hidden golden counts, and a wrong answer scores zero. | Measure first; a correctness gate is non-negotiable | Haiku | **Ready** (self-tested; live calibration pending) | [walkthrough](exercises/speed-run/FACILITATOR-WALKTHROUGH.md) |
+| **D** | **The TDD Ladder.** Implement one small binning function several times, from "just build it" to tests you can trust. A scorecard runs the group's tests against deliberately broken copies and reports how many they catch. | You define "correct"; the agent cannot | Haiku | **Ready** (self-tested; live calibration pending) | [walkthrough](exercises/tdd-ladder/FACILITATOR-WALKTHROUGH.md) |
+| **E** | **Explorer.** Have Claude build a browser tool that plots a real dataset (ATNF pulsars or CMS dimuons) in 2D or 3D. Plan it, build it in checked steps, test it and have it reviewed, committing as you go. | Plan, build, test, review: the workflow as a habit | Sonnet | **Ready** (self-tested; live calibration pending) | [walkthrough](exercises/explorer/FACILITATOR-WALKTHROUGH.md) |
+| A | **Two Roads.** Two H₀ engines disagree on the same catalogue. Find out why, fix it properly, and leave code you would trust. | Evidence-driven debugging; agreement is not correctness | Haiku | Designed | [design](docs/01-two-roads.md) |
+| C | **Fortran Archaeology.** Port legacy code and prove the port is equivalent. | Establish the oracle before you change anything | Sonnet | Designed | [design](docs/03-fortran-archaeology.md) |
 
-Each exercise's **facilitator walkthrough** is the operating guide to that exercise, for the facilitator and the group leaders: building and distributing it, setting up a leader's laptop, running the session, every level with its gate answers, what to do when something goes wrong, and how to reset. It contains spoilers and is never copied into a participant repo. `docs/00-facilitator-guide.md` covers the whole session: the lecture, group roles, the leaders' briefing, the run-sheet and the trial. The pedagogical designs live in `docs/01`–`05`; where an exercise has been built, its walkthrough supersedes the design.
+Each exercise's **facilitator walkthrough** is its operating guide, for the facilitator and the group leaders: building and handing out the repo, setting up a leader's laptop, running the session, every level with its gate answers, troubleshooting and reset. It contains spoilers and is never copied into a participant repo. The [facilitator guide](docs/00-facilitator-guide.md) covers the whole session: the lecture, group roles, the leaders' briefing, the run-sheet and the trial. The pedagogical designs are in `docs/01`–`05`; once an exercise is built, its walkthrough supersedes its design.
 
 ## How a session works
 
 - **Two windows.** Claude Code in a large window, driven by the group. A small **gate terminal** that only humans type in.
-- **Gates.** Each level ends with a gate: a check that the work is done, plus a question the humans must answer to show they understood it. `./gate unlock` runs the check, asks, and decrypts the next level from the encrypted **vault** shipped with the repo. Claude's shell has no terminal, so it cannot type there.
-- **A teacher, not an oracle.** A short **persona** is injected into every prompt and tells Claude how to behave at that level: literal at first, so the group sees what happens without discipline, then a coach that runs the group's experiments but does not hand over answers. Every persona also asks Claude to explain, briefly, what it is about to do and what each result means, so that people who missed the introduction can keep up.
-- **Guard rails.** A hook blocks Claude from the vault, the gate, package installs and the files a level has frozen. Every block carries a teaching message, and the block itself often starts the best discussion of the hour.
+- **Gates.** Each level ends with a gate: a check that the work is done, then a question only someone who did the work can answer, or a short reflection that is logged. `./gate unlock` runs the check, asks, and decrypts the next level from the encrypted **vault** shipped with the repo. Claude's shell has no terminal, so it cannot type there.
+- **A teacher, not an oracle.** A short **persona** is injected into every prompt and tells Claude how to behave at that level: for example, literal at first, so the group sees what happens without discipline, then a coach that runs the group's experiments but does not hand over answers. Every persona also asks Claude to explain briefly what it is about to do and what each result means, so people who missed the introduction can keep up.
+- **Guard rails.** A hook blocks Claude from the vault, the gate, package installs and the files a level has frozen. Every block carries a teaching message, and Claude is told to report a block rather than work round it; the block itself often starts the best discussion of the hour.
 - **Hints, logs, a master key.** Three timed hint tiers per level; every unlock, hint and reflection logged for the show-and-tell; a facilitator passphrase to skip a stuck group or grant a **power-up** to a stronger model.
 
 This is a learning scaffold, not an exam proctor. A group can cheat; they would be cheating themselves out of their hour of practice. The limits are written down in [`gatekit/README.md`](gatekit/README.md#11-honest-limits) and are worth saying aloud in the lecture.
@@ -38,7 +38,7 @@ This is a learning scaffold, not an exam proctor. A group can cheat; they would 
 
 You build one participant repo per exercise from this repository, rehearse it, and send each group leader a copy as a git bundle. Leaders and participants never need this repository.
 
-1. **Plan.** Choose the exercises and the group leaders, and check everyone's Claude accounts: `docs/00-facilitator-guide.md` sections 1, 7 and 11.
+1. **Plan.** Choose the exercises and the group leaders, and check everyone's Claude accounts: see [At a Glance](docs/00-facilitator-guide.md#1-at-a-glance), [Pre-Event Setup](docs/00-facilitator-guide.md#7-pre-event-setup) and [Open Decisions](docs/00-facilitator-guide.md#11-open-decisions-for-you) in the facilitator guide.
 2. **Install the requirements** on your Mac: the Xcode Command Line Tools (`xcode-select --install`; they provide `git` and `clang`, which only the Speed Run needs), Python 3.11 or newer (for example `brew install python@3.13`), Claude Code **2.1.295 or newer** (`claude --version`), a Claude account that can run Claude Code on Haiku (and Sonnet, for Explorer), and a git identity (`git config --global user.name` and `user.email`).
 3. **Clone this repository and create the master passphrase.** You type it to skip a stuck group or grant a power-up; it is kept outside every repo.
 
@@ -49,10 +49,10 @@ You build one participant repo per exercise from this repository, rehearse it, a
    chmod 600 ~/.config/workshop/master-passphrase
    ```
 
-4. **Build, check and rehearse each exercise you will run:** section 1 of its walkthrough. Play it through once yourself, on the exercise's model (Haiku, or Sonnet for Explorer), before the day; `docs/00` section 6 has the fuller calibration matrix.
-5. **Give each leader their repo:** section 2 of the walkthrough. You send a bundle made from a freshly built or reset repo, together with the walkthrough, and decide who types the master passphrase on the day. Leaders set up their own laptops with section 3.
-6. **Brief the leaders, then run the day:** `docs/00-facilitator-guide.md` has the leaders' briefing (section 7), the lecture (section 3) and the run-sheet and stuck protocol (section 8).
-7. **Afterwards:** each walkthrough says what to copy out for the record and how to reset between runs. For a trial run, `docs/00` section 9 says what to measure.
+4. **Build, check and rehearse each exercise you will run:** follow "Facilitator: build and rehearse" in its walkthrough. Play it through once yourself, on the exercise's model, before the day; [Building and Calibrating the Exercises](docs/00-facilitator-guide.md#6-building-and-calibrating-the-exercises) in the facilitator guide has the fuller calibration matrix.
+5. **Give each leader their repo:** follow "Facilitator: give the repo to group leaders" in the walkthrough. You send a bundle made from a freshly built or reset repo, together with the walkthrough, and decide who types the master passphrase on the day. Leaders set up their own laptops with "Group leaders: set up your laptop".
+6. **Brief the leaders, then run the day:** the facilitator guide has the leaders' briefing ([Pre-Event Setup](docs/00-facilitator-guide.md#7-pre-event-setup)), the [lecture](docs/00-facilitator-guide.md#3-the-pre-session-lecture-15-min) and the run-sheet and stuck protocol ([Running the Day](docs/00-facilitator-guide.md#8-running-the-day)).
+7. **Afterwards:** each walkthrough says what to copy out for the record ("What to record") and how to reset between runs. For a trial run, [Trial With Your Research Group](docs/00-facilitator-guide.md#9-trial-with-your-research-group) says what to measure.
 
 ## Build and extend
 
@@ -71,7 +71,7 @@ docs/               the pedagogical designs and the decision log
 
 ### Self-tests
 
-Run once the exercise has been built and its `.venv` set up (step 4 of [Run the workshop](#run-the-workshop)). Each exercise self-test rebuilds its `dist/<name>` (keeping `.venv`), so do not run it on a repo a group is using.
+Run these once the exercise has been built and its `.venv` set up (step 4 of [Run the workshop](#run-the-workshop)). Each exercise self-test rebuilds its `dist/<name>` (keeping `.venv`), so do not run it on a repo a group is using.
 
 ```zsh
 cd gatekit && python3 -m unittest discover -s . -t . -p 'test_*.py'; cd ..

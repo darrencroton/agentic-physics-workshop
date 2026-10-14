@@ -6,6 +6,10 @@ that may provide:
 - `conditions`: {name: fn(root, state, manifest) -> (ok, reason)}
 - `validators`: {name: fn(root, state, question, answer) -> (ok, reason)}
 - `post_unlock`: {name: fn(root, state, manifest, new_level) -> message}
+- `questions`: {name: fn(root, state, question) -> {"prompt": str,
+  "wrong_hint": str}} for a gate question's `text_from`; either key is
+  optional, and an exception or bad return falls back to the static
+  `prompt` and `wrong_hint`
 - `level_secret(root, level) -> bytes` for verified gates
 - `status_lines(root, state) -> [str]`
 - `teacher_context_extra(root, state) -> str`
