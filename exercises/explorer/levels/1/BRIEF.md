@@ -4,7 +4,7 @@
 
 ## Where we are
 
-`PLAN.md` is committed: your goal, your four decisions, two or three steps and the acceptance criteria. Now build it one step at a time, look at each result yourselves, and commit each step that works. When something breaks, you know which step did it.
+`PLAN.md` is committed: your goal, your four decisions, two steps and the acceptance criteria. Now build it one step at a time, look at each result yourselves, and commit each step that works. When something breaks, you know which step did it.
 
 `explorer/` is open for editing. `tests/` stays frozen: testing is the next level.
 
@@ -17,7 +17,7 @@
 2. Run what Claude suggests in the gate terminal and look at the result. Once the page exists, that's `make explore` then `make open`. If it works, ask Claude to commit it.
 3. Then: "Next step." Repeat until the plan is done.
 4. Run `./gate check` after each step. It names the first thing still missing; paste that line to Claude.
-5. When it passes, play with the page for two minutes: rotate, zoom, hover, switch columns, palettes and log axes. Each of you names one feature you'd add, and the Scribe writes them in `LOG.md`. Don't build them now.
+5. When it passes, play with the page for a minute: rotate, zoom, hover, switch columns, palettes and log axes. Agree one feature the group would add, and the Scribe writes it in `LOG.md`. Don't build it now.
 
 ## If it goes differently
 
@@ -38,6 +38,6 @@
 
 `./gate unlock` asks a question about your dataset that sends you to the page. A wrong answer gives you a hint: discuss it, then run `./gate unlock` again.
 
-The reflection (logged): each of you, one feature you would add, and which the group liked best.
+The reflection (logged): one feature the group would add.
 
 When the check passes and you've all looked at the page: commit, then `./gate unlock`.

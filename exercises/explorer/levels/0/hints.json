@@ -2,7 +2,7 @@
   "tiers": [
     {
       "unlock_after_minutes": 0,
-      "text": "Ask Claude which columns of your dataset have missing values, and how many. (make list answers that once the tool exists.)"
+      "text": "If Claude hasn't said which columns have missing values and how many, ask. (make list answers that once the tool exists.)"
     },
     {
       "unlock_after_minutes": 3,
@@ -10,7 +10,7 @@
     },
     {
       "unlock_after_minutes": 6,
-      "text": "Two or three steps, each ending in something you can run and look at. Acceptance criteria you can check by eye or by test: 'the 3D view rotates', 'hovering shows the unit', 'choosing Z = none gives a 2D plot'. Then: 'commit PLAN.md'."
+      "text": "Two steps: the command line and data.json, then the page. Each ends in something you can run and look at. Acceptance criteria you can check by eye or by test: 'the 3D view rotates', 'hovering shows the unit', 'choosing Z = none gives a 2D plot'. Then: 'commit PLAN.md'."
     }
   ]
 }

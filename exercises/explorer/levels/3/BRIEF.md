@@ -13,19 +13,27 @@ The tool works and has tests. Now get a fresh pair of eyes. The author grading i
 1. **Before you ask:** write two things in `REVIEW.md` that you think a reviewer will find. One minute. (`REVIEW.md` is not code: type into it yourselves, or dictate it to Claude.)
 2. The playbook's *Independent review*, using the agent shipped in this repo:
 
-   > "Use the reviewer agent to review the code since start against PLAN.md. Rank the findings by severity. Don't fix anything."
+   > "Use the reviewer agent to review the code since start against PLAN.md. Rank the findings by severity and paste them into the table in REVIEW.md, most severe first. Don't fix anything."
 
-3. Ask Claude to paste the findings into the table in `REVIEW.md`, most severe first. Compare them with your guesses.
+3. Compare the findings with your guesses.
 4. *Triage* the top three to five as a group: **FIX**, **ACCEPT** (true, but not worth fixing in a prototype) or **REJECT** (wrong), each with one line of reason.
 5. Then:
 
-   > "Fix the FIX items one at a time. For each, add a test that fails before the fix and passes after, run the tests, and commit."
+   > "Fix the top FIX item: add a test that fails before the fix and passes after, run the tests, and commit."
+
+   More FIX items only if there is time.
 
 ## If it goes differently
 
 - Lots of findings: you don't need to debate them all. Decide the ones that matter for a prototype and leave the rest; the gate needs three.
 - Nothing worth fixing: that's a fine result. Say why in the reasons, and commit `REVIEW.md`.
-- Time left? Build one feature from your Level 1 list, or run `make explore DATA=...` on a CSV of your own.
+
+## Finished early
+
+Unlocked with time to spare? Ask Claude for the feature you agreed at Level 1, or one of these, the same way: one step, run it, look, commit.
+
+- A day/night button that switches the page between light and dark colours.
+- Select points with the mouse (box or lasso, in the 2D view) and show how many you picked, with their labels if the dataset has them.
 
 ## What to watch for
 
@@ -41,4 +49,4 @@ The reflection (logged): what did the review find that the tests didn't?
 
 Scribe: finish `LOG.md`. `PLAYBOOK.md` is yours to take home, and `.claude/agents/reviewer.md` with it.
 
-When the FIX items are done and the tests pass: commit, then `./gate unlock`.
+When `REVIEW.md` is triaged and the tests pass: commit, then `./gate unlock`.

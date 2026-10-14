@@ -210,7 +210,7 @@ def plan_variant(text, which):
     if which == "dataset":
         return re.sub(r"(?m)^Dataset: (\S+)$", r"Dataset: `\1`", text)
     if which == "manysteps":
-        return text.replace("## Acceptance", "4. A fourth step.\n\n## Acceptance", 1)
+        return text.replace("## Acceptance", "3. A third step.\n\n## Acceptance", 1)
     heading = {"criteria": "## Acceptance criteria", "steps": "## Steps"}[which]
     keep = {"criteria": 2, "steps": 1}[which]
     out, inside, seen = [], False, 0
@@ -263,10 +263,10 @@ def level0(repo, plan_name):
             ("decision", 'decision "Missing values in a selected column" is blank'),
             ("dataset", "it must be exactly data/pulsars.csv or data/dimuons.csv"),
             ("criteria", "PLAN.md lists 2 acceptance criteria; it needs at least 3"),
-            ("steps", "PLAN.md lists 1 step; it needs two or three, each ending in something "
-                      "you can run and look at"),
-            ("manysteps", "PLAN.md lists 4 steps; merge them into two or three, each ending "
-                          "in something you can run and look at")):
+            ("steps", "PLAN.md lists 1 step; it needs two, each ending in something you can "
+                      "run and look at"),
+            ("manysteps", "PLAN.md lists 3 steps; merge them into two, each ending in "
+                          "something you can run and look at")):
         repo.write("PLAN.md", plan_variant(sample, which))
         refused(repo, expected, "PLAN.md with %s broken" % which)
     repo.write("PLAN.md", sample)
@@ -351,12 +351,12 @@ def level1_pulsars(repo):
           "explorer/ back to the committed solution")
     repo.append("explorer/data.py", "# step 2 checked in the browser\n")
     repo.commit("Step 2", "explorer")
-    repo.append("explorer/page.py", "# step 3 checked in the browser\n")
-    repo.commit("Step 3", "explorer")
+    repo.append("explorer/page.py", "# step 2, second look in the browser\n")
+    repo.commit("Step 2: initial view", "explorer")
     repo.append("explorer/data.py", "# work in progress\n")
     refused(repo, "explorer/ has uncommitted changes: ask Claude to commit, then unlock",
             "uncommitted edit to explorer/data.py")
-    repo.commit("Step 4", "explorer")
+    repo.commit("Step 2: hover fix", "explorer")
     out = time_explore(repo, "data/pulsars.csv (PLAN.md)")
     check("n_read=4503 n_written=4503" in out, "make explore prints n_read and n_written")
     check(os.path.isfile(repo.path("out", "explorer.html"))
@@ -375,7 +375,7 @@ def level1_pulsars(repo):
     check(repo.state()["levels"]["1"]["failed_attempts"] == 1, "failed attempt counted")
     head = repo.git("rev-parse", "HEAD")
     answer = "a slider for the colour range"
-    code, out = repo.gate("unlock", answers=[(prompt, "The Sun"), ("like best?", answer)])
+    code, out = repo.gate("unlock", answers=[(prompt, "The Sun"), ("would add.", answer)])
     check(code == 0 and "Level 2 unlocked" in out and repo.level() == 2,
           "'The Sun' opens level 2", flat(out)[-300:])
     check("TESTS.md" in out and os.path.isfile(repo.path("TESTS.md")), "TESTS.md arrived")
@@ -391,7 +391,7 @@ def level2(repo):
     refused(repo, 'TESTS.md has 0 items under "Our list"', "template TESTS.md")
     template = repo.text("TESTS.md")
     repo.write("TESTS.md", template.replace("-\n-\n-\n", "- a\n- b\n- c\n"))
-    refused(repo, "TESTS.md has nothing under \"Claude's plan\" yet", "Claude's plan not pasted")
+    refused(repo, "TESTS.md has nothing under \"Claude's plan\" yet", "Claude's plan not written")
     repo.install(os.path.join(SOLUTION, "TESTS.md"), "TESTS.md")
     repo.install(os.path.join(SOLUTION, "tests_four", "test_explorer.py"),
                  os.path.join("tests", "test_explorer.py"))
@@ -495,8 +495,8 @@ def dimuons(repo):
     repo.commit("Step 1", "explorer")
     repo.append("explorer/data.py", "# step 2\n")
     repo.commit("Step 2", "explorer")
-    repo.append("explorer/page.py", "# step 3\n")
-    repo.commit("Step 3", "explorer")
+    repo.append("explorer/page.py", "# step 2, second look\n")
+    repo.commit("Step 2: initial view", "explorer")
     out = time_explore(repo, "data/dimuons.csv (PLAN.md)")
     check("n_read=60000 n_written=20000" in out, "dimuons sampled to 20,000 of 60,000")
     with open(repo.path("out", "data.json"), encoding="utf-8") as fh:
@@ -508,7 +508,7 @@ def dimuons(repo):
     code, out = repo.gate("unlock", answers=[(prompt, "the moon")])
     check(code == 1 and "Not quite" in out and hint in flat(out) and repo.level() == 1,
           "dimuons: a wrong answer is rejected with the dimuon hint", flat(out)[-300:])
-    code, out = repo.gate("unlock", answers=[(prompt, "jpsi"), ("like best?", "a mass cut")])
+    code, out = repo.gate("unlock", answers=[(prompt, "jpsi"), ("would add.", "a mass cut")])
     check(code == 0 and "Level 2 unlocked" in out and repo.level() == 2,
           "'jpsi' opens level 2", flat(out)[-300:])
 

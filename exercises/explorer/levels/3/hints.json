@@ -2,7 +2,7 @@
   "tiers": [
     {
       "unlock_after_minutes": 0,
-      "text": "Ask: 'Use the reviewer agent to review the code against PLAN.md. Rank the findings. Don't fix anything.'"
+      "text": "Ask: 'Use the reviewer agent to review the code since start against PLAN.md. Rank the findings and paste them into the table in REVIEW.md, most severe first. Don't fix anything.'"
     },
     {
       "unlock_after_minutes": 3,
@@ -10,7 +10,7 @@
     },
     {
       "unlock_after_minutes": 6,
-      "text": "Fix one FIX item with a test that fails first, run make test, commit. Then the next."
+      "text": "Fix one FIX item with a test that fails first, run make test, commit. Then the next, if there is time."
     }
   ]
 }

@@ -22,7 +22,7 @@ Keep this short and honest. Write as you go. This feeds the show-and-tell.
 
 ### What we saw in the browser that the check couldn't
 
-### Features we would add (one each)
+### The feature we would add
 
 ## Level 2: Test
 

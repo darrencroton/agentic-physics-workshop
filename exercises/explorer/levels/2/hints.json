@@ -2,7 +2,7 @@
   "tiers": [
     {
       "unlock_after_minutes": 0,
-      "text": "Ask: 'Talk me through the tests this needs, what coverage they give, and what they won't cover. Don't write them yet.'"
+      "text": "Ask: 'Talk me through the five to eight tests this code needs, one line each, with the coverage and what it won't cover. Write the plan under Claude's plan in TESTS.md. Don't write the tests yet.'"
     },
     {
       "unlock_after_minutes": 3,

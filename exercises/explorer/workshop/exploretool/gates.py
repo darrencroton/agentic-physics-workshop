@@ -344,15 +344,15 @@ def _check_plan(root):
                                     "acceptance criteria"))
     steps = _steps(find_section(found, "steps"))
     if not steps and _meaningful(find_section(found, "steps"), template):
-        raise CheckFailed("PLAN.md's Steps section has no list: write the two or three "
-                          "steps as a numbered list")
+        raise CheckFailed("PLAN.md's Steps section has no list: write the two steps as "
+                          "a numbered list")
     if len(steps) < 2:
-        raise CheckFailed("PLAN.md lists %s; it needs two or three, each ending in "
-                          "something you can run and look at" % _plural(len(steps), "step"))
-    if len(steps) > 3:
-        raise CheckFailed("PLAN.md lists %s; merge them into two or three, each ending "
-                          "in something you can run and look at"
-                          % _plural(len(steps), "step"))
+        raise CheckFailed("PLAN.md lists %s; it needs two, each ending in something you "
+                          "can run and look at" % _plural(len(steps), "step"))
+    if len(steps) > 2:
+        raise CheckFailed("PLAN.md lists %s; merge them into two, each ending in "
+                          "something you can run and look at: the command line and "
+                          "data.json, then the page" % _plural(len(steps), "step"))
 
 
 def plan_complete(root):
@@ -379,10 +379,10 @@ def _check_tests_md(root):
     if plan is None:
         raise CheckFailed("TESTS.md has no \"## Claude's plan\" section: keep the "
                           "template's headings")
-    if not _meaningful(plan, ["(paste it here)"]):
+    if not _meaningful(plan, ["(Claude writes it here)"]):
         raise CheckFailed("TESTS.md has nothing under \"Claude's plan\" yet: ask Claude "
-                          "for its test plan (what each test checks, the coverage, what "
-                          "it won't cover) and paste it in")
+                          "for a plan of five to eight tests (what each checks, the "
+                          "coverage, what it won't cover) and to write it there")
 
 
 def _cells(line):

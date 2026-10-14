@@ -326,6 +326,47 @@ Review (Codex gpt-6.1-sol, Claude Fable 5.1, continued sessions): the Level 3 br
 
 Hints checked on the facilitator's question: the wrong-answer hints exist for both datasets (one each, chosen by the `Dataset:` line); the timed hints are shared and generic, except a Level 0 example criterion naming `P1` (pulsars only), now "choosing Z = none gives a 2D plot". The README's example `data.json` used pulsar columns; it now uses neutral ones (`E`, `theta`, `name`).
 
+## Explorer: plans have exactly two steps (2026-10-14; facilitator solo run)
+
+A solo speedrun of the whole exercise (dimuons, Sonnet) took 37 minutes with no reading or discussion; its plan had three steps, and the three steps always split the same way: the engine (command line, `--list`, `data.json`), the page, then a small extras step for the decisions and the initial view. The third step is not worth a stop-run-look-commit cycle. The Level 0 gate now requires exactly two top-level steps; the README, persona, hint, `CLAUDE.md`, briefs, sample plans, self-test and walkthrough all name the same split (the engine, then the page with the decisions and the initial view built in). `PLAYBOOK.md` keeps its generic "a few steps (two or three for a small job)", because it is take-home advice for any codebase. Level 1's two-commit minimum is unchanged and now equals the step count. Measured per level in that run: 5:00, 14:00, 9:17 and 8:22 against budgets of 8, 18, 8 and 8.
+
+## Explorer: tightening for time (2026-10-14; facilitator solo run)
+
+A solo speedrun of Explorer took 5:00, 14:00, 9:17 and 8:22 for Levels 0 to 3, against targets of 8, 18, 8 and 8 minutes. Levels 2 and 3 overran because Claude produced far more than was asked (a 29-test plan in five tables, 40 tests and 11 unasked mutation experiments; eight review findings, each with a reproduction), and each level needed one extra "now paste it into the file" round-trip. The plan stays at exactly two steps. Changes:
+
+- **A. Capped output at Levels 2 and 3.** The Level 2 persona and walkthrough ask for a table of five to eight tests, one line each, plus two or three lines on coverage and what no test can cover, and no unasked experiments, coverage write-ups or extra tests. The reviewer agent now returns three to five findings and does not reproduce them with experiments (it runs the tool or the tests at most once and says "(not run)" otherwise). The Level 3 persona and `CLAUDE.workshop.md` match. Reason: Claude's volume, not the group's thinking, used the time.
+- **B. One prompt writes the file.** The Level 2 and Level 3 brief prompts now tell Claude to write the plan or paste the findings into `TESTS.md` or `REVIEW.md` itself, and the hints quote the new prompts. Reason: removes one round-trip per level.
+- **C. Level 3 fixes only the top FIX item** (more if the group asks, if there is time), with a test that fails before the fix. Reason: one fix with a failing test teaches the loop; eight did not fit in eight minutes.
+- **D. Level 0 is one prompt, not three.** The Understand prompt, the missing-values question and the Plan prompt are merged into one; hint 1 is now a fallback. Reason: three prompts cost minutes of reading and waiting for no extra learning.
+- **E. Level 1 play is one minute and gives one feature for the group** (not one each plus a favourite). The manifest reflection is "One feature the group would add.", the self-test matches it by `"would add."`, and `LOG.md` has "The feature we would add". Reason: saves two minutes at the busiest level.
+- **F. A "Finished early" section in the Level 3 brief** replaces the "Time left?" bullet: a one-line lead-in and two bullets, a day/night button that switches the page between light and dark colours, and mouse selection of points (box or lasso, in the 2D view) showing how many were picked, with their labels if the dataset has them. Each is built the same way as the main steps (one step, run it, look, commit). Reason: gives fast groups something concrete without extending the timed levels; kept to two short bullets so it does not add reading.
+
+`PLAYBOOK.md` is unchanged: it is generic take-home advice (for example, it still says to fix FIX items one at a time), and the exercise caps are a workshop time constraint.
+
+### External review panel, round 1 for the tightening (2026-10-14; Codex gpt-6.1-sol high, Claude Opus 5.5 high, read-only via orchestrator, staggered parallel launch)
+
+Neither reviewer found a correctness defect in `gates.py` or `selftest/run.py`. Findings and decisions:
+
+| Finding | Decision |
+|---|---|
+| Level 3 hint 3 still ended "Then the next.", contradicting the one-fix brief and persona (both, serious) | Fixed: "Then the next, if there is time." |
+| `docs/05` kept pre-tightening text: the two-minute play, the section 7 L2/L3 persona drafts, the section 8 reviewer copy without item 4, the Level 3 prompt without "paste into REVIEW.md" (both, moderate) | Fixed, minimally, in each place. |
+| Walkthrough Level 2 made `make coverage` compulsory where the brief says "if there's time" (Codex, moderate) | Fixed: "if there's time". |
+| The Level 1 feature led nowhere: the walkthrough and `docs/05` said a group "may build one" but Finished early offered only the two new ideas (Claude, moderate) | Fixed: the lead-in now says "the feature you agreed at Level 1, or one of these". |
+| Finished early did not say to unlock first; building before `./gate unlock` inflates the Level 3 time and could fail the final gate on a dirty tree (Claude, moderate) | Fixed: "Unlocked with time to spare?". Verified the guard never reads the `complete` flag, so `explorer/` and `tests/` stay editable after the last unlock. |
+| Plotly has no box or lasso select on `scatter3d` (Claude, minor) | Fixed: "in the 2D view". |
+| "When the fix is in and the tests pass" contradicted "Nothing worth fixing: that's a fine result" (Claude, minor) | Fixed: "When `REVIEW.md` is triaged and the tests pass". |
+| Build contract `exercises/explorer/PLAN.md` kept the old Level 1 reflection (both, minor) | Fixed. |
+| Walkthrough overclaimed "in practice Sonnet's plans fall that way" from one three-step run (Claude, minor) | Fixed: the split matched; the count came from the cap. |
+| Reviewer agent item 4: "at most once" ambiguous, "(not run)" may clutter (Claude, risk) | Reworded: `make test` and the tool once each; mark findings only read as "(not run)". |
+| The old `(paste it here)` skip in `gates.py` is dead now the template says `(Claude writes it here)` (Claude, bloat note) | Removed. |
+
+Accepted risks, to watch in calibration rather than add text now: step 2 is now the whole page, so "you know which step did it" is weaker; the merged Level 0 prompt removes the pause between summary and plan; a group using the playbook's generic prompt may hit one two-step refusal; Level 3 stays tight; the Level 3 persona's "top FIX item only" might make Claude hesitate over a Finished early feature when asked directly (unlikely).
+
+### External review panel, round 2 for the tightening (2026-10-14; verification of round 1, same reviewers, continued sessions)
+
+Both reviewers judged every round-1 finding resolved as the table says and found no new defect and no serious finding. Two minor facilitator-only mismatches were fixed: the walkthrough's description of the reviewer agent still said "at most once" (now "once each", matching the agent), and the walkthrough and `docs/05` said Finished early "offers two features" (now "after the unlock, the Level 1 feature or two others", matching the brief). Panel closed.
+
 ## Answer hints (2026-10-14; facilitator request)
 
 Every level with a graded gate question now has a fourth hint, 3 minutes after the third (13 minutes), that gives the answer and a one-line reason: Speed Run Levels 0–2, TDD Ladder Levels 0, 3 and 4 (Levels 0 and 3 point at the group's own `./tdd score` output, since the answer is the group's), Explorer Level 1. Explorer's answer depends on the dataset, so gatekit hint tiers gained an optional `text_from` (an exercise-tool `hints` function, falling back to the static text on any error), mirroring the question field. Hints are logged, so the facilitator sees who took the answer. Level 0 hint files sit unencrypted in `.workshop/` (which Claude cannot read); a human could read the Speed Run and TDD Level 0 answers there, a cheat that only costs the group its practice, consistent with the honest limits.

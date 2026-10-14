@@ -17,7 +17,7 @@ A command-line tool that reads a CSV (with an optional columns.json sidecar) and
 - explorer/__main__.py: command line (argparse), --list, write data.json (strict JSON) and explorer.html, clean errors.
 - tests/test_explorer.py: pytest checks for the acceptance criteria.
 
-## Steps (a numbered list of two or three, each ending in something we can run and look at)
+## Steps (a numbered list of two, each ending in something we can run and look at)
 1. data.py and __main__.py: load dimuons.csv, write data.json strictly, add --max-points sampling and the clean error for a bad path; run `make list` and `make explore` and read n_read and n_written.
 2. page.py: write explorer.html with every control, 2D and 3D plots, the colour bar, log toggles, hover text and the count line; run `make open` and try each control.
 

@@ -49,7 +49,7 @@ By the end, every group member should be able to:
 
 1. **Use plan mode to agree a plan before any code exists**, and edit the agent's plan rather than accept it.
 2. **Write acceptance criteria** the group can check, before building.
-3. **Direct a build in two or three checked steps**, asking for the command and output at each step, looking at the result themselves, and committing each step that works.
+3. **Direct a build in two checked steps**, asking for the command and output at each step, looking at the result themselves, and committing each step that works.
 4. **Say what the tests should cover before asking the agent**, then ask the agent for its test plan and what it will *not* cover, and compare the two.
 5. **Get an independent review** from a fresh context, after predicting what it will find, and triage each finding as FIX, ACCEPT or REJECT with a reason.
 6. **Recognise the red flags** of agentic coding: claimed success without output, tests changed to pass, code outside the plan, confident recall of an API.
@@ -183,7 +183,7 @@ Dataset: data/pulsars.csv
 - Initial selection when the page opens:
 - Sampling above --max-points:
 ## Design (modules and what each does)
-## Steps (two or three, each ending in something we can run and look at)
+## Steps (two, each ending in something we can run and look at)
 ## Acceptance criteria (at least three, each something we can check)
 ## Out of scope
 ```
@@ -199,7 +199,7 @@ Dataset: data/pulsars.csv
 -
 
 ## Claude's plan: each test, what it checks, and what it will not cover
-(paste it here)
+(Claude writes it here)
 
 ## What we agreed to write, and why
 ```
@@ -239,14 +239,13 @@ All gates are `crypto-reflection` except Level 1 (`crypto`, one keyword question
 
 ### Level 0 — Plan (8 min)
 
-**Brief:** "Read the README together. Then, in plan mode, ask Claude to read the interface and your dataset's column file and propose a plan. Read it, argue about it, change it, save it as `PLAN.md`, and commit it. No code yet."
+**Brief:** "Read the README together. Then, in plan mode, give Claude one prompt: read the interface and your dataset's column file, say what the data contains and which columns have missing values, and propose a plan. Read it, argue about it, change it, save it as `PLAN.md`, and commit it. No code yet."
 
 **Playbook prompts used:** *Understand* and *Plan* (Section 6).
 
 **What the group does:**
 
-- Starts in plan mode (the default in these repos). Asks Claude to summarise the data and the interface and list anything unclear.
-- Asks Claude which columns have missing values, and how many (`make list` only works once the tool exists, so at this level Claude reads the column file and counts).
+- Starts in plan mode (the default in these repos). Gives Claude one prompt that combines *Understand* and *Plan*: summarise the data and the interface, say which columns have missing values and how many (`make list` only works once the tool exists, so at this level Claude reads the column file and counts), list anything unclear, and propose the plan.
 - Has Claude draft the plan, then makes the four decisions in `PLAN.md` as a group. The Sceptic owns the acceptance criteria. The Navigator cuts scope: the plan is for the prototype in 3.1–3.3 and nothing more.
 - Asks Claude to commit `PLAN.md`.
 
@@ -263,13 +262,13 @@ All gates are `crypto-reflection` except Level 1 (`crypto`, one keyword question
 
 **Hints:**
 
-1. "Ask Claude which columns of your dataset have missing values, and how many."
+1. "If Claude hasn't said which columns have missing values and how many, ask."
 2. "What should the page do with a zero on a log axis, or a row whose colour column is missing? Write it down."
 3. "Acceptance criteria are things you could check by eye or by test: 'the 3D view rotates', 'hovering shows the unit', 'the dropped-row count changes when I pick P1'. Then: 'commit PLAN.md'."
 
 ### Level 1 — Build the prototype (18 min)
 
-**Brief:** "Build it, one step of the plan at a time (two or three steps). After each step, ask for the command and its output and what you can run to check it, run that yourselves (once the page exists, `make explore` then `make open`), and commit. When `./gate check` passes, play with the page for two minutes: each of you names one feature you'd add. Keep those for later; they go in the reflection."
+**Brief:** "Build it, one step of the plan at a time (two steps). After each step, ask for the command and its output and what you can run to check it, run that yourselves (once the page exists, `make explore` then `make open`), and commit. When `./gate check` passes, play with the page for a minute and agree one feature the group would add. Keep it for later; it goes in the reflection."
 
 **Playbook prompts used:** *Build in checked steps*; *Evidence*.
 
@@ -278,7 +277,7 @@ All gates are `crypto-reflection` except Level 1 (`crypto`, one keyword question
 - Leaves plan mode. Has Claude implement step 1 only (loading data and `--list`), run it, show the output, commit.
 - Steps through the plan; opens the page after each visible change; rotates, zooms, hovers, switches columns and palettes, toggles logs.
 - Runs `./gate check` early and often: it names the first thing that is missing.
-- After the check passes, the two-minute play. Suggestions are logged, not built; a group with time after Level 3 may build one.
+- After the check passes, the one-minute play and one agreed feature. It is logged, not built; a group with time after Level 3 may build it.
 
 **Typical behaviour:**
 
@@ -305,14 +304,14 @@ All gates are `crypto-reflection` except Level 1 (`crypto`, one keyword question
 
 ### Level 2 — Test (8 min)
 
-**Brief:** "Before you ask Claude anything, write three things in `TESTS.md` that must not break. Then ask Claude for its test plan: what each test checks, what coverage that gives, and what it won't cover. Paste it in, compare the two lists, agree what to write. Then have it write and run them, commit, and run `make test` yourselves in the gate terminal."
+**Brief:** "Before you ask Claude anything, write three things in `TESTS.md` that must not break. Then ask Claude for a plan of five to eight tests, one line each, with the coverage and what it won't cover, written under "Claude's plan" in `TESTS.md`. Compare the two lists, agree what to write. Then have it write and run them, commit, and run `make test` yourselves in the gate terminal."
 
 **Playbook prompts used:** *Test plan, then tests*; *Does the alarm ring?*
 
 **What the group does:**
 
 - The Scribe writes the group's list first (two minutes, no Claude).
-- Asks for the test plan, with coverage and what it cannot cover, and does not let Claude write tests until the group says go. The obvious gap, that pytest cannot see what the page does in the browser, is the discussion to have: what *can* be tested (the data preparation, `data.json`, the HTML's structure) and what needs a human.
+- Asks for a plan of five to eight tests, with coverage and what it cannot cover, written straight into `TESTS.md`, and does not let Claude write tests (or run unasked experiments) until the group says go. The obvious gap, that pytest cannot see what the page does in the browser, is the discussion to have: what *can* be tested (the data preparation, `data.json`, the HTML's structure) and what needs a human.
 - Runs `make test` and, if there is time, `make coverage` in the gate terminal, and reads the missing-lines report together.
 - Optional, one minute: asks Claude to break one thing on purpose (drop the unit from a title, write `NaN` into `data.json`), runs the tests, sees whether they fail, then reverts. A test that never fails proves nothing.
 
@@ -333,22 +332,22 @@ All gates are `crypto-reflection` except Level 1 (`crypto`, one keyword question
 
 **Hints:**
 
-1. "Ask: 'Talk me through the tests this needs, what coverage they give, and what they won't cover. Don't write them yet.'"
+1. "Ask: 'Talk me through the five to eight tests this code needs, one line each, with the coverage and what it won't cover. Write the plan under Claude's plan in TESTS.md. Don't write the tests yet.'"
 2. "Run `make coverage`. Which lines are never run by a test?"
 3. "Ask Claude to break one thing deliberately and run the tests. Do they notice? Then revert."
 
 ### Level 3 — Review (8 min, last level)
 
-**Brief:** "Before you ask, write two things in `REVIEW.md` that you think a reviewer will find. Then ask Claude for a review from the `reviewer` agent: a fresh context that has not seen this conversation. Paste the findings in, decide the top three to five yourselves (FIX, ACCEPT or REJECT, one line of reason), and fix only the FIX items, one at a time, each with a test that fails before the fix, running the tests after each. Commit, then unlock."
+**Brief:** "Before you ask, write two things in `REVIEW.md` that you think a reviewer will find. Then ask Claude for a review from the `reviewer` agent (a fresh context that has not seen this conversation) and to paste the findings into `REVIEW.md`. Decide the top three to five yourselves (FIX, ACCEPT or REJECT, one line of reason), and fix the top FIX item (more if there is time) with a test that fails before the fix, running the tests after. Commit, then unlock."
 
 **Playbook prompts used:** *Independent review*; *Triage*.
 
 **What the group does:**
 
 - Writes the guesses first (one minute).
-- Asks Claude to "use the reviewer agent to review the code since `start` against `PLAN.md`; rank the findings; don't fix anything". The agent is shipped in the repo (Section 8) and returns a ranked list, which Claude pastes into `REVIEW.md`.
+- Asks Claude to "use the reviewer agent to review the code since `start` against `PLAN.md`; rank the findings by severity and paste them into the table in `REVIEW.md`; don't fix anything". The agent is shipped in the repo (Section 8) and returns three to five ranked findings, which Claude pastes into `REVIEW.md` in the same prompt.
 - Compares guesses with findings, triages, fixes.
-- Groups with time left: build one feature from the Level 1 suggestions, or run `make explore DATA=…` on a CSV of their own. The completion message says "This is yours to take home" and points at `PLAYBOOK.md`.
+- Groups with time left: the brief's Finished early section offers, after the unlock, the Level 1 feature or two others, built the same way (one step, run it, look, commit): a day/night button that switches the page between light and dark colours, or mouse selection of points (box or lasso, in the 2D view) that shows how many were picked, with their labels if the dataset has them. The completion message says "This is yours to take home" and points at `PLAYBOOK.md`.
 
 **Typical behaviour:** the reviewer finds real issues in 20 minutes of agent-built code: the ≤ 0 log policy not implemented as planned, hover misaligned after sampling, a missing error for a CSV with no numeric columns, duplicated loading code, a unit missing from a title. It also reports noise (style, speculative performance). Rejecting a finding with a reason is as valuable as fixing one.
 
@@ -363,9 +362,9 @@ All gates are `crypto-reflection` except Level 1 (`crypto`, one keyword question
 
 **Hints:**
 
-1. "Ask: 'Use the reviewer agent to review the code against PLAN.md. Rank the findings. Don't fix anything.'"
+1. "Ask: 'Use the reviewer agent to review the code since start against PLAN.md. Rank the findings and paste them into the table in REVIEW.md, most severe first. Don't fix anything.'"
 2. "Triage the top three to five: does each matter for a prototype? FIX, ACCEPT or REJECT, and one line why. The rest can wait."
-3. "Fix one FIX item with a test that fails first, run `make test`, commit. Then the next."
+3. "Fix one FIX item with a test that fails first, run `make test`, commit. Then the next, if there is time."
 
 ---
 
@@ -378,7 +377,7 @@ The lecture (docs/00, Slide 4) teaches the Verify-First Loop. Every step of it i
 | Understand | 0 | *Understand* | — (the plan shows it) |
 | Define the check | 0, 2 | *Plan* (acceptance criteria); *Test plan, then tests* | Acceptance criteria in `PLAN.md`; the group's own list in `TESTS.md` |
 | Plan | 0 | *Plan* | `PLAN.md` complete and committed |
-| Small steps | 1 | *Build in checked steps* | ≥ 2 commits during the build (the plan has two or three steps) |
+| Small steps | 1 | *Build in checked steps* | ≥ 2 commits during the build (the plan has two steps) |
 | Evidence | 1, 2 | *Evidence*; *Does the alarm ring?* | The tool runs; the tests run; a human looked (the graded question) |
 | Independent review | 3 | *Independent review*; *Triage* | Findings triaged with reasons |
 | Recover | any | *Recover* | — (hints and the leader) |
@@ -496,8 +495,8 @@ prompt; follow them.
 
 - **L0:** `LEVEL 0 (collaborator). Planning only: do not write code. Help the group understand the data and the interface, and draft PLAN.md. Surface every decision you would otherwise make silently, and ask the group to make it. Commit PLAN.md when asked.`
 - **L1:** `LEVEL 1 (collaborator). Build PLAN.md one step at a time. After each step, run it, show the command and output, tell the group what to look for in the browser, and stop. Commit when they say the step works. Do not write tests yet. Do not start the next step until asked.`
-- **L2:** `LEVEL 2 (collaborator). Before writing any test, explain the test plan: what each test checks, the coverage it gives, and what it will not cover. Wait for the group's go. Then write and run the tests and commit. If a test fails, report it and propose a fix to the code or say why the test is wrong; never weaken a test to pass.`
-- **L3:** `LEVEL 3 (collaborator). Review first, fix later. When asked for a review, use the reviewer agent and report its findings ranked by severity without changing code. Fix only items the group marks FIX in REVIEW.md, one at a time, running the tests and committing after each.`
+- **L2:** `LEVEL 2 (collaborator). Before writing any test, give a short plan of five to eight tests, one line each, with the coverage it gives and what it will not cover, and write it into TESTS.md when asked. Wait for the group's go; no unasked experiments. Then write and run the tests and commit. If a test fails, report it and propose a fix to the code or say why the test is wrong; never weaken a test to pass.`
+- **L3:** `LEVEL 3 (collaborator). Review first, fix later. When asked for a review, use the reviewer agent and paste its findings, ranked by severity, into REVIEW.md without changing code. Fix only the top item the group marks FIX (more if they ask), with a test that fails before the fix, running the tests and committing after.`
 
 ---
 
@@ -521,9 +520,11 @@ the conversation that produced it; judge the code and PLAN.md only.
 2. Find real problems: behaviour that contradicts PLAN.md or the README's interface,
    wrong or missing error handling, a hover or colour that could show the wrong row,
    invalid JSON, a test that cannot fail, duplicated or dead code.
-3. Report between three and eight findings, ranked by severity, as a Markdown table with
+3. Report between three and five findings, ranked by severity, as a Markdown table with
    columns: #, Finding (file and line), Severity (high / medium / low), Why it matters.
    One line each. Do not propose fixes beyond a phrase. Do not edit anything.
+4. Do not spend time reproducing findings: read the code. You may run `make test` and
+   the tool once each if you need to. Mark a finding you only read as "(not run)".
 ```
 
 The model line is a decision for calibration (Section 12): Sonnet by default, so the review is at least as good as the author.
@@ -571,7 +572,7 @@ There are no planted bugs. What the agent gets wrong is whatever it gets wrong o
 
 ### Opening (60 Seconds, Read Aloud)
 
-> "Today we build a real tool, a 3D explorer for our data, and we build it the way you'd want a careful student to: plan, build in two or three checked steps, test, review, and commit as we go. Claude is a normal, helpful collaborator today; the gates just make sure we do each step. The gate terminal is ours: Claude can't type there, and that's where we run the tests ourselves. Roles: [assign]. The keyboard rotates at each gate. All code goes through Claude; we read, look, decide. At the end, `PLAYBOOK.md` is yours to take home."
+> "Today we build a real tool, a 3D explorer for our data, and we build it the way you'd want a careful student to: plan, build in two checked steps, test, review, and commit as we go. Claude is a normal, helpful collaborator today; the gates just make sure we do each step. The gate terminal is ours: Claude can't type there, and that's where we run the tests ourselves. Roles: [assign]. The keyboard rotates at each gate. All code goes through Claude; we read, look, decide. At the end, `PLAYBOOK.md` is yours to take home."
 
 ### Coaching by Level
 
@@ -642,7 +643,7 @@ Recorded here so the reasoning survives; the build logs any further deviation in
 11. **Datasets:** the two real datasets, both shipped; the synthetic xenon TPC and GWTC options dropped.
 12. **Honest limits accepted:** the check scripts print a fixed line, so each crypto gate's only secret is the human answer; Level 1 accepts both datasets' answers, so a group could answer the other dataset's question; the Level 1 answer can also be found in the column file or known from physics, so the question prompts a look rather than proving one; a FIX in `REVIEW.md` is a label, not evidence of a fix. All harmless in practice, and all the leader's to check.
 13. **PyVista and other packages, for the record:** PyVista (desktop VTK), pyvistaqt (adds Qt, about 77 MB more), trame (server plus browser), Bokeh and Altair (browser, 2D only or weaker 3D) were considered; Plotly was the only one with native 3D WebGL, hover and a self-contained offline file.
-14. **No FIX required at Level 3** (external panel, round 1). Requiring a FIX would push a group whose review came back short or clean to manufacture one in the last eight minutes. The gate needs three triaged findings with reasons; the reviewer is asked for three to eight; the brief still says fix the FIX items one at a time.
+14. **No FIX required at Level 3** (external panel, round 1). Requiring a FIX would push a group whose review came back short or clean to manufacture one in the last eight minutes. The gate needs three triaged findings with reasons; the reviewer is asked for three to five; the brief says fix the top FIX item, more only if there is time.
 15. **Hint tiers** on the 8-minute levels unlock at 0, 3 and 6 minutes (0, 5 and 10 on Level 1), so the third hint exists before the level's time is up.
 
 ### Build deviations (2026-10-14)

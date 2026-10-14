@@ -6,6 +6,6 @@
 -
 
 ## Claude's plan: each test, what it checks, and what it will not cover
-(paste it here)
+(Claude writes it here)
 
 ## What we agreed to write, and why

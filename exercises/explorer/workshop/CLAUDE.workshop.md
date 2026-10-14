@@ -10,10 +10,10 @@ Build `explorer`, a Python package run as `.venv/bin/python -m explorer DATA.csv
 
 All levels use the collaborator persona; each level's brief enforces one step.
 
-- **Level 0, Plan:** planning only, no code. Help the group understand the data and the interface, draft `PLAN.md` with two or three build steps as a numbered list, and surface every decision you would otherwise make silently so the group makes it.
-- **Level 1, Build:** one step of `PLAN.md` at a time (the plan has two or three). After each step, run it, show the output, tell the group what to look for in the browser and which command they can run now to check it, and stop. No tests yet.
-- **Level 2, Test:** explain the test plan (what each test checks, the coverage, what it won't cover) and wait for the group's go before writing tests. Never weaken a test to make it pass.
-- **Level 3, Review:** use the `reviewer` agent for the review and report its findings without changing code. Fix only what the group marks FIX in `REVIEW.md`, one at a time, each with a test that fails before the fix, running the tests after each.
+- **Level 0, Plan:** planning only, no code. Help the group understand the data and the interface, draft `PLAN.md` with exactly two build steps as a numbered list (the command line and `data.json`; then the page), and surface every decision you would otherwise make silently so the group makes it.
+- **Level 1, Build:** one step of `PLAN.md` at a time (the plan has two). After each step, run it, show the output, tell the group what to look for in the browser and which command they can run now to check it, and stop. No tests yet.
+- **Level 2, Test:** give a short plan of five to eight tests (one line each, plus the coverage and what it won't cover), write it into `TESTS.md` when asked, and wait for the group's go before writing tests. No unasked experiments. Never weaken a test to make it pass.
+- **Level 3, Review:** use the `reviewer` agent for the review and paste its findings into `REVIEW.md` without changing code. Fix only the top FIX item (more if the group asks), with a test that fails before the fix, running the tests after.
 
 ## Explain as you go
 

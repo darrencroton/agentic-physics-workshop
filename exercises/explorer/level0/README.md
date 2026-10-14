@@ -92,22 +92,18 @@ The Claude session starts in **plan mode**: Claude reads and proposes, but chang
 No code yet. Agree a plan, write it down, commit it.
 
 1. Read this README together.
-2. In Claude (plan mode), the playbook's *Understand* prompt:
+2. In Claude (plan mode), the playbook's *Understand* and *Plan* prompts in one go:
 
-   > "Read README.md, data/README.md and the column file for our dataset. Summarise what the code and data contain and what the task asks. List anything unclear or ambiguous. Don't write any code."
+   > "Read README.md, data/README.md and the column file for our dataset. Say what the data contains, which columns have missing values and how many, and anything unclear. Then propose a plan: the goal, the decisions it depends on, the design, two build steps that each end in something we can run and look at, acceptance criteria we can check, and what's out of scope. Ask me about any decision you're unsure of. Don't write any code."
 
-   Ask which columns have missing values, and how many. (If your dataset has none, the decision still matters: the tool must handle any CSV, and at Level 2 a test with a small made-up file can check it.)
-3. Then the *Plan* prompt:
-
-   > "Propose a plan: the goal, the decisions it depends on, the design, two or three build steps that each end in something we can run and look at, acceptance criteria we can check, and what's out of scope. Ask me about any decision you're unsure of."
-
-4. Read it. Argue about it. Change it. The four decisions in `PLAN.md` are the group's, not Claude's. The Sceptic owns the acceptance criteria (at least three, each something you can check by eye or by test). The Navigator cuts anything beyond the interface above.
-5. Approve the plan and ask Claude to write it into `PLAN.md`, keeping the template's headings and the `Dataset:` line exactly as `Dataset: data/pulsars.csv` or `Dataset: data/dimuons.csv`. Then ask Claude to commit it.
-6. `./gate check` names the first thing still missing. When it passes, run `./gate unlock` in the gate terminal.
+   If your dataset has no missing values, the decision still matters: the tool must handle any CSV, and at Level 2 a test with a small made-up file can check it.
+3. Read it. Argue about it. Change it. The four decisions in `PLAN.md` are the group's, not Claude's. The Sceptic owns the acceptance criteria (at least three, each something you can check by eye or by test). The Navigator cuts anything beyond the interface above.
+4. Approve the plan and ask Claude to write it into `PLAN.md`, keeping the template's headings and the `Dataset:` line exactly as `Dataset: data/pulsars.csv` or `Dataset: data/dimuons.csv`. Then ask Claude to commit it.
+5. `./gate check` names the first thing still missing. When it passes, run `./gate unlock` in the gate terminal.
 
 ## If it goes differently
 
-- The plan has more than three steps: ask Claude to merge them into two or three, each ending in something you can run and look at. One split that works: the command line, `--list` and `data.json`; then the page; then your decisions and the initial view. Fewer, bigger steps get you to the page sooner, and the gate checks it.
+- The plan has more than two steps: ask Claude to merge them into two, each ending in something you can run and look at. The split that works: the command line, `--list` and `data.json` first; then the page, with your decisions and the initial view built in. Two bigger steps get you to the page sooner, and the gate checks it.
 - Claude asks something nobody knows: pick a reasonable answer, write it in `PLAN.md` and move on.
 - Claude tries to write code: at this level the guard refuses everything except `PLAN.md` and `LOG.md`. Read the refusal aloud: it's on purpose.
 
@@ -119,7 +115,7 @@ No code yet. Agree a plan, write it down, commit it.
 
 ## Opening the gate
 
-`./gate check` needs every section of `PLAN.md` filled in: the four decisions answered, two or three steps, at least three acceptance criteria, and at least 1 commit with `PLAN.md` committed.
+`./gate check` needs every section of `PLAN.md` filled in: the four decisions answered, two steps, at least three acceptance criteria, and at least 1 commit with `PLAN.md` committed.
 
 The reflection (logged): one thing in Claude's plan you changed, and why.
 

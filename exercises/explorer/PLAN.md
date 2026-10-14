@@ -7,7 +7,7 @@ Version 1 (2026-10-13). Every build task works from this file. `docs/05-data-exp
 | L | Title | Min | Persona | Gate type | Machine check (`.gatekit/exploretool/checks/levelN.py`, venv python) | Graded question | Reflection (logged) |
 |---|---|---|---|---|---|---|---|
 | 0 | Plan | 8 | collaborator | crypto-reflection | `PLAN.md` complete (section 5); ≥ 1 commit since `start`; `PLAN.md` clean | — | "One thing in Claude's plan you changed, and why." |
-| 1 | Build the prototype | 18 | collaborator | crypto | tool runs (section 4) on the `PLAN.md` dataset; ≥ 2 commits since the L0 unlock; `explorer/` and `PLAN.md` clean | keyword, worded for the `PLAN.md` dataset via `text_from: explore.browser_question` (pulsars: what is where the known pulsars crowd in XX, YY, ZZ; dimuons: which particle makes the band near 3.1 GeV), with a dataset `wrong_hint`; static fallback points at `BRIEF.md`; accept `sun`, `solar system`, `earth`, `us`, `solar neighbourhood`, `jpsi`, `j/psi`, `jψ`, `psi` | "Each of you: one feature you would add. Which did the group like best?" |
+| 1 | Build the prototype | 18 | collaborator | crypto | tool runs (section 4) on the `PLAN.md` dataset; ≥ 2 commits since the L0 unlock; `explorer/` and `PLAN.md` clean | keyword, worded for the `PLAN.md` dataset via `text_from: explore.browser_question` (pulsars: what is where the known pulsars crowd in XX, YY, ZZ; dimuons: which particle makes the band near 3.1 GeV), with a dataset `wrong_hint`; static fallback points at `BRIEF.md`; accept `sun`, `solar system`, `earth`, `us`, `solar neighbourhood`, `jpsi`, `j/psi`, `jψ`, `psi` | "One feature the group would add." |
 | 2 | Test | 8 | collaborator | crypto-reflection | `TESTS.md` ≥ 3 bullets under "Our list" and non-template text under "Claude's plan"; pytest collects ≥ 5 tests, all pass; ≥ 1 test module imports `explorer`; ≥ 1 commit since the L1 unlock; `explorer/`, `tests/`, `TESTS.md` clean | — | "What did Claude's plan cover that yours didn't, or the reverse?" |
 | 3 | Review | 8 | collaborator | crypto-reflection (last level; marks complete) | `REVIEW.md` ≥ 2 guess bullets, ≥ 3 table rows with decision in {FIX, ACCEPT, REJECT} and non-empty reason; pytest ≥ 5 pass; the section-4 run checks pass on the `PLAN.md` dataset; ≥ 1 commit since the L2 unlock; `explorer/`, `tests/`, `REVIEW.md` clean | — | "What did the review find that the tests didn't?" |
 
@@ -157,7 +157,7 @@ The first failing item gives the sentence, naming the run and what was wrong (fo
 
 ## 5. `PLAN.md` completeness (Level 0 check)
 
-Template in `docs/05` section 3.5. Pass when: `Dataset:` is one of the two paths; each of the four decision bullets has text after the colon; each `##` section has at least one non-empty line that is not the template's own text; "Acceptance criteria" has ≥ 3 bullets; "Steps" has 2 or 3 top-level bullets or numbered items (sub-bullets do not count).
+Template in `docs/05` section 3.5. Pass when: `Dataset:` is one of the two paths; each of the four decision bullets has text after the colon; each `##` section has at least one non-empty line that is not the template's own text; "Acceptance criteria" has ≥ 3 bullets; "Steps" has exactly 2 top-level bullets or numbered items (sub-bullets do not count).
 
 ## 6. Reference solution (`selftest/solution/`)
 

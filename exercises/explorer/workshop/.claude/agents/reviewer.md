@@ -16,6 +16,8 @@ the conversation that produced it; judge the code and PLAN.md only.
 2. Find real problems: behaviour that contradicts PLAN.md or the README's interface,
    wrong or missing error handling, a hover or colour that could show the wrong row,
    invalid JSON, a test that cannot fail, duplicated or dead code.
-3. Report between three and eight findings, ranked by severity, as a Markdown table with
+3. Report between three and five findings, ranked by severity, as a Markdown table with
    columns: #, Finding (file and line), Severity (high / medium / low), Why it matters.
    One line each. Do not propose fixes beyond a phrase. Do not edit anything.
+4. Do not spend time reproducing findings: read the code. You may run `make test` and
+   the tool once each if you need to. Mark a finding you only read as "(not run)".

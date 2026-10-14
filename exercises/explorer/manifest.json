@@ -18,7 +18,7 @@
                                         "earth", "the earth", "us", "solar neighbourhood", "the solar neighbourhood",
                                         "solar neighborhood", "the solar neighborhood",
                                         "jpsi", "j/psi", "jψ", "psi", "the j/psi", "j/psi meson", "jpsi meson"]}],
-              "reflection": "Each of you: one feature you would add. Which did the group like best?",
+              "reflection": "One feature the group would add.",
               "post_unlock": "explore.record_head"}},
     {"id": 2, "title": "Test", "persona": "collaborator", "target_minutes": 8,
      "files": {"TESTS.md": "TESTS.md"},

@@ -13,9 +13,9 @@ The tool works, and you've seen it work. Now make sure it keeps working. Write y
 1. **Before you ask Claude anything:** the Scribe writes three things that must not break under "Our list" in `TESTS.md`. Two minutes, no Claude. (`TESTS.md` is not code: type into it yourselves, or dictate it to Claude.)
 2. The playbook's *Test plan, then tests*:
 
-   > "Talk me through the tests this code needs: what each one checks, what coverage that gives, and what it won't cover. Don't write them yet."
+   > "Talk me through the five to eight tests this code needs, one line each: what each checks, what coverage that gives, and what it won't cover. Write the plan under 'Claude's plan' in TESTS.md. Don't write the tests yet."
 
-3. Ask Claude to paste its plan into `TESTS.md`. Compare it with your list and agree what to write under "What we agreed to write, and why". pytest can't see the page in a browser: what *can* be tested, and what still needs a human? If your dataset never triggers a rule in the README (missing values, a text column, zeros on a log axis), a test can check it with a small made-up CSV.
+3. Compare Claude's plan with your list and agree what to write under "What we agreed to write, and why". pytest can't see the page in a browser: what *can* be tested, and what still needs a human? If your dataset never triggers a rule in the README (missing values, a text column, zeros on a log axis), a test can check it with a small made-up CSV.
 4. Then:
 
    > "Write them. Run them and show me the output."
@@ -24,7 +24,7 @@ The tool works, and you've seen it work. Now make sure it keeps working. Write y
 
 ## If it goes differently
 
-- Claude's plan is long: agree the handful of tests that matter most and write those. The gate needs five.
+- Claude's plan is longer than eight tests: agree the handful of tests that matter most and write those. The gate needs five.
 - A test fails: that's a finding, not a nuisance. Ask Claude whether the code or the test is wrong, and why, before anything changes.
 - Time left? *Does the alarm ring?* "Break <one behaviour> on purpose and run the tests. Do they fail? Then revert."
 
@@ -36,7 +36,7 @@ The tool works, and you've seen it work. Now make sure it keeps working. Write y
 
 ## Opening the gate
 
-`./gate check` needs at least 3 items under "Our list" and Claude's plan pasted in `TESTS.md`; at least **5 tests**, all passing, with at least one test module importing `explorer`; at least 1 commit since Level 1; and nothing uncommitted under `explorer/`, `tests/` or in `TESTS.md`.
+`./gate check` needs at least 3 items under "Our list" and Claude's plan written in `TESTS.md`; at least **5 tests**, all passing, with at least one test module importing `explorer`; at least 1 commit since Level 1; and nothing uncommitted under `explorer/`, `tests/` or in `TESTS.md`.
 
 The reflection (logged): what did Claude's plan cover that yours didn't, or the reverse?
 
