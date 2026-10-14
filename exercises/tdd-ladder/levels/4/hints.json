@@ -11,6 +11,10 @@
     {
       "unlock_after_minutes": 10,
       "text": "Compute sqrt(0.683 * 0.317 / 2500) by hand: about 0.0093. Use a fixed seed, keep N small enough that the suite runs in under 10 seconds, and recompute the bound if you change N. Check the score for the spec IDs still surviving and pick the property that targets them."
+    },
+    {
+      "unlock_after_minutes": 13,
+      "text": "The gate unlock answer is about 0.0093 (anything from 0.0090 to 0.0096): the measured fraction is binomial, so sqrt(p(1-p)/n) = sqrt(0.683 x 0.317 / 2500)."
     }
   ]
 }

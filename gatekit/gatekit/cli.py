@@ -168,6 +168,21 @@ def _hints(root, level):
     return data.get("tiers", []) if isinstance(data, dict) else []
 
 
+def _hint_text(root, state, manifest, tier):
+    """Return the tier's text, preferring the text_from function."""
+    text = tier.get("text", "")
+    name = tier.get("text_from")
+    if name:
+        try:
+            fn = exercise.resolve(_tool(manifest), "hints", name)
+            dynamic = fn(root, state, tier)
+            if isinstance(dynamic, str) and dynamic.strip():
+                text = dynamic
+        except Exception:
+            pass
+    return text.strip()
+
+
 def cmd_hint(root, args):
     tty.require_tty()
     manifest, state = _load(root)
@@ -186,11 +201,12 @@ def cmd_hint(root, args):
                                        int(minutes)))
             return 1
         _say("Hint %d of %d:" % (index + 1, len(tiers)))
-        _say(tier.get("text", "").strip())
+        text = _hint_text(root, state, manifest, tier)
+        _say(text)
         used.append(index)
         st.save_state(root, state)
         st.append_log(root, "Hint %d used at level %d" % (index + 1, level),
-                      tier.get("text", "").strip())
+                      text)
         return 0
     _say("No more hints at this level." if tiers else "No hints at this level.")
     return 1

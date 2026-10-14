@@ -195,7 +195,7 @@ Honest limit: the Speed Run's crypto gates reduce to the human answer, because t
 
 | Symptom | Do |
 |---|---|
-| Group stuck | `./gate hint` (3 tiers), then a question, then `./gate allow-model sonnet`, then `./race install-solution <level>` (gate terminal; copies the reference solution for that level over `paircount/` and logs it). Re-run the bench for that level so the gate sees current evidence, then `./gate unlock` as normal. `./gate skip --master` is the last resort. The last three need the master passphrase. |
+| Group stuck | `./gate hint` (3 tiers, then the gate answer at 13 minutes), then a question, then `./gate allow-model sonnet`, then `./race install-solution <level>` (gate terminal; copies the reference solution for that level over `paircount/` and logs it). Re-run the bench for that level so the gate sees current evidence, then `./gate unlock` as normal. `./gate skip --master` is the last resort. The last three need the master passphrase. |
 | `./gate` or `./race` says it is "for humans, in the gate terminal" | It was run from Claude's shell, or from a window opened from Claude Code. Use a fresh Terminal window. |
 | Laptop freezing at Level 1 | Close other apps. Kill the Python process in Activity Monitor; the harness should do it at 2.5 GB. The harness polls every 0.1 s, so a very large single allocation can outrun it on a small-memory laptop. If that happens it is the lesson, but do not let it cost the group the hour. |
 | Hooks not firing | `/hooks`; if empty, exit, re-open `claude` in the repo and accept trust. |

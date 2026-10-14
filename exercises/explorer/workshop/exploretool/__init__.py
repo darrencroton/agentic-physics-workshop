@@ -17,6 +17,10 @@ BROWSER_QUESTIONS = {
         "wrong_hint": "XX, YY and ZZ are Galactic coordinates: data/pulsars.columns.json "
                       "says where they are measured from. Why would the pulsars we know "
                       "cluster there?",
+        "answer": "The gate unlock answer is the Sun (type sun): XX, YY and ZZ are measured from the "
+                  "Galactic centre, with the Sun at (0, 8.5, 0) kpc, and the pulsars we "
+                  "know are mostly nearby ones: the faint, distant ones are hard to "
+                  "detect.",
     },
     "data/dimuons.csv": {
         "prompt": "Plot M against pt1 with log axes: there is a sharp band near "
@@ -24,6 +28,9 @@ BROWSER_QUESTIONS = {
         "wrong_hint": "Each narrow band along M is a particle that decays to two muons. "
                       "The one near 3.1 GeV is a charm-anticharm meson with a two-letter "
                       "name.",
+        "answer": "The gate unlock answer is the J/psi meson (type jpsi): it is a charm-anticharm bound "
+                  "state of mass 3.097 GeV that often decays to two muons, so the pair "
+                  "mass M piles up there.",
     },
 }
 
@@ -36,6 +43,14 @@ def browser_question(root, state, question):
 
 
 questions = {"browser_question": browser_question}
+
+
+def browser_answer(root, state, tier):
+    """The Level 1 answer for the dataset named in PLAN.md."""
+    return BROWSER_QUESTIONS[gates.plan_dataset(root)]["answer"]
+
+
+hints = {"browser_answer": browser_answer}
 
 
 def status_lines(root, state):

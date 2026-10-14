@@ -9,7 +9,7 @@ Version 1 (2026-10-13). Every build task works from this file. `docs/05-data-exp
 | 0 | Plan | 8 | collaborator | crypto-reflection | `PLAN.md` complete (section 5); ≥ 1 commit since `start`; `PLAN.md` clean | — | "One thing in Claude's plan you changed, and why." |
 | 1 | Build the prototype | 18 | collaborator | crypto | tool runs (section 4) on the `PLAN.md` dataset; ≥ 2 commits since the L0 unlock; `explorer/` and `PLAN.md` clean | keyword, worded for the `PLAN.md` dataset via `text_from: explore.browser_question` (pulsars: what is where the known pulsars crowd in XX, YY, ZZ; dimuons: which particle makes the band near 3.1 GeV), with a dataset `wrong_hint`; static fallback points at `BRIEF.md`; accept `sun`, `solar system`, `earth`, `us`, `solar neighbourhood`, `jpsi`, `j/psi`, `jψ`, `psi` | "Each of you: one feature you would add. Which did the group like best?" |
 | 2 | Test | 8 | collaborator | crypto-reflection | `TESTS.md` ≥ 3 bullets under "Our list" and non-template text under "Claude's plan"; pytest collects ≥ 5 tests, all pass; ≥ 1 test module imports `explorer`; ≥ 1 commit since the L1 unlock; `explorer/`, `tests/`, `TESTS.md` clean | — | "What did Claude's plan cover that yours didn't, or the reverse?" |
-| 3 | Review | 8 | collaborator | crypto-reflection (last level; marks complete) | `REVIEW.md` ≥ 2 guess bullets, ≥ 3 table rows with decision in {FIX, ACCEPT, REJECT} and non-empty reason; pytest ≥ 5 pass; the section-4 run checks pass on **both** shipped datasets; ≥ 1 commit since the L2 unlock; `explorer/`, `tests/`, `REVIEW.md` clean | — | "What did the review find that the tests didn't?" |
+| 3 | Review | 8 | collaborator | crypto-reflection (last level; marks complete) | `REVIEW.md` ≥ 2 guess bullets, ≥ 3 table rows with decision in {FIX, ACCEPT, REJECT} and non-empty reason; pytest ≥ 5 pass; the section-4 run checks pass on the `PLAN.md` dataset; ≥ 1 commit since the L2 unlock; `explorer/`, `tests/`, `REVIEW.md` clean | — | "What did the review find that the tests didn't?" |
 
 Success line of every check: exactly `{"level": N, "ok": true}` + newline (`json.dumps(sort_keys=True)`), as in the Speed Run; failure: one sentence on stderr, exit 1. `make_answers.py` writes `answers.json` for levels 0–3.
 
@@ -67,7 +67,7 @@ Self-contained. Must contain: an inline `<script>` holding plotly.js (test: the 
 
 ### 3.4 `PLAN.md` dataset line
 
-`Dataset: data/pulsars.csv` or `Dataset: data/dimuons.csv` (exact relative paths). The Makefile reads it: `DATA ?= $(shell sed -n 's/^Dataset:[[:space:]]*//p' PLAN.md)`. The Level 0 check requires one of the two values; the Level 1 check runs on it; Level 3 runs on both.
+`Dataset: data/pulsars.csv` or `Dataset: data/dimuons.csv` (exact relative paths). The Makefile reads it: `DATA ?= $(shell sed -n 's/^Dataset:[[:space:]]*//p' PLAN.md)`. The Level 0 check requires one of the two values; the Level 1 and Level 3 checks run on it, and only on it.
 
 ### 3.5 Makefile
 
@@ -169,7 +169,7 @@ Built by a Sonnet subagent following `PLAYBOOK.md` against the frozen interfaces
 2. L0: unlock refused (template `PLAN.md`, no commit); install `PLAN.pulsars.md`, refused ("no commit since start"); commit; unlock with a reflection → Level 1; `BRIEF.md` present; reflection in `LOG.md`; `records.heads["1"]` set.
 3. L1: `gate check` refused (no `__main__.py`); install `solution_nan`, commit, refused with the NaN sentence; install the solution uncommitted, refused ("1 commit since the last gate; this level needs at least 2"); commit; small further commits to `explorer/` files; edit `explorer/data.py` without committing → refused ("uncommitted changes"); commit; `make explore` → `out/explorer.html` and `data.json` exist, `make list` prints the columns; wrong answer `the moon` rejected with the pulsar hint; `sun` unlocks Level 2 (the dimuon pass checks its own prompt and hint); `TESTS.md` present.
 4. L2: refused (empty `TESTS.md`); install the sample `TESTS.md` and a 4-test file → refused ("4 tests ... needs at least 5"); install the full tests, commit; `make test` passes; unlock → Level 3; `REVIEW.md` present.
-5. L3: refused (untriaged `REVIEW.md`); install the sample `REVIEW.md`; refused (no commit); commit; switch `PLAN.md` dataset? No: Level 3 runs both datasets regardless; unlock → complete; completion note printed.
+5. L3: refused (untriaged `REVIEW.md`); install the sample `REVIEW.md`; refused (no commit); commit; a corrupted `data/pulsars.columns.json` is refused, a corrupted `data/dimuons.columns.json` is ignored (Level 3 runs only the `PLAN.md` dataset); unlock → complete; completion note printed.
 6. Dimuons path: after the reset, repeat L0–L1 with `PLAN.dimuons.md` and the answer `jpsi` (covers the second dataset and the keyword set).
 7. `gate skip --master` from a fresh reset; `gate reset`; clean tree at the end (`git status --porcelain` empty apart from nothing; `out/` removed by the self-test).
 

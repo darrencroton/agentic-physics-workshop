@@ -311,3 +311,27 @@ Both confirmed the round-1 fixes. New findings, all fixed after checking them ag
 ### External review panel, round 3 for the feedback round (2026-10-14; verification of round 2, narrow)
 
 Neither reviewer found a serious problem; both confirmed the round-2 fixes. Three moderate false positives were fixed: the awk output rule could reach a `print` in a later pipeline stage (Claude; it now stays inside awk's single-quoted program, which also removes a quadratic worst case), `print (length($1) > 0)` was read as a redirect (Codex; one level of nested parentheses is skipped), and `sed 's/ .*//'` was read as a dot-glob (Claude; whitespace no longer blocks the quoted-regex mask). The panel was closed here: no serious findings remained, and the remaining edges are spellings a cooperative Claude does not use.
+
+## Explorer: one dataset per audience (2026-10-14; facilitator feedback during a second playthrough)
+
+The workshop runs twice, once for an astro audience and once for a particle audience, and each should work only with its own data. A dimuons group's Claude added pulsar runs to its plan, because the Level 3 gate ran the tool on both shipped datasets and the briefs (and a README suggestion added earlier this round) said so.
+
+| Decision | Reason |
+|---|---|
+| Both datasets still ship; the `Dataset:` line chosen at Level 0 is the only one used afterwards. Level 3 now runs the tool only on the `PLAN.md` dataset; every "both datasets" or "other dataset" pointer in the README, briefs, hints and participant CLAUDE.md is gone, and CLAUDE.md tells Claude to work only with the named dataset. | Facilitator's choice over per-audience builds: one repo, and the leader locks the dataset in. |
+| README rules a dataset never triggers (dimuons has no missing values or text columns) are tested at Level 2 with a small made-up CSV: one sentence in the Level 2 brief and one in its persona. | Facilitator's suggestion; fake fixtures for cases the real data lacks are normal testing practice, and it replaces the cross-dataset check without mixing physics. |
+| The Level 1 keyword accept list still covers both datasets. | Harmless: the question asked is the group's own (`text_from`); recorded as an honest limit already. |
+
+Review (Codex gpt-6.1-sol, Claude Fable 5.1, continued sessions): the Level 3 brief's gate paragraph still said "both datasets" (Codex serious, Claude moderate), as did three facilitator-doc rows and the walkthrough's step split; all fixed. The Level 1 static fallback prompt pointed at a question the brief no longer holds and its hint named both datasets (both, minor/moderate; reachable only if reading the `Dataset:` line fails after the check has validated it); now neutral, and the leader gives the question aloud. Confirmed fine: the gate and self-test change, and the Level 2 made-up-CSV suggestion.
+
+Hints checked on the facilitator's question: the wrong-answer hints exist for both datasets (one each, chosen by the `Dataset:` line); the timed hints are shared and generic, except a Level 0 example criterion naming `P1` (pulsars only), now "choosing Z = none gives a 2D plot". The README's example `data.json` used pulsar columns; it now uses neutral ones (`E`, `theta`, `name`).
+
+## Answer hints (2026-10-14; facilitator request)
+
+Every level with a graded gate question now has a fourth hint, 3 minutes after the third (13 minutes), that gives the answer and a one-line reason: Speed Run Levels 0–2, TDD Ladder Levels 0, 3 and 4 (Levels 0 and 3 point at the group's own `./tdd score` output, since the answer is the group's), Explorer Level 1. Explorer's answer depends on the dataset, so gatekit hint tiers gained an optional `text_from` (an exercise-tool `hints` function, falling back to the static text on any error), mirroring the question field. Hints are logged, so the facilitator sees who took the answer. Level 0 hint files sit unencrypted in `.workshop/` (which Claude cannot read); a human could read the Speed Run and TDD Level 0 answers there, a cheat that only costs the group its practice, consistent with the honest limits.
+
+Verification (same reviewers): both found no remaining problems with the one-dataset change.
+
+Review (Codex gpt-6.1-sol, Claude Fable 5.1): Claude found no problems and confirmed every answer against the gate ranges, the TDD validators and the shipped column file. Codex flagged that taking the answer hint writes its text to `LOG.md`, which Claude can read (serious in its view). Rejected: the text reaches the log only after a human has taken it from `./gate hint` and is about to type it, Claude can never run `./gate unlock`, and all hint tiers have always been logged for the show-and-tell.
+
+Wording (facilitator): every answer hint opens "The gate unlock answer is …", so it reads correctly when a group takes it before reaching the gate question. A group that still cannot unlock, or hits a broken check, is moved on with `./gate skip --master` (facilitator passphrase, reason logged), as each walkthrough's troubleshooting table says.

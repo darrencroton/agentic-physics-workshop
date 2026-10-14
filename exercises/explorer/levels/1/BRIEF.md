@@ -31,18 +31,12 @@
 - "This should work now" with no command and output. The Sceptic asks for them.
 - `./gate check` saying `data.json` is not valid JSON. That's a real bug, and one Python makes easy. Paste the sentence to Claude.
 - Hover showing another row's values after sampling, or a colour bar with no unit. Only someone looking at the browser catches these.
-- Level 3 runs the tool on **both** datasets. `make explore DATA=data/dimuons.csv` (or `data/pulsars.csv`) now saves a surprise later.
 
 ## Opening the gate
 
 `./gate check` runs your tool four times on the `PLAN.md` dataset: with the defaults, with `--max-points 500`, with `--list`, and on a file that does not exist. It checks `data.json` and the page's controls against the README, and needs at least **2 commits** since Level 0 with nothing uncommitted under `explorer/` or in `PLAN.md`.
 
-`./gate unlock` asks a question about your dataset that sends you to the page:
-
-- **Pulsars:** plot `XX`, `YY` and `ZZ` in 3D and rotate it; the known pulsars crowd around one point. What is at that point?
-- **Dimuons:** plot `M` against `pt1` with log axes; which particle makes the sharp band near 3.1 GeV?
-
-A wrong answer gives you a hint: discuss it, then run `./gate unlock` again.
+`./gate unlock` asks a question about your dataset that sends you to the page. A wrong answer gives you a hint: discuss it, then run `./gate unlock` again.
 
 The reflection (logged): each of you, one feature you would add, and which the group liked best.
 

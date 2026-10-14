@@ -11,6 +11,10 @@
     {
       "unlock_after_minutes": 10,
       "text": "A good first oracle: two points y = 1 and y = 3 with sigma = 1 and sigma = 1 give mean 2 and err 1/sqrt(2). For unequal sigma, weights are 1/sigma^2; compute them by hand. If a mutant survives, the score names the spec ID (for example S4): write the test for that decision. Mind S1 and S2 near the edges."
+    },
+    {
+      "unlock_after_minutes": 13,
+      "text": "The gate unlock answer is any spec ID listed under \"surviving mutants violate\" in your last ./tdd score (for example S4), or none if all 16 mutants were killed."
     }
   ]
 }

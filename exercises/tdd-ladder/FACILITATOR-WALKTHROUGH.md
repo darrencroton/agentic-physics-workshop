@@ -197,7 +197,7 @@ Claude (via a subagent) writes mutants of the group's own `binning.py`; the grou
 
 | Symptom | Do |
 |---|---|
-| Group stuck | `./gate hint` (3 tiers), then a question, then `./gate allow-model sonnet`, then `./gate skip --master` as the last resort. The last two need the master passphrase. All are logged in `LOG.md` and `.workshop/state.json`. |
+| Group stuck | `./gate hint` (3 tiers; at Levels 0, 3 and 4 a fourth at 13 minutes gives the answer), then a question, then `./gate allow-model sonnet`, then `./gate skip --master` as the last resort. The last two need the master passphrase. All are logged in `LOG.md` and `.workshop/state.json`. |
 | `./gate` or `./tdd` says it is "for humans, in the gate terminal" | It was run from Claude's shell, or from a window opened from Claude Code. Use a fresh Terminal window. |
 | Hooks not firing (Claude edits tests in GREEN) | In Claude run `/hooks`; if empty, exit, re-open `claude` in the repo and accept trust. `./tdd` transitions still catch Bash edits via git diff. |
 | `./tdd green` refuses | Read the reason aloud. It is usually "tests not committed" or "red for the wrong reason". That is the lesson. |

@@ -66,5 +66,5 @@ Find out how slow the reference is, and where the time goes, before changing any
 | `./gate status` | Either | Level, persona, time on level, hints used |
 | `./gate brief` | Either | Shows the current level brief |
 | `./gate check` | Either | Runs the level's machine check |
-| `./gate hint` | Gate terminal | A hint (tiers at 0, 5 and 10 minutes) |
+| `./gate hint` | Gate terminal | A hint (tiers at 0, 5 and 10 minutes, and the gate question's answer at 13) |
 | `./gate unlock` | Gate terminal | Checks your evidence, asks the gate question, opens the next level |

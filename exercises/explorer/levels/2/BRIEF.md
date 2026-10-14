@@ -15,7 +15,7 @@ The tool works, and you've seen it work. Now make sure it keeps working. Write y
 
    > "Talk me through the tests this code needs: what each one checks, what coverage that gives, and what it won't cover. Don't write them yet."
 
-3. Ask Claude to paste its plan into `TESTS.md`. Compare it with your list and agree what to write under "What we agreed to write, and why". pytest can't see the page in a browser: what *can* be tested, and what still needs a human?
+3. Ask Claude to paste its plan into `TESTS.md`. Compare it with your list and agree what to write under "What we agreed to write, and why". pytest can't see the page in a browser: what *can* be tested, and what still needs a human? If your dataset never triggers a rule in the README (missing values, a text column, zeros on a log axis), a test can check it with a small made-up CSV.
 4. Then:
 
    > "Write them. Run them and show me the output."

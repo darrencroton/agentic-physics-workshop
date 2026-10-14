@@ -10,7 +10,12 @@
     },
     {
       "unlock_after_minutes": 10,
-      "text": "Pulsars: where is the Sun in this coordinate system? Look in data/pulsars.columns.json. Dimuons: put M on X with log on; the dense vertical lines are particles."
+      "text": "Look at the page with the question in mind, and read the column file for your dataset in data/: it describes every column. A wrong answer at ./gate unlock prints a hint."
+    },
+    {
+      "unlock_after_minutes": 13,
+      "text": "The gate unlock answer depends on your dataset: ask your leader (the facilitator walkthrough has it).",
+      "text_from": "explore.browser_answer"
     }
   ]
 }

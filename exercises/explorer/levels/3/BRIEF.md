@@ -25,7 +25,7 @@ The tool works and has tests. Now get a fresh pair of eyes. The author grading i
 
 - Lots of findings: you don't need to debate them all. Decide the ones that matter for a prototype and leave the rest; the gate needs three.
 - Nothing worth fixing: that's a fine result. Say why in the reasons, and commit `REVIEW.md`.
-- Time left? Build one feature from your Level 1 list, or run `make explore DATA=...` on the other dataset or on a CSV of your own.
+- Time left? Build one feature from your Level 1 list, or run `make explore DATA=...` on a CSV of your own.
 
 ## What to watch for
 
@@ -35,7 +35,7 @@ The tool works and has tests. Now get a fresh pair of eyes. The author grading i
 
 ## Opening the gate
 
-`./gate check` needs at least 2 guesses and at least **3 triaged findings** in `REVIEW.md` (each FIX, ACCEPT or REJECT with a reason); the tests passing; the tool passing the Level 1 runs on **both** datasets; at least 1 commit since Level 2; and nothing uncommitted under `explorer/`, `tests/` or in `REVIEW.md`.
+`./gate check` needs at least 2 guesses and at least **3 triaged findings** in `REVIEW.md` (each FIX, ACCEPT or REJECT with a reason); the tests passing; the tool passing the Level 1 runs again on your dataset; at least 1 commit since Level 2; and nothing uncommitted under `explorer/`, `tests/` or in `REVIEW.md`.
 
 The reflection (logged): what did the review find that the tests didn't?
 

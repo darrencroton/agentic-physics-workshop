@@ -10,6 +10,9 @@ that may provide:
   "wrong_hint": str}} for a gate question's `text_from`; either key is
   optional, and an exception or bad return falls back to the static
   `prompt` and `wrong_hint`
+- `hints`: {name: fn(root, state, tier) -> str} for a hint tier's
+  `text_from`; a non-empty string replaces the tier's `text`, and an
+  exception or bad return falls back to the static `text`
 - `level_secret(root, level) -> bytes` for verified gates
 - `status_lines(root, state) -> [str]`
 - `teacher_context_extra(root, state) -> str`

@@ -11,6 +11,10 @@
     {
       "unlock_after_minutes": 10,
       "text": "499,500 pairs, and so 499,500 sqrt calls. The fit's exponent is about 2, so the time at 200,000 is (200000/2000)^2 x t(2000). Divide seconds by 60 for minutes."
+    },
+    {
+      "unlock_after_minutes": 13,
+      "text": "The gate unlock answer is 499500: the reference compares every pair once, N(N-1)/2 = 1000 x 999 / 2."
     }
   ]
 }

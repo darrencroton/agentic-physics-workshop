@@ -11,6 +11,10 @@
     {
       "unlock_after_minutes": 10,
       "text": "Process the points in blocks of rows, and keep each block small: a few hundred rows, not thousands (rows x 20000 x 8 bytes per temporary, several temporaries at once). For the gate: one 200,000 x 200,000 matrix is 200000^2 x 8 bytes = 320 GB. If the only difference is +1 in the last bin, ask which numpy function closes its last edge; the contract's bins are half-open, including the last one."
+    },
+    {
+      "unlock_after_minutes": 13,
+      "text": "The gate unlock answer is 320 (298, in GiB, also counts): 200,000 x 200,000 x 8 bytes = 3.2 x 10^11 bytes."
     }
   ]
 }

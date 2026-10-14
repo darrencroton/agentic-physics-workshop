@@ -13,9 +13,11 @@ The big idea: **a good agentic workflow is a habit, not a technique.** `PLAYBOOK
 The leader picks one, and it goes on the `Dataset:` line of `PLAN.md`. Both ship in `data/`, with sources and citations in `data/README.md`.
 
 - **Pulsars** (`data/pulsars.csv`): the ATNF Pulsar Catalogue, 4,503 pulsars. Sky position, distance, Galactic `XX`, `YY`, `ZZ` (kpc), spin period `P0`, its derivative `P1`, and quantities derived from them. Many values are missing.
-- **Dimuons** (`data/dimuons.csv`): 60,000 CMS muon pairs from 2010. Energy, momentum, `pt`, `eta`, `phi` and charge for each muon, and the pair's invariant mass `M`.
+- **Dimuons** (`data/dimuons.csv`): 60,000 CMS muon pairs from 2010. Energy, momentum, `pt`, `eta`, `phi` and charge for each muon, and the pair's invariant mass `M`. No values are missing, and there are no text columns.
 
 Each CSV has a column file beside it (`data/<name>.columns.json`) giving every column's unit, a description, and whether a log scale suits it.
+
+Once `PLAN.md` is committed, the dataset on its `Dataset:` line is the only one you work with: `make explore` and every gate use it.
 
 ## What the tool must do
 
@@ -38,15 +40,15 @@ This interface is fixed: the gates run the tool and read its output. Everything 
 
 ```json
 {
-  "source": "data/pulsars.csv",
-  "n_read": 4503,
-  "n_written": 4503,
+  "source": "data/example.csv",
+  "n_read": 3,
+  "n_written": 3,
   "columns": [
-    {"name": "P0", "unit": "s", "description": "Spin period", "log": true},
-    {"name": "GL", "unit": "deg", "description": "Galactic longitude", "log": false}
+    {"name": "E", "unit": "J", "description": "Energy", "log": true},
+    {"name": "theta", "unit": "deg", "description": "Angle", "log": false}
   ],
-  "rows": {"P0": [0.00575, 0.0331, null], "GL": [253.4, 184.6, 10.2]},
-  "labels": {"JNAME": ["J0437-4715", "B0531+21", "J1748-2446ad"]}
+  "rows": {"E": [0.5, 12.0, null], "theta": [253.4, 184.6, 10.2]},
+  "labels": {"name": ["a", "b", "c"]}
 }
 ```
 
@@ -58,7 +60,7 @@ This interface is fixed: the gates run the tool and read its output. Everything 
 
 | Control | id | Options |
 |---|---|---|
-| X axis | `x` | every numeric column (`<option value="P0">` and so on) |
+| X axis | `x` | every numeric column (`<option value="E">` and so on) |
 | Y axis | `y` | every numeric column |
 | Z axis | `z` | `none` plus every numeric column; `none` gives a 2D plot |
 | Colour | `colour` | `none` plus every numeric column; a column adds a colour bar titled with its name and unit |
@@ -94,7 +96,7 @@ No code yet. Agree a plan, write it down, commit it.
 
    > "Read README.md, data/README.md and the column file for our dataset. Summarise what the code and data contain and what the task asks. List anything unclear or ambiguous. Don't write any code."
 
-   Ask which columns have missing values, and how many.
+   Ask which columns have missing values, and how many. (If your dataset has none, the decision still matters: the tool must handle any CSV, and at Level 2 a test with a small made-up file can check it.)
 3. Then the *Plan* prompt:
 
    > "Propose a plan: the goal, the decisions it depends on, the design, two or three build steps that each end in something we can run and look at, acceptance criteria we can check, and what's out of scope. Ask me about any decision you're unsure of."
@@ -105,7 +107,7 @@ No code yet. Agree a plan, write it down, commit it.
 
 ## If it goes differently
 
-- The plan has more than three steps: ask Claude to merge them into two or three, each ending in something you can run and look at. One split that works: the command line, `--list` and `data.json`; then the page; then your decisions and the other dataset. Fewer, bigger steps get you to the page sooner, and the gate checks it.
+- The plan has more than three steps: ask Claude to merge them into two or three, each ending in something you can run and look at. One split that works: the command line, `--list` and `data.json`; then the page; then your decisions and the initial view. Fewer, bigger steps get you to the page sooner, and the gate checks it.
 - Claude asks something nobody knows: pick a reasonable answer, write it in `PLAN.md` and move on.
 - Claude tries to write code: at this level the guard refuses everything except `PLAN.md` and `LOG.md`. Read the refusal aloud: it's on purpose.
 
@@ -137,5 +139,5 @@ When the check passes: `./gate unlock`.
 | `./gate status` | Either | Level, time on level, hints used, dataset, commits since the last gate |
 | `./gate brief` | Either | Shows the current level brief |
 | `./gate check` | Either | Runs the level's check and names the first thing missing |
-| `./gate hint` | Gate terminal | A hint (three tiers, unlocking as the level goes on) |
+| `./gate hint` | Gate terminal | A hint (three tiers, unlocking as the level goes on; where the gate asks a question, a fourth gives the answer) |
 | `./gate unlock` | Gate terminal | Checks your work, asks the gate question, opens the next level |

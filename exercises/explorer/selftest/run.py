@@ -449,16 +449,20 @@ def level3(repo):
     refused(repo, "no commits since the last gate; this level needs at least 1: ask Claude to "
             "commit each fix and REVIEW.md", "REVIEW.md not committed")
     repo.commit("Review triaged", "REVIEW.md")
-    sidecar = "data/dimuons.columns.json"
-    meta = json.loads(repo.text(sidecar))
-    meta["columns"]["FAKE"] = {"numeric": True, "unit": "", "description": "", "log": False}
-    repo.write(sidecar, json.dumps(meta))
-    try:
-        refused(repo, "the default run on data/dimuons.csv: data.json has no column FAKE",
-                "level 3 also runs the tool on the other dataset")
-    finally:
-        repo.revert(sidecar)
-    seconds = passes(repo, "level 3 (pytest and both datasets)")
+    for sidecar, dataset in (("data/pulsars.columns.json", "data/pulsars.csv"),
+                             ("data/dimuons.columns.json", "data/dimuons.csv")):
+        meta = json.loads(repo.text(sidecar))
+        meta["columns"]["FAKE"] = {"numeric": True, "unit": "", "description": "", "log": False}
+        repo.write(sidecar, json.dumps(meta))
+        try:
+            if dataset == "data/pulsars.csv":
+                refused(repo, "the default run on data/pulsars.csv: data.json has no column FAKE",
+                        "level 3 runs the tool again on the group's dataset")
+            else:
+                passes(repo, "level 3 ignores the other dataset")
+        finally:
+            repo.revert(sidecar)
+    seconds = passes(repo, "level 3 (pytest and the group's dataset)")
     timings.append(("gate check, level 3", "%.1f s" % seconds))
     answer = "the duplicate header bug"
     code, out = repo.gate("unlock", answers=[("tests didn't?", answer)])

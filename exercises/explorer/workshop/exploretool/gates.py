@@ -859,9 +859,9 @@ def evaluate(root, level):
         elif level == 3:
             _check_review_md(root)
             run_pytest(root)
-            for dataset in DATASETS:
-                _require_tool(root, dataset)
-            summary = "REVIEW.md is triaged, the tests pass and the tool runs on both datasets"
+            dataset = plan_dataset(root)
+            _require_tool(root, dataset)
+            summary = "REVIEW.md is triaged, the tests pass and the tool runs on %s" % dataset
         else:
             return False, "there is no check for level %d" % level
         git_evidence(root, level, heads)

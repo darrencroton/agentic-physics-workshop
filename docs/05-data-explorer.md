@@ -149,7 +149,7 @@ What happens to a value ≤ 0 on a log axis, and what the initial selection is, 
 
 ### 3.4 Datasets
 
-Each group is given **one** dataset by the leader; both ship in every repo so the final check can run the tool on both. The tool must not care which; the stretch is to point it at a CSV from the group's own research.
+Each group is given **one** dataset by the leader, who runs the workshop once for an astro audience and once for a particle audience; both ship in every repo, but once the plan is committed the group, the briefs and the gates use only theirs. The tool must not care which; the stretch is to point it at a CSV from the group's own research.
 
 **Astro track: ATNF pulsars** (`pulsars.csv`, catalogue v2.9.0, 4,503 rows).
 
@@ -231,7 +231,7 @@ Dataset: data/pulsars.csv
 | 0 | Plan | 8 | `PLAN.md` complete (3.5) and committed; ≥ 1 commit since `start` | Logged: "One thing in Claude's plan you changed, and why." |
 | 1 | Build the prototype | 18 | The tool runs on the group's dataset (3.1–3.3); ≥ 2 commits since Level 0; clean tree | **Graded:** a question that prompts a look in the browser |
 | 2 | Test | 8 | `TESTS.md` both lists filled; ≥ 5 tests pass, importing `explorer`; ≥ 1 commit; clean tree | Logged: "What did Claude's plan cover that yours didn't, or the reverse?" |
-| 3 | Review (last) | 8 | `REVIEW.md`: ≥ 2 guesses, ≥ 3 triaged findings; tests pass; the tool runs on **both** datasets; ≥ 1 commit; clean tree | Logged: "What did the review find that the tests didn't?" |
+| 3 | Review (last) | 8 | `REVIEW.md`: ≥ 2 guesses, ≥ 3 triaged findings; tests pass; the tool runs on the group's dataset; ≥ 1 commit; clean tree | Logged: "What did the review find that the tests didn't?" |
 
 All gates are `crypto-reflection` except Level 1 (`crypto`, one keyword question). Check scripts live in `.gatekit/exploretool/checks/levelN.py` (the manifest names that path, relative to the repo root), run under the venv Python, print one diagnostic sentence to stderr on failure and, on success, a fixed line, as in the Speed Run. Their slot secret is therefore the human answer (or nothing); that is the documented honest limit and is acceptable here. The Level 3 gate marks completion.
 
@@ -293,7 +293,7 @@ All gates are `crypto-reflection` except Level 1 (`crypto`, one keyword question
 **Gate:**
 
 - *Machine:* the check runs the tool on the dataset named in `PLAN.md`, into a temporary directory: once with defaults, once with `--max-points 500`, once with `--list`, and once on a file that does not exist. It requires: exit 0 within 30 s for the valid runs; a non-zero exit and no `Traceback` for the invalid one; `--list` naming every column in the sidecar; `data.json` valid under strict parsing with the structure in 3.2 and `n_written` equal to 500 on the sampled run; and `explorer.html` containing plotly.js inline, no external script, the controls in 3.3 with every numeric column as an option, and the strings `scattergl` and `scatter3d`. Also ≥ 2 commits since the Level 0 unlock and a clean tree under `explorer/` and `PLAN.md`.
-- *Human (graded, keyword):* asked only for the group's dataset (gatekit `text_from` reads the `Dataset:` line; a static prompt pointing at `BRIEF.md` is the fallback), with a dataset hint after a wrong answer (`wrong_hint`). Pulsars: "Plot `XX`, `YY` and `ZZ` in 3D and rotate it: the known pulsars crowd around one point. What is at that point?" Dimuons: "Plot `M` against `pt1` with log axes: there is a sharp band near M = 3.1 GeV. Which particle makes it?" Accept `sun`, `solar system`, `earth`, `us`, `solar neighbourhood`, `jpsi`, `j/psi`, `jψ`, `psi`, each also with an article ("the sun", "the j/psi") since keyword matching keeps articles. Both sets are accepted for either dataset (honest limit; Section 12).
+- *Human (graded, keyword):* asked only for the group's dataset (gatekit `text_from` reads the `Dataset:` line; a neutral static prompt is the fallback), with a dataset hint after a wrong answer (`wrong_hint`). Pulsars: "Plot `XX`, `YY` and `ZZ` in 3D and rotate it: the known pulsars crowd around one point. What is at that point?" Dimuons: "Plot `M` against `pt1` with log axes: there is a sharp band near M = 3.1 GeV. Which particle makes it?" Accept `sun`, `solar system`, `earth`, `us`, `solar neighbourhood`, `jpsi`, `j/psi`, `jψ`, `psi`, each also with an article ("the sun", "the j/psi") since keyword matching keeps articles. Both sets are accepted for either dataset (honest limit; Section 12).
 
 **Teaching point:** the agent cannot see the browser. The humans are the only ones who can check what the tool actually shows, and the check only knows what can be read from a file.
 
@@ -348,7 +348,7 @@ All gates are `crypto-reflection` except Level 1 (`crypto`, one keyword question
 - Writes the guesses first (one minute).
 - Asks Claude to "use the reviewer agent to review the code since `start` against `PLAN.md`; rank the findings; don't fix anything". The agent is shipped in the repo (Section 8) and returns a ranked list, which Claude pastes into `REVIEW.md`.
 - Compares guesses with findings, triages, fixes.
-- Groups with time left: build one feature from the Level 1 suggestions, or run `make explore DATA=…` on the other dataset or on a CSV of their own. The completion message says "This is yours to take home" and points at `PLAYBOOK.md`.
+- Groups with time left: build one feature from the Level 1 suggestions, or run `make explore DATA=…` on a CSV of their own. The completion message says "This is yours to take home" and points at `PLAYBOOK.md`.
 
 **Typical behaviour:** the reviewer finds real issues in 20 minutes of agent-built code: the ≤ 0 log policy not implemented as planned, hover misaligned after sampling, a missing error for a CSV with no numeric columns, duplicated loading code, a unit missing from a title. It also reports noise (style, speculative performance). Rejecting a finding with a reason is as valuable as fixing one.
 
@@ -356,7 +356,7 @@ All gates are `crypto-reflection` except Level 1 (`crypto`, one keyword question
 
 **Gate:**
 
-- *Machine:* `REVIEW.md` has at least two guess bullets and at least three table rows each with a decision in {FIX, ACCEPT, REJECT} and a non-empty reason; tests still pass; the Level 1 run checks pass on **both** shipped datasets; ≥ 1 commit since the Level 2 unlock; clean tree.
+- *Machine:* `REVIEW.md` has at least two guess bullets and at least three table rows each with a decision in {FIX, ACCEPT, REJECT} and a non-empty reason; tests still pass; the Level 1 run checks pass on the `PLAN.md` dataset; ≥ 1 commit since the Level 2 unlock; clean tree.
 - *Human (logged):* "What did the review find that the tests didn't?"
 
 **Teaching point:** the author grading its own work is not a review. A fresh context finds different things, and some of what it finds is wrong: the human decides.
@@ -537,7 +537,7 @@ The model line is a decision for calibration (Section 12): Sonnet by default, so
 | 0 | `PLAN.md` complete per 3.5, committed | Logged |
 | 1 | Three valid runs and one clean error per Level 1; ≥ 2 commits; clean tree | Pulsars: `sun` (synonyms above). Dimuons: `jpsi` (synonyms above). |
 | 2 | `TESTS.md` filled; ≥ 5 tests pass; `explorer` imported; ≥ 1 commit; clean tree | Logged |
-| 3 | `REVIEW.md` triaged (three findings, reasons); tests pass; runs on both datasets; ≥ 1 commit; clean tree | Logged |
+| 3 | `REVIEW.md` triaged (three findings, reasons); tests pass; runs on the group's dataset; ≥ 1 commit; clean tree | Logged |
 
 There are no planted bugs. What the agent gets wrong is whatever it gets wrong on the day; the leader's job is to make sure the group notices.
 

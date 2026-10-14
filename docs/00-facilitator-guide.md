@@ -210,7 +210,7 @@ Say this openly in the lecture: *"You can cheat. You'd be cheating yourselves ou
 
 ### 5.7 Hints, Logging and the Master Key
 
-- **`./gate hint`** reveals tiered hints for the current level, three per level: *nudge → direction → near-answer*. Hints are time-locked: tier 2 opens after 5 minutes on the level and tier 3 after 10. Every hint is logged.
+- **`./gate hint`** reveals tiered hints for the current level, three per level: *nudge → direction → near-answer*, plus a fourth that gives the answer at levels with a graded question. Hints are time-locked: tier 2 opens after 5 minutes on the level, tier 3 after 10 and the answer after 13 (Explorer's 8-minute levels: 3 and 6). Every hint is logged, so the facilitator can see which groups took the answer.
 - **`state.json`** records the level start time, unlock time, hints used and failed unlock attempts. This is your trial data.
 - **The master passphrase** is yours. You type it in the group's gate terminal for `./gate skip --master` (unlocks the next level for a stuck group; use it sparingly, and give a reason), `./gate allow-model` (a power-up) and any exercise fallback. Who else may know it is decided in each walkthrough's section 2.
 - **`./gate status`** prints the level, time on level and hints used. Leaders call this out at time checks.
@@ -229,7 +229,7 @@ Say this openly in the lecture: *"You can cheat. You'd be cheating yourselves ou
 - [ ] Planted issues (A, B), source and golden outputs (C), or spec and mutants (D)
 - [ ] Behaviour-based checks for every level; they must not reveal the fix
 - [ ] Gate questions and accepted answers (normalised: case, whitespace, synonyms, numeric tolerance)
-- [ ] Three hint tiers per level
+- [ ] Three hint tiers per level, plus the answer at graded levels
 - [ ] `CLAUDE.md` teacher instructions and per-level persona briefs
 - [ ] Reference solution path (to derive tokens and test end-to-end)
 - [ ] Exercise-specific preflight checks

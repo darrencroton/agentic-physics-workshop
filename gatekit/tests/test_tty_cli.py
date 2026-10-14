@@ -81,5 +81,26 @@ class QuestionTextTests(unittest.TestCase):
             self.assertEqual(cli._question_text("/root", {}, {}, self.QUESTION), static)
 
 
+class HintTextTests(unittest.TestCase):
+    TIER = {"text": "Static hint.", "text_from": "tool.text"}
+
+    def text(self, fn):
+        tool = types.SimpleNamespace(hints={"text": fn})
+        with mock.patch.object(cli, "_tool", return_value=tool):
+            return cli._hint_text("/root", {}, {}, self.TIER)
+
+    def test_text_from_replaces_static_text(self):
+        self.assertEqual(self.text(lambda r, s, t: " Dynamic hint. "), "Dynamic hint.")
+
+    def test_text_from_failure_falls_back_to_static(self):
+        def broken(root, state, tier):
+            raise RuntimeError("no data")
+        self.assertEqual(self.text(broken), "Static hint.")
+        self.assertEqual(self.text(lambda r, s, t: ""), "Static hint.")
+        self.assertEqual(self.text(lambda r, s, t: None), "Static hint.")
+        with mock.patch.object(cli, "_tool", side_effect=exercise.ExerciseError("no tool")):
+            self.assertEqual(cli._hint_text("/root", {}, {}, self.TIER), "Static hint.")
+
+
 if __name__ == "__main__":
     unittest.main()
