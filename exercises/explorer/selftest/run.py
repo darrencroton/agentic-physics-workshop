@@ -244,6 +244,10 @@ def preflight(repo):
     for rel in ("README.md", "CLAUDE.md", "PLAN.md", "PLAYBOOK.md", "LOG.md", "Makefile",
                 "requirements.txt", "data/pulsars.csv", "data/dimuons.csv",
                 "explorer/__init__.py", "tests/__init__.py", ".claude/agents/reviewer.md",
+                ".claude/skills/plan-code/SKILL.md",
+                ".claude/skills/review-code/SKILL.md",
+                ".claude/skills/style-code/SKILL.md",
+                ".claude/skills/test-code/SKILL.md",
                 ".gatekit/exploretool/checks/level3.py"):
         check(os.path.isfile(repo.path(rel)), "%s shipped" % rel)
     for rel in ("BRIEF.md", "TESTS.md", "REVIEW.md", "explorer/__main__.py", "answers.json"):

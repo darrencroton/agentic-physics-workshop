@@ -16,7 +16,8 @@ For the built exercises, the `FACILITATOR-WALKTHROUGH.md` files and `gatekit/REA
 |---|---|
 | `gatekit/` | Shared stdlib-only toolkit: gate CLI, pack crypto, hooks, preflight, pty test helpers |
 | `exercises/<name>/` | Private source per exercise: level content, answers, reference solutions, hidden tests, self-tests |
-| `tools/build.py` | Assembles `dist/<name>/` from `gatekit/` + `exercises/<name>/` |
+| `skills/` | Four generic, take-home Claude Code skills (`plan-code`, `style-code`, `test-code`, `review-code`), copied into `dist/<name>/.claude/skills/` for each exercise whose manifest lists them. Written for any project: never mention this repo, an exercise, its gates or its group ritual (numbers, headings, who writes what first) in them. |
+| `tools/build.py` | Assembles `dist/<name>/` from `gatekit/` + `skills/` + `exercises/<name>/` |
 | `dist/<name>/` | Generated participant repo, each its own git repo. Never edit by hand; regenerate it. |
 
 ## Rules

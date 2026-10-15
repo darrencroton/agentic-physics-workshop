@@ -4,10 +4,11 @@
 usage: tools/build.py <exercise> --master-passphrase-file <path> [--out DIR]
                       [--setup-python PATH] [--keep-venv]
 
-Steps: wipe and recreate the output, copy level0/, templates and tools,
-render CLAUDE.md, render settings.json (model and the human-only deny rules
-from the manifest), make the launchers executable, pack levels and hidden
-assets, write .workshop/, git init, commit "Workshop start" and tag `start`.
+Steps: wipe and recreate the output, copy level0/, templates, tools and the
+skills the manifest lists, render CLAUDE.md, render settings.json (model and
+the human-only deny rules from the manifest), make the launchers executable,
+pack levels and hidden assets, write .workshop/, git init, commit "Workshop
+start" and tag `start`.
 """
 
 import argparse
@@ -127,6 +128,11 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
             copy_tree(path, os.path.join(out, name))
         else:
             shutil.copy2(path, os.path.join(out, name))
+    for name in manifest.get("skills", []):
+        skill = os.path.join(TOP, "skills", name)
+        if os.path.basename(name) != name or not os.path.isfile(os.path.join(skill, "SKILL.md")):
+            raise SystemExit("manifest lists unknown skill %r: no skills/%s/SKILL.md" % (name, name))
+        copy_tree(skill, os.path.join(out, ".claude", "skills", name))
     os.makedirs(os.path.join(out, ".gatekit"))
     copy_tree(os.path.join(TOP, "gatekit", "gatekit"),
               os.path.join(out, ".gatekit", "gatekit"))

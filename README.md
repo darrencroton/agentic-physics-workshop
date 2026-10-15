@@ -59,7 +59,8 @@ You build one participant repo per exercise from this repository, rehearse it, a
 ```
 gatekit/            shared toolkit: gate CLI, pack crypto, hooks, preflight, pty test helpers, README
 exercises/<name>/   private source per exercise: levels, personas, hints, hidden assets, self-test, walkthrough
-tools/build.py      assembles dist/<name>/ from the two above
+skills/             four take-home Claude Code skills (plan-code, style-code, test-code, review-code), shipped into the exercises that list them
+tools/build.py      assembles dist/<name>/ from the three above
 dist/<name>/        generated participant repo (gitignored here)
 docs/               the pedagogical designs and the decision log
 ```

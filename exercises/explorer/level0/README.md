@@ -6,7 +6,7 @@ Your group has a dataset and a question you can't answer from a table: **what do
 
 It's a prototype: quick and dirty is fine. But you'll build it the way you'd want a careful student to: **plan it, build it in checked steps, test it, and have it reviewed**, committing each step that works. Each stage is a gate.
 
-The big idea: **a good agentic workflow is a habit, not a technique.** `PLAYBOOK.md` is that habit on one page. Every level uses one part of it, and it's yours to take home.
+The big idea: **a good agentic workflow is a habit, not a technique.** `PLAYBOOK.md` is that habit on one page. Every level uses one part of it, and it's yours to take home. The four skills in `.claude/skills/` (plan-code, style-code, test-code and review-code) are the same habit as Claude Code skills, used at each level and also yours to take home.
 
 ## Your dataset
 
@@ -94,7 +94,7 @@ No code yet. Agree a plan, write it down, commit it.
 1. Read this README together.
 2. In Claude (plan mode), the playbook's *Understand* and *Plan* prompts in one go:
 
-   > "Read README.md, data/README.md and the column file for our dataset. Say what the data contains, which columns have missing values and how many, and anything unclear. Then propose a plan: the goal, the decisions it depends on, the design, two build steps that each end in something we can run and look at, acceptance criteria we can check, and what's out of scope. Ask me about any decision you're unsure of. Don't write any code."
+   > "Read README.md, data/README.md and the column file for our dataset. Say what the data contains, which columns have missing values and how many, and anything unclear. Then, using the plan-code skill, propose a plan: the goal, the decisions it depends on, the design, two build steps that each end in something we can run and look at, acceptance criteria we can check, and what's out of scope. Ask me about any decision you're unsure of. Don't write any code."
 
    If your dataset has no missing values, the decision still matters: the tool must handle any CSV, and at Level 2 a test with a small made-up file can check it.
 3. Read it. Argue about it. Change it. The four decisions in `PLAN.md` are the group's, not Claude's. The Sceptic owns the acceptance criteria (at least three, each something you can check by eye or by test). The Navigator cuts anything beyond the interface above.

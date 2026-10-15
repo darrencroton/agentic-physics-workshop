@@ -2,7 +2,7 @@
   "tiers": [
     {
       "unlock_after_minutes": 0,
-      "text": "Ask: 'Use the reviewer agent to review the code since start against PLAN.md. Rank the findings and paste them into the table in REVIEW.md, most severe first. Don't fix anything.'"
+      "text": "Ask: 'Use the review-code skill to review the code since start against PLAN.md. Rank the findings and paste them into the table in REVIEW.md, most severe first. Don't fix anything.'"
     },
     {
       "unlock_after_minutes": 3,

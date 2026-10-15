@@ -12,7 +12,7 @@
 
 1. Make sure Claude is out of plan mode (`Shift+Tab` cycles the modes; the line under the prompt shows which is on). Then the playbook's *Build in checked steps*:
 
-   > "Implement step 1 of PLAN.md only. Run it, show me the exact command and output, and tell me what I can run to check it myself."
+   > "Implement step 1 of PLAN.md only, following the coding guidelines in the style-code skill. Run it, show me the exact command and output, and tell me what I can run to check it myself."
 
 2. Run what Claude suggests in the gate terminal and look at the result. Once the page exists, that's `make explore` then `make open`. If it works, ask Claude to commit it.
 3. Then: "Next step." Repeat until the plan is done.

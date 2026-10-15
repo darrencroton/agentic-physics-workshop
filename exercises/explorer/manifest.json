@@ -2,6 +2,7 @@
   "exercise": "explorer", "title": "Explorer: plan, build, test, review", "tool": "exploretool",
   "human_only": {},
   "models": {"default": "sonnet", "allowed": ["sonnet"]},
+  "skills": ["plan-code", "style-code", "test-code", "review-code"],
   "levels": [
     {"id": 0, "title": "Plan", "persona": "collaborator", "target_minutes": 8,
      "gate": {"type": "crypto-reflection", "check": ".gatekit/exploretool/checks/level0.py", "python": "venv", "timeout": 120,
@@ -31,6 +32,6 @@
      "gate": {"type": "crypto-reflection", "check": ".gatekit/exploretool/checks/level3.py", "python": "venv", "timeout": 300,
               "questions": [],
               "reflection": "What did the review find that the tests didn't?",
-              "pre_reflection_note": "That was the last gate. PLAYBOOK.md is yours to take home: it works on any codebase, and .claude/agents/reviewer.md comes with it."}}
+              "pre_reflection_note": "That was the last gate. PLAYBOOK.md is yours to take home: it works on any codebase, and the four skills in .claude/skills/ come with it."}}
   ]
 }

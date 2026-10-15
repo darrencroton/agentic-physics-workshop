@@ -2,7 +2,7 @@
   "tiers": [
     {
       "unlock_after_minutes": 0,
-      "text": "Ask: 'Talk me through the five to eight tests this code needs, one line each, with the coverage and what it won't cover. Write the plan under Claude's plan in TESTS.md. Don't write the tests yet.'"
+      "text": "Ask: 'Using the test-code skill, talk me through the five to eight tests this code needs, one line each, with the coverage and what it won't cover. Write the plan under Claude's plan in TESTS.md. Don't write the tests yet.'"
     },
     {
       "unlock_after_minutes": 3,

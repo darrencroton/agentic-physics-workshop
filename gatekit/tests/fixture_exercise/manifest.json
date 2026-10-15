@@ -3,6 +3,7 @@
   "title": "Fixture Exercise",
   "models": {"default": "haiku", "allowed": ["haiku"]},
   "human_only": {"race": ["submit", "install-solution"]},
+  "skills": ["plan-code", "review-code"],
   "levels": [
     {"id": 0, "title": "Measure", "persona": "coach", "target_minutes": 5,
      "gate": {"type": "crypto", "check": "checks/level0.py",

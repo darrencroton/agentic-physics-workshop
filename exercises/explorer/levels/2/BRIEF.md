@@ -13,7 +13,7 @@ The tool works, and you've seen it work. Now make sure it keeps working. Write y
 1. **Before you ask Claude anything:** the Scribe writes three things that must not break under "Our list" in `TESTS.md`. Two minutes, no Claude. (`TESTS.md` is not code: type into it yourselves, or dictate it to Claude.)
 2. The playbook's *Test plan, then tests*:
 
-   > "Talk me through the five to eight tests this code needs, one line each: what each checks, what coverage that gives, and what it won't cover. Write the plan under 'Claude's plan' in TESTS.md. Don't write the tests yet."
+   > "Using the test-code skill, talk me through the five to eight tests this code needs, one line each: what each checks, what coverage that gives, and what it won't cover. Write the plan under 'Claude's plan' in TESTS.md. Don't write the tests yet."
 
 3. Compare Claude's plan with your list and agree what to write under "What we agreed to write, and why". pytest can't see the page in a browser: what *can* be tested, and what still needs a human? If your dataset never triggers a rule in the README (missing values, a text column, zeros on a log axis), a test can check it with a small made-up CSV.
 4. Then:

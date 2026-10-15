@@ -4,16 +4,16 @@
 
 ## Where we are
 
-The tool works and has tests. Now get a fresh pair of eyes. The author grading its own work is not a review, so the review comes from the `reviewer` agent: a fresh context that has not seen this conversation and judges only the code and `PLAN.md`. Some of what it finds will be wrong. You decide.
+The tool works and has tests. Now get a fresh pair of eyes. The author grading its own work is not a review, so the review comes from the `review-code` skill, which runs in a subagent: a fresh context that has not seen this conversation and judges only the code and `PLAN.md`. Some of what it finds will be wrong. You decide.
 
 `REVIEW.md` is open, and `explorer/` and `tests/` stay open for the fixes. `PLAN.md` and `TESTS.md` are frozen now.
 
 ## What to do
 
 1. **Before you ask:** write two things in `REVIEW.md` that you think a reviewer will find. One minute. (`REVIEW.md` is not code: type into it yourselves, or dictate it to Claude.)
-2. The playbook's *Independent review*, using the agent shipped in this repo:
+2. The playbook's *Independent review*:
 
-   > "Use the reviewer agent to review the code since start against PLAN.md. Rank the findings by severity and paste them into the table in REVIEW.md, most severe first. Don't fix anything."
+   > "Use the review-code skill to review the code since start against PLAN.md. Rank the findings by severity and paste them into the table in REVIEW.md, most severe first. Don't fix anything."
 
 3. Compare the findings with your guesses.
 4. *Triage* the top three to five as a group: **FIX**, **ACCEPT** (true, but not worth fixing in a prototype) or **REJECT** (wrong), each with one line of reason.
@@ -27,6 +27,7 @@ The tool works and has tests. Now get a fresh pair of eyes. The author grading i
 
 - Lots of findings: you don't need to debate them all. Decide the ones that matter for a prototype and leave the rest; the gate needs three.
 - Nothing worth fixing: that's a fine result. Say why in the reasons, and commit `REVIEW.md`.
+- Fewer than three findings: ask for the next most important ones, low severity included. The gate needs three triaged rows, and ACCEPT with a reason is a fine decision.
 
 ## Finished early
 
@@ -47,6 +48,6 @@ Unlocked with time to spare? Ask Claude for the feature you agreed at Level 1, o
 
 The reflection (logged): what did the review find that the tests didn't?
 
-Scribe: finish `LOG.md`. `PLAYBOOK.md` is yours to take home, and `.claude/agents/reviewer.md` with it.
+Scribe: finish `LOG.md`. `PLAYBOOK.md` is yours to take home, and the four skills in `.claude/skills/` with it.
 
 When `REVIEW.md` is triaged and the tests pass: commit, then `./gate unlock`.

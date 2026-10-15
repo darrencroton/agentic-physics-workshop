@@ -51,9 +51,13 @@ class BuildAndUnlockTests(unittest.TestCase):
         for rel in ("gate", "preflight", "CLAUDE.md", "README.md", ".claude/settings.json",
                     ".claude/hooks/guard.py", ".gatekit/gatekit/cli.py", ".gatekit/manifest.json",
                     ".gatekit/levels/0/persona.txt", ".vault/level1.pack", ".vault/master.check",
-                    ".workshop/state.json", ".workshop/levels/0/guard.json", ".gitignore"):
+                    ".workshop/state.json", ".workshop/levels/0/guard.json", ".gitignore",
+                    ".claude/skills/plan-code/SKILL.md",
+                    ".claude/skills/review-code/SKILL.md"):
             self.assertTrue(os.path.exists(os.path.join(self.out, rel)), rel)
         self.assertFalse(os.path.exists(os.path.join(self.out, "answers.json")))
+        self.assertIn(".claude/skills/plan-code/SKILL.md",
+                      self.git("ls-files").splitlines())
         self.assertEqual(self.git("tag", "-l", "start"), "start")
         self.assertEqual(self.git("status", "--porcelain"), "")
         self.assertIn("Workshop start", self.git("log", "--oneline"))

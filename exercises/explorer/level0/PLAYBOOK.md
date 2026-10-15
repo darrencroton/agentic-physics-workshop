@@ -12,22 +12,24 @@ The agent is a fast, tireless, literal collaborator. You own the decisions and t
  List anything unclear or ambiguous. Don't write any code."
 
 ## 2. Define the check, then plan
-"Propose a plan: the goal, the decisions it depends on, the design, a few steps
- (two or three for a small job) that each end in something we can run and look at,
- acceptance criteria we can check, and what's out of scope. Ask me about any
- decision you're unsure of."
+"Using the plan-code skill, propose a plan: the goal, the decisions it depends
+ on, the design, a few steps (two or three for a small job) that each end in
+ something we can run and look at, acceptance criteria we can check, and what's
+ out of scope. Ask me about any decision you're unsure of."
 - Read it. Change it. The decisions are yours. Save it as PLAN.md. Commit it.
 
 ## 3. Build in checked steps
-"Implement step 1 of PLAN.md only. Run it, show me the exact command and output,
- and tell me what I can run to check it myself."
+"Implement step 1 of PLAN.md only, following the coding guidelines in the
+ style-code skill. Run it, show me the exact command and output, and tell me what
+ I can run to check it myself."
 - Run that yourself and look at the result. Commit. Then: "Next step."
 - Stop it (Esc) if it starts doing more than one step.
 
 ## 4. Evidence: test plan, then tests
 - First write your own list: three things that must not break.
-"Talk me through the tests this code needs: what each one checks, what coverage
- that gives, and what it won't cover. Don't write them yet."
+"Using the test-code skill, talk me through the tests this code needs: what each
+ one checks, what coverage that gives, and what it won't cover. Don't write them
+ yet."
 - Compare with your list. Agree. Then:
 "Write them. Run them and show me the output."
 - Run them yourself. Look at the coverage report.
@@ -36,9 +38,9 @@ The agent is a fast, tireless, literal collaborator. You own the decisions and t
 
 ## 5. Independent review
 - First write your own guess: two things a reviewer will find.
-"Use a subagent with no context from this session to review the code against
- PLAN.md. Rank the findings by severity. Don't fix anything."
-  (or /code-review, which does the same on the current diff)
+"Use the review-code skill to review the code against PLAN.md. Rank the findings
+ by severity. Don't fix anything."
+- It runs in a subagent with no memory of this session. That is the point.
 - Decide the findings that matter: FIX, ACCEPT or REJECT, with a reason.
   Many low ones? Triage the top few; the rest can wait.
 "Fix the FIX items one at a time. For each, add a test that fails before the fix
@@ -56,7 +58,9 @@ The agent is a fast, tireless, literal collaborator. You own the decisions and t
 - You can't explain what the code does. Ask it to, then check.
 
 ## Make it stick (optional)
-- A reviewer agent: copy .claude/agents/reviewer.md from this repo into your project.
+- The four skills: copy .claude/skills/ from this repo into your project, or into
+  ~/.claude/skills/ to have them everywhere. Each SKILL.md says what it does and
+  how to call it.
 - A Stop hook that runs your tests, so the agent cannot finish with them failing
   (exit code 2 blocks; a failing pytest exits 1, so wrap it):
   {"hooks": {"Stop": [{"hooks": [{"type": "command",
