@@ -236,7 +236,7 @@ def level0(repo):
     code, out = repo.gate("unlock", answers=[("N = 1000?", "499501")])
     check(code == 1 and "Not quite" in out, "wrong pair count (499501) rejected")
     code, out = repo.gate("unlock", answers=[("N = 1000?", "499500"),
-                                             ("how you got it.", "about 40 minutes from alpha 2")])
+                                             ("how you got it:", "about 40 minutes from alpha 2")])
     check(code == 0 and "Level 1 unlocked" in out, "499500 unlocks level 1", flat(out)[-300:])
     check(os.path.exists(repo.path("BRIEF.md")), "BRIEF.md appears")
     with open(repo.path("LOG.md")) as fh:
@@ -288,7 +288,7 @@ def level1(repo):
     code, out = repo.gate("unlock", answers=[("float64 matrix?", "500")])
     check(code == 1 and "Not quite" in out, "wrong matrix size (500 GB) rejected")
     code, out = repo.gate("unlock", answers=[("float64 matrix?", "320"),
-                                             ("what the harness measured.", "3.2 GB; killed")])
+                                             ("what the harness measured:", "3.2 GB; killed")])
     check(code == 0 and "Level 2 unlocked" in out, "320 unlocks level 2", flat(out)[-300:])
 
 
@@ -378,9 +378,9 @@ def level2(repo):
           "%.2f s, %.2f GB" % (rec["seconds"], rec["peak_rss_bytes"] / GB))
     timings.append(("bench 200k, numpy cell list (level 2)", "%.2f s (median of %d), %.2f GB"
                     % (rec["seconds"], rec["repeats"], rec["peak_rss_bytes"] / GB)))
-    code, out = repo.gate("unlock", answers=[("(d) neither", "a")])
+    code, out = repo.gate("unlock", answers=[("(a-d):", "a")])
     check(code == 1 and "Not quite" in out, "wrong letter (a) rejected")
-    code, out = repo.gate("unlock", answers=[("(d) neither", "c"),
+    code, out = repo.gate("unlock", answers=[("(a-d):", "c"),
                                              ("decided it?", "exact; the diff table")])
     check(code == 0 and "Level 3 unlocked" in out, "(c) unlocks level 3", flat(out)[-300:])
 
@@ -451,7 +451,7 @@ def level3(repo):
           and "score %5s" % ("%.2f" % sub["score"]) in board[1],
           "./race board lists all three submissions")
     print("\n".join("    " + line for line in board))
-    code, out = repo.gate("unlock", answers=[("showed it.", "trusting the default compiler flags")])
+    code, out = repo.gate("unlock", answers=[("showed it:", "trusting the default compiler flags")])
     check(code == 0 and "Final level complete" in out and repo.state()["complete"],
           "level 3 unlock completes the exercise", flat(out)[-300:])
 

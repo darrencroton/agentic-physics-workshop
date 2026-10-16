@@ -35,6 +35,11 @@
   - **Review:** two rounds on the brief (Codex gpt-6.1-sol). Then an independent panel on the implementation (Codex gpt-6.1-sol and Claude Fable 5.1): round 1 APPROVE WITH CHANGES with no serious issues, all fixed; round 2 APPROVE from both.
   - **Receipts:** gatekit 68 tests on Python 3.14 and 3.9.6; ruff clean; self-tests TDD Ladder 112, Speed Run 82, Explorer 144.
   - **Headless Claude Code check** (2.1.301, built Explorer): the `@AGENTS.md` import loads, and the Level 0 persona arrives by hook.
+- **Gate prompt UX and J/psi answer matching** (decisions in `docs/DECISIONS.md`).
+  - **Prompts:** every gate question and reflection in the three exercises now ends in "?", ":" or a format hint. Multiple-choice prompts end "Your answer (a-d):", and asides come before the question. `./gate unlock` prints one "Quick reflection (saved to LOG.md, any answer is fine):" header, and `./tdd abort` explains before asking. `manifest.validate` enforces the ending rule.
+  - **`contains`:** new optional list on `keyword` questions. An answer containing a term canonicalises to that term, and the build makes one slot per term. Explorer Level 1 accepts anything containing meson, psi or charmonium. `tools/build.py` now fails a build when a graded crypto question accepts no answers.
+  - **Review:** external panel (Codex gpt-6.1-sol, Claude Fable 5.1). Round 1 ACCEPT from both, with one moderate and three minor findings: three fixed, one declined. Round 2 ACCEPT from both, with no findings.
+  - **Receipts:** gatekit 72 tests on Python 3.14 and 3.9.6; ruff clean; self-tests TDD Ladder 112, Speed Run 82, Explorer 144.
 
 ## How to re-run everything
 

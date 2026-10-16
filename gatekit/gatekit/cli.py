@@ -352,13 +352,14 @@ def _reflect(root, state, gate, level):
     if note:
         _say("")
         _say(note)
-    for prompt in _reflections(gate):
+    reflections = _reflections(gate)
+    if reflections:
         _say("")
+        _say("Quick reflection (saved to LOG.md, any answer is fine):")
+    for prompt in reflections:
         answer = tty.ask(prompt.rstrip() + " ")
         st.append_log(root, "Reflection at level %d" % level,
                       "Q: %s\nA: %s" % (prompt, answer))
-    if _reflections(gate):
-        _say("Logged to LOG.md.")
 
 
 def cmd_unlock(root, args):

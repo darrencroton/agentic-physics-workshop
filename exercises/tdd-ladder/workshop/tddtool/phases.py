@@ -194,8 +194,8 @@ def cmd_abort(root, args):
     cycle = C.read_cycle(root) or {}
     reason = " ".join(args).strip() or "aborted by the group"
     red_commit = cycle.get("red_commit")
-    keep = tty.confirm("Keep the test(s) written in this cycle? (No restores "
-                       "tests/ to how it was when RED began)")
+    _say("Answering no restores tests/ to how it was when RED began.")
+    keep = tty.confirm("Keep the test(s) written in this cycle?")
     restored = False
     if not keep and red_commit:
         tests_dir = os.path.join(root, "tests")

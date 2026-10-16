@@ -43,6 +43,6 @@ justification = ""
 
 ## Opening the gate
 
-In the gate terminal, run `./gate unlock`. The question: **Golden counts [100, 1000000]; yours [101, 1000010]; declared sigma_fraction 0.05. Which bins pass? (a) both (b) the first only (c) the second only (d) neither.** Do the arithmetic for each bin.
+In the gate terminal, run `./gate unlock`. The question: **Golden counts [100, 1000000]; yours [101, 1000010]; declared sigma_fraction 0.05. Which bins pass? (a) both, (b) the first only, (c) the second only, (d) neither.** Do the arithmetic for each bin.
 
 Reflection (logged): which division you entered, and what evidence decided it.

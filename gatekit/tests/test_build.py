@@ -121,6 +121,14 @@ class BuildAndUnlockTests(unittest.TestCase):
                              "new-attempt")])
         self.assertEqual(build_tool.deny_entries({"human_only": {}}), [])
 
+    def test_crypto_question_without_answers_fails_build(self):
+        spec = importlib.util.spec_from_file_location("build_tool", BUILD)
+        build_tool = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(build_tool)
+        gate = {"questions": [{"id": "kw", "prompt": "Which?", "kind": "keyword"}]}
+        with self.assertRaises(SystemExit):
+            build_tool.crypto_secrets(gate, {"token": "00"}, "unused")
+
     def test_shipped_manifest_drops_crypto_answer_keys(self):
         path = os.path.join(self.exercises, "fixture", "manifest.json")
         with open(path) as fh:

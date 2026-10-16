@@ -22,10 +22,10 @@ Consequences: r_max = 10 (15 log bins, 16 edges from 0.5 to 10); the toleranced 
 
 | L | Title | Min | Persona | Machine check (crypto script reads the signed bench log) | Graded question (one) | Reflection (logged) |
 |---|---|---|---|---|---|---|
-| 0 | Measure before you touch anything | 7 | coach | ≥ 3 valid `reference` records with distinct N in [500, 4000], recorded at level 0; ≥ 1 `profile` record | "How many unique pairs, and so `math.sqrt` calls, does the reference evaluate at N = 1000?" numeric, decimals 0, accept 499500 | "From the fit: the reference's predicted runtime at N = 200,000 in minutes, and how you got it" |
-| 1 | Vectorise, and survive the memory wall | 10 | coach | a `fast` record at `mock_20k`, recorded at level 1, pass in division **exact**, seconds < 10 (the untouched pure-Python entry does 20k in ~22 s), peak RSS < 1.5 GB, `source_hash` equal to the current `paircount/` tree | "How many gigabytes is ONE 200,000 × 200,000 float64 matrix?" numeric, decimals 0, accept 298–320 | "Your memory estimate before the 20k run, and what the harness measured" |
-| 2 | Reduce the work, defend the answer | 14 | coach | a `fast` record at `mock_200k`, recorded at level 2, pass in the declared division, seconds < 60, peak RSS < 1.5 GB, `source_hash` and `toml_hash` current | "Golden counts [100, 1000000]; yours [101, 1000010]; declared sigma_fraction 0.05. Which bins pass? (a) both (b) the first only (c) the second only (d) neither" choice, accept c | "Which division did you enter, and what evidence decided it?" |
-| 3 | Open race | 11 | collaborator | `verified`, condition `race.submitted_ok`: ≥ 1 submission with pass = true at level 3 | — | "Your biggest wrong turn, and the evidence that showed it" |
+| 0 | Measure before you touch anything | 7 | coach | ≥ 3 valid `reference` records with distinct N in [500, 4000], recorded at level 0; ≥ 1 `profile` record | "How many unique pairs, and so `math.sqrt` calls, does the reference evaluate at N = 1000?" numeric, decimals 0, accept 499500 | "From your fit, the reference's predicted runtime at N = 200,000 (in minutes), and how you got it:" |
+| 1 | Vectorise, and survive the memory wall | 10 | coach | a `fast` record at `mock_20k`, recorded at level 1, pass in division **exact**, seconds < 10 (the untouched pure-Python entry does 20k in ~22 s), peak RSS < 1.5 GB, `source_hash` equal to the current `paircount/` tree | "How many gigabytes is ONE 200,000 × 200,000 float64 matrix?" numeric, decimals 0, accept 298–320 | "Your memory estimate before the 20k run, and what the harness measured:" |
+| 2 | Reduce the work, defend the answer | 14 | coach | a `fast` record at `mock_200k`, recorded at level 2, pass in the declared division, seconds < 60, peak RSS < 1.5 GB, `source_hash` and `toml_hash` current | "Golden counts [100, 1000000]; yours [101, 1000010]; declared sigma_fraction 0.05. Which bins pass? (a) both, (b) the first only, (c) the second only, (d) neither. Your answer (a-d):" choice, accept c | "Which division did you enter, and what evidence decided it?" |
+| 3 | Open race | 11 | collaborator | `verified`, condition `race.submitted_ok`: ≥ 1 submission with pass = true at level 3 | — | "Your biggest wrong turn, and the evidence that showed it:" |
 
 Level 3 is the last level, so its verified gate needs no secret. Levels 0–2 are `crypto`; the check scripts live in `.gatekit/racetool/checks/levelN.py` (unreadable by Claude), print diagnostics to stderr and exit 1 on failure, and on success print exactly `{"level": N, "ok": true}` (sorted keys, no spaces beyond JSON default of `json.dumps(obj, sort_keys=True)`). Because that output is fixed, the slot secret is effectively the human answer; this is the documented honest limit.
 
@@ -135,20 +135,20 @@ Exports from `racetool/__init__.py` as gatekit expects: `conditions = {"submitte
      "gate": {"type": "crypto", "check": ".gatekit/racetool/checks/level0.py", "python": "venv", "timeout": 120,
               "questions": [{"id": "pairs", "kind": "numeric", "decimals": 0, "lo": 499500, "hi": 499500,
                              "prompt": "How many unique pairs, and so math.sqrt calls, does the reference evaluate at N = 1000?"}],
-              "reflection": "From the fit: the reference's predicted runtime at N = 200,000 in minutes, and how you got it."}},
+              "reflection": "From your fit, the reference's predicted runtime at N = 200,000 (in minutes), and how you got it:"}},
     {"id": 1, "title": "Vectorise, and survive the memory wall", "persona": "coach", "target_minutes": 10,
      "gate": {"type": "crypto", "check": ".gatekit/racetool/checks/level1.py", "python": "venv", "timeout": 120,
               "questions": [{"id": "matrix_gb", "kind": "numeric", "decimals": 0, "lo": 298, "hi": 320,
                              "prompt": "How many gigabytes is ONE 200,000 x 200,000 float64 matrix?"}],
-              "reflection": "Your memory estimate before the 20k run, and what the harness measured."}},
+              "reflection": "Your memory estimate before the 20k run, and what the harness measured:"}},
     {"id": 2, "title": "Reduce the work, defend the answer", "persona": "coach", "target_minutes": 14,
      "gate": {"type": "crypto", "check": ".gatekit/racetool/checks/level2.py", "python": "venv", "timeout": 120,
               "questions": [{"id": "perbin", "kind": "choice", "accept": ["c"],
-                             "prompt": "Golden counts [100, 1000000]; yours [101, 1000010]; declared sigma_fraction 0.05. Which bins pass? (a) both (b) the first only (c) the second only (d) neither"}],
+                             "prompt": "Golden counts [100, 1000000]; yours [101, 1000010]; declared sigma_fraction 0.05. Which bins pass? (a) both, (b) the first only, (c) the second only, (d) neither. Your answer (a-d):"}],
               "reflection": "Which division did you enter, and what evidence decided it?"}},
     {"id": 3, "title": "Open race", "persona": "collaborator", "target_minutes": 11,
      "gate": {"type": "verified", "condition": "race.submitted_ok",
-              "reflection": "Your biggest wrong turn, and the evidence that showed it."}}
+              "reflection": "Your biggest wrong turn, and the evidence that showed it:"}}
   ]
 }
 ```

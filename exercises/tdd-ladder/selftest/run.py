@@ -158,7 +158,7 @@ def level0(repo):
     code, out = repo.gate("unlock", answers=[("acceptance tests passed?", str(acc + 1))])
     check(code == 1 and "Not quite" in out, "wrong acceptance count rejected")
     code, out = repo.gate("unlock", answers=[("acceptance tests passed?", str(acc)),
-                                             ("nobody asked you about.", "edges; empty bins")])
+                                             ("nobody asked you about:", "edges; empty bins")])
     check(code == 0 and "Level 1 unlocked" in out, "L0 -> L1 unlock", out[-300:])
     check("Level 1 starts from the stub" in out and "attempt-L1-" in out,
           "unlock says it started a fresh attempt (automatic new-attempt)")
@@ -196,7 +196,7 @@ def level1(repo):
     acc, killed, fa, _, _ = repo.score()
     check(6 <= acc <= 10, "L1 acceptance in band 6-10", str(acc))
     check(killed <= 8, "L1 kills <= 8", str(killed))
-    code, out = repo.gate("unlock", answers=[("(y/n)", "n"), ("independent reference.", "c")])
+    code, out = repo.gate("unlock", answers=[("(y/n)", "n"), ("(a-d):", "c")])
     check(code == 0 and "Level 2 unlocked" in out, "L1 -> L2 unlock", out[-300:])
 
 

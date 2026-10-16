@@ -13,7 +13,7 @@ from exploretool import gates
 BROWSER_QUESTIONS = {
     "data/pulsars.csv": {
         "prompt": "Plot XX, YY and ZZ in 3D and rotate it: the known pulsars crowd "
-                  "around one point. What is at that point? (A word or two.)",
+                  "around one point. In a word or two, what is at that point?",
         "wrong_hint": "XX, YY and ZZ are Galactic coordinates: data/pulsars.columns.json "
                       "says where they are measured from. Why would the pulsars we know "
                       "cluster there?",
@@ -24,9 +24,9 @@ BROWSER_QUESTIONS = {
     },
     "data/dimuons.csv": {
         "prompt": "Plot M against pt1 with log axes: there is a sharp band near "
-                  "M = 3.1 GeV. Which particle makes it? (A word or two.)",
+                  "M = 3.1 GeV. In a word or two, which particle makes it?",
         "wrong_hint": "Each narrow band along M is a particle that decays to two muons. "
-                      "The one near 3.1 GeV is a charm-anticharm meson with a two-letter "
+                      "The one near 3.1 GeV is a charm-anticharm bound state with a two-letter "
                       "name.",
         "answer": "The gate unlock answer is the J/psi meson (type jpsi): it is a charm-anticharm bound "
                   "state of mass 3.097 GeV that often decays to two muons, so the pair "

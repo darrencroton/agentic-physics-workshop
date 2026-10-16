@@ -35,9 +35,9 @@ SOLUTION_NAN = os.path.join(HERE, "solution_nan")
 PY = sys.executable
 EXPLORE_LIMIT_S = 5.0
 L1_PROMPTS = {
-    "pulsars": ("What is at that point? (A word or two.)",
+    "pulsars": ("what is at that point?",
                 "Hint: XX, YY and ZZ are Galactic coordinates"),
-    "dimuons": ("Which particle makes it? (A word or two.)",
+    "dimuons": ("which particle makes it?",
                 "Hint: Each narrow band along M is a particle"),
 }
 checks = []
@@ -289,7 +289,7 @@ def level0(repo, plan_name):
     passes(repo, "level 0")
     head = repo.git("rev-parse", "HEAD")
     answer = "we made the log-axis rule explicit"
-    code, out = repo.gate("unlock", answers=[("and why.", answer)])
+    code, out = repo.gate("unlock", answers=[("and why:", answer)])
     check(code == 0 and "Level 1 unlocked" in out and repo.level() == 1,
           "level 0 unlock opens level 1", flat(out)[-300:])
     check(repo.heads().get("1") == head, "records.heads['1'] is the PLAN.md commit")
@@ -385,7 +385,7 @@ def level1_pulsars(repo):
     check(repo.state()["levels"]["1"]["failed_attempts"] == 1, "failed attempt counted")
     head = repo.git("rev-parse", "HEAD")
     answer = "a slider for the colour range"
-    code, out = repo.gate("unlock", answers=[(prompt, "The Sun"), ("would add.", answer)])
+    code, out = repo.gate("unlock", answers=[(prompt, "The Sun"), ("would add:", answer)])
     check(code == 0 and "Level 2 unlocked" in out and repo.level() == 2,
           "'The Sun' opens level 2", flat(out)[-300:])
     check("TESTS.md" in out and os.path.isfile(repo.path("TESTS.md")), "TESTS.md arrived")
@@ -500,7 +500,7 @@ def dimuons(repo):
     repo.install(os.path.join(SOLUTION, "PLAN.dimuons.md"), "PLAN.md")
     repo.commit("Plan (dimuons)", "PLAN.md")
     passes(repo, "level 0 (dimuons)")
-    code, out = repo.gate("unlock", answers=[("and why.", "chose log axes for M and pt1")])
+    code, out = repo.gate("unlock", answers=[("and why:", "chose log axes for M and pt1")])
     check(code == 0 and repo.level() == 1, "level 0 unlock (dimuons)", flat(out)[-200:])
     install_solution(repo)
     repo.commit("Step 1", "explorer")
@@ -519,9 +519,9 @@ def dimuons(repo):
     code, out = repo.gate("unlock", answers=[(prompt, "the moon")])
     check(code == 1 and "Not quite" in out and hint in flat(out) and repo.level() == 1,
           "dimuons: a wrong answer is rejected with the dimuon hint", flat(out)[-300:])
-    code, out = repo.gate("unlock", answers=[(prompt, "jpsi"), ("would add.", "a mass cut")])
+    code, out = repo.gate("unlock", answers=[(prompt, "The J/ψ(1S) meson"), ("would add:", "a mass cut")])
     check(code == 0 and "Level 2 unlocked" in out and repo.level() == 2,
-          "'jpsi' opens level 2", flat(out)[-300:])
+          "'The J/ψ(1S) meson' opens level 2 (contains)", flat(out)[-300:])
 
 
 def finale(repo, passfile):

@@ -81,7 +81,12 @@ def wipe_output(out, keep_venv):
 def crypto_secrets(gate, level_answers, master):
     """Slots for a crypto gate: every accepted answer combination plus master."""
     token = bytes.fromhex(level_answers["token"])
-    forms = [answers.accepted_forms(q) or [""] for q in gate.get("questions", [])]
+    forms = []
+    for q in gate.get("questions", []):
+        accepted = answers.accepted_forms(q)
+        if not accepted and q.get("kind", "free") != "free":
+            raise SystemExit("question %r accepts no answers" % q.get("id"))
+        forms.append(accepted or [""])
     combos = itertools.product(*forms) if forms else [()]
     secrets_list = []
     for combo in combos:

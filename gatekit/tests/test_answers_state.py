@@ -3,7 +3,7 @@ import shutil
 import tempfile
 import unittest
 
-from gatekit import answers, crypto, packs, state as st
+from gatekit import answers, crypto, manifest as mf, packs, state as st
 
 
 class AnswerTests(unittest.TestCase):
@@ -15,6 +15,15 @@ class AnswerTests(unittest.TestCase):
         for text in ("Omega_m", " OM ", "Ω m", "omega-m"):
             self.assertTrue(answers.matches(q, text), text)
         self.assertFalse(answers.matches(q, "H0"))
+
+    def test_keyword_contains(self):
+        q = {"kind": "keyword", "accept": ["sun", "the J/psi meson"],
+             "contains": ["meson", "psi", "charmonium"]}
+        for text in ("The J/ψ(1S) meson", "J/psi particle", "charmonium", "Sun"):
+            self.assertTrue(answers.matches(q, text), text)
+        self.assertFalse(answers.matches(q, "pion"))
+        self.assertEqual(answers.accepted_forms(q),
+                         ["charmonium", "meson", "psi", "sun"])
 
     def test_choice(self):
         q = {"kind": "choice", "accept": ["b"]}
@@ -59,6 +68,34 @@ class AnswerTests(unittest.TestCase):
         wrong_token = crypto.crypto_slot_secret(crypto.canonical_token("other"), "0.2")
         with self.assertRaises(crypto.PackError):
             packs.open_pack(pack, [wrong_token])
+
+
+class ManifestRuleTests(unittest.TestCase):
+    @staticmethod
+    def manifest(**question):
+        question = dict({"id": "q", "prompt": "Which?", "kind": "keyword",
+                         "accept": ["a"]}, **question)
+        return {"exercise": "x", "title": "X", "levels": [
+            {"id": 0, "gate": {"type": "crypto", "questions": [question]}}]}
+
+    def test_contains_rules(self):
+        mf.validate(self.manifest(contains=["psi"]))
+        for bad in ([""], ["-"], "psi", [1]):
+            with self.assertRaises(mf.ManifestError, msg=repr(bad)):
+                mf.validate(self.manifest(contains=bad))
+        with self.assertRaises(mf.ManifestError):
+            mf.validate(self.manifest(kind="choice", contains=["a"]))
+
+    def test_prompt_endings(self):
+        for good in ("Which?", "Answer:  ", "Pick one (a-d)"):
+            mf.validate(self.manifest(prompt=good))
+        for bad in ("Which.", "Pick one (a-d.)", "Pick one (e.g. a.)"):
+            with self.assertRaises(mf.ManifestError, msg=bad):
+                mf.validate(self.manifest(prompt=bad))
+        bad = self.manifest()
+        bad["levels"][0]["gate"]["reflection"] = "Why."
+        with self.assertRaises(mf.ManifestError):
+            mf.validate(bad)
 
 
 class StateTests(unittest.TestCase):

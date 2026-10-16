@@ -6,8 +6,8 @@ Version 1 (2026-10-13). Every build task works from this file. `docs/05-data-exp
 
 | L | Title | Min | Persona | Gate type | Machine check (`.gatekit/exploretool/checks/levelN.py`, venv python) | Graded question | Reflection (logged) |
 |---|---|---|---|---|---|---|---|
-| 0 | Plan | 8 | collaborator | crypto-reflection | `PLAN.md` complete (section 5); ≥ 1 commit since `start`; `PLAN.md` clean | — | "One thing in the agent's plan you changed, and why." |
-| 1 | Build the prototype | 18 | collaborator | crypto | tool runs (section 4) on the `PLAN.md` dataset; ≥ 2 commits since the L0 unlock; `explorer/` and `PLAN.md` clean | keyword, worded for the `PLAN.md` dataset via `text_from: explore.browser_question` (pulsars: what is where the known pulsars crowd in XX, YY, ZZ; dimuons: which particle makes the band near 3.1 GeV), with a dataset `wrong_hint`; static fallback points at `BRIEF.md`; accept `sun`, `solar system`, `earth`, `us`, `solar neighbourhood`, `jpsi`, `j/psi`, `jψ`, `psi` | "One feature the group would add." |
+| 0 | Plan | 8 | collaborator | crypto-reflection | `PLAN.md` complete (section 5); ≥ 1 commit since `start`; `PLAN.md` clean | — | "One thing in the agent's plan you changed, and why:" |
+| 1 | Build the prototype | 18 | collaborator | crypto | tool runs (section 4) on the `PLAN.md` dataset; ≥ 2 commits since the L0 unlock; `explorer/` and `PLAN.md` clean | keyword, worded for the `PLAN.md` dataset via `text_from: explore.browser_question` (pulsars: what is where the known pulsars crowd in XX, YY, ZZ; dimuons: which particle makes the band near 3.1 GeV), with a dataset `wrong_hint`; static fallback points at `BRIEF.md`; accept `sun`, `solar system`, `earth`, `us`, `solar neighbourhood` (and their article forms), plus `contains: ["meson", "psi", "charmonium"]`, so any answer containing one of those words (e.g. "J/ψ meson") canonicalises to that term | "One feature the group would add:" |
 | 2 | Test | 8 | collaborator | crypto-reflection | `TESTS.md` ≥ 3 bullets under "Our list" and non-template text under "The agent's plan"; pytest collects ≥ 5 tests, all pass; ≥ 1 test module imports `explorer`; ≥ 1 commit since the L1 unlock; `explorer/`, `tests/`, `TESTS.md` clean | — | "What did the agent's plan cover that yours didn't, or the reverse?" |
 | 3 | Review | 8 | collaborator | crypto-reflection (last level; marks complete) | `REVIEW.md` ≥ 2 guess bullets, ≥ 3 table rows with decision in {FIX, ACCEPT, REJECT} and non-empty reason; pytest ≥ 5 pass; the section-4 run checks pass on the `PLAN.md` dataset; ≥ 1 commit since the L2 unlock; `explorer/`, `tests/`, `REVIEW.md` clean | — | "What did the review find that the tests didn't?" |
 
@@ -114,11 +114,11 @@ status:
  "levels": [
   {"id": 0, "title": "Plan", "persona": "collaborator", "target_minutes": 8,
    "gate": {"type": "crypto-reflection", "check": "checks/level0.py", "python": "venv", "timeout": 120,
-            "questions": [], "reflection": "One thing in the agent's plan you changed, and why.",
+            "questions": [], "reflection": "One thing in the agent's plan you changed, and why:",
             "post_unlock": "explore.record_head"}},
   {"id": 1, "title": "Build the prototype", "persona": "collaborator", "target_minutes": 18,
    "gate": {"type": "crypto", "check": "checks/level1.py", "python": "venv", "timeout": 300,
-            "questions": [{"id": "browser", "kind": "keyword", "prompt": "...", "accept": [...]}],
+            "questions": [{"id": "browser", "kind": "keyword", "prompt": "...", "accept": [...], "contains": [...]}],
             "reflection": "...", "post_unlock": "explore.record_head"}},
   {"id": 2, "title": "Test", "persona": "collaborator", "target_minutes": 8,
    "files": {"TESTS.md": "TESTS.md"},

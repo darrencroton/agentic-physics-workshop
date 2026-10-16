@@ -71,11 +71,21 @@ def canon_numeric_log(text, decimals):
     return _fmt(math.log10(value), decimals)
 
 
+def canon_keyword_contains(question, text):
+    """Canonical keyword, or the first `contains` term found within it."""
+    canon = canon_keyword(text)
+    for term in question.get("contains", []):
+        term_canon = canon_keyword(term)
+        if term_canon in canon:
+            return term_canon
+    return canon
+
+
 def canonicalise(question, text):
     """Canonical form of `text` for the question dict, or None for free text."""
     kind = question.get("kind", "free")
     if kind == "keyword":
-        return canon_keyword(text)
+        return canon_keyword_contains(question, text)
     if kind == "choice":
         return canon_choice(text)
     if kind == "numeric":
@@ -99,7 +109,11 @@ def accepted_forms(question):
     """All canonical answer strings a question accepts (empty for free)."""
     kind = question.get("kind", "free")
     if kind == "keyword":
-        return sorted({canon_keyword(s) for s in question["accept"]})
+        forms = {canon_keyword_contains(question, s)
+                 for s in question.get("accept", [])}
+        forms.update(canon_keyword_contains(question, s)
+                     for s in question.get("contains", []))
+        return sorted(forms)
     if kind == "choice":
         return sorted({canon_choice(s) for s in question["accept"]})
     if kind == "numeric":
