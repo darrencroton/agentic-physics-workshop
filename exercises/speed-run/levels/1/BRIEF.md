@@ -12,11 +12,11 @@ Vectorisation trades time for memory: an N × N array of distances is fast to co
 
 ## What to do
 
-1. Ask Claude to rewrite `count_pairs` in `paircount/fast.py` with numpy, keeping the same arithmetic as the reference: `sqrt` of the sum of squares in float64, half-open bins, pairs with i < j.
-2. **Before any run at N = 20000,** the Sceptic asks Claude for a memory estimate with the arithmetic: how many bytes is one temporary array, and how many temporaries are alive at once? Check it yourselves. Write the estimate in `LOG.md`.
+1. Ask the agent to rewrite `count_pairs` in `paircount/fast.py` with numpy, keeping the same arithmetic as the reference: `sqrt` of the sum of squares in float64, half-open bins, pairs with i < j.
+2. **Before any run at N = 20000,** the Sceptic asks the agent for a memory estimate with the arithmetic: how many bytes is one temporary array, and how many temporaries are alive at once? Check it yourselves. Write the estimate in `LOG.md`.
 3. Check small first: `make check N=2000`.
 4. Then the real run: `make bench N=20000 IMPL=fast`. It must pass `exact`, take under 10 s and stay under 1.5 GB. (The untouched pure-Python version takes about 20 s here, so the limit forces a real change.)
-5. If the harness kills the run, that is the lesson. Compare what it measured with your estimate, and ask Claude to process the points in blocks of rows (**chunking**).
+5. If the harness kills the run, that is the lesson. Compare what it measured with your estimate, and ask the agent to process the points in blocks of rows (**chunking**).
 
 ## What to watch for
 

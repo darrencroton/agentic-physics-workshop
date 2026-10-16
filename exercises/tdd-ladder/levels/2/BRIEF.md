@@ -4,15 +4,15 @@
 
 ## Where we are
 
-At Level 1 you asked for TDD, and probably saw tests and code arrive together, all green, with expected numbers that came from Claude. A test that never failed, with numbers nobody checked, proves little. The deeper problem comes earlier: nobody had decided what the function should do, so every awkward case was settled by default.
+At Level 1 you asked for TDD, and probably saw tests and code arrive together, all green, with expected numbers that came from the agent. A test that never failed, with numbers nobody checked, proves little. The deeper problem comes earlier: nobody had decided what the function should do, so every awkward case was settled by default.
 
-This level is about **specification**: writing the decisions down *before* any test or code. Claude switches to `coach` mode and interviews you. It asks questions but never suggests answers, because the decisions have to be yours.
+This level is about **specification**: writing the decisions down *before* any test or code. The agent switches to `coach` mode and interviews you. It asks questions but never suggests answers, because the decisions have to be yours.
 
-**No code, no tests.** Claude may only write `SPEC.md` (and `LOG.md`). Please do not touch `src/` or `tests/` during this level, because the gate checks that they are unchanged.
+**No code, no tests.** The agent may only write `SPEC.md` (and `LOG.md`). Please do not touch `src/` or `tests/` during this level, because the gate checks that they are unchanged.
 
 ## What to do
 
-1. In the Claude window, ask Claude to interview you. A good prompt:
+1. In the agent window, ask the agent to interview you. A good prompt:
 
    > We need to implement binned_weighted_mean(x, y, sigma, edges). Interview us about every behavioural decision: inputs, edge cases, conventions, errors, outputs. Ask about the hard parts we may not have considered. Don't suggest answers. Then write SPEC.md with numbered decisions.
 
@@ -23,8 +23,8 @@ This level is about **specification**: writing the decisions down *before* any t
 ## What to watch for
 
 - One person deciding everything.
-- Claude steering your answers instead of asking.
-- Questions you did not think of until Claude asked.
+- The agent steering your answers instead of asking.
+- Questions you did not think of until the agent asked.
 - Do you all agree on what the error bar means? What does the person reading the plot assume?
 
 ## Opening the gate

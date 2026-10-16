@@ -4,7 +4,7 @@
 
 ## Where we are
 
-At Level 2 you cut the work with a cell list or a tree, and you declared what "correct" means. The race is now about how much faster you can go without losing that. Claude becomes a normal, evidence-first collaborator: it proposes and implements freely, runs the harness after every change, and commits only verified improvements.
+At Level 2 you cut the work with a cell list or a tree, and you declared what "correct" means. The race is now about how much faster you can go without losing that. The agent becomes a normal, evidence-first collaborator: it proposes and implements freely, runs the harness after every change, and commits only verified improvements.
 
 ## Race rules
 
@@ -22,7 +22,7 @@ At Level 2 you cut the work with a cell list or a tree, and you declared what "c
 
 ## An optional route: C
 
-Compiled code is where beating the calibration by a large factor happens. Claude can write a C function and call it from Python with `ctypes`. A suggested shape:
+Compiled code is where beating the calibration by a large factor happens. The agent can write a C function and call it from Python with `ctypes`. A suggested shape:
 
 ```c
 void count(const double* pos, long n, const double* edges, int nbins, long long* out);
@@ -37,7 +37,7 @@ compiled with `clang -O2 -shared -ffp-contract=off` into `paircount/`. Use 64-bi
 - A C entry that "should" be exact but fails `exact`. Show the diff table. Apple's `clang` may fuse `dx*dx + dy*dy + dz*dz` into fused multiply-adds by default, which changes rounding. `-ffp-contract=off` switches that off; or declare `toleranced`, honestly.
 - A speed-up with no `make bench` output.
 - Running `./race submit` with an uncommitted change, or switching division at the last minute without writing down why.
-- Two Claude processes or background jobs distorting a measurement.
+- Two agent processes or background jobs distorting a measurement.
 
 ## Opening the gate
 

@@ -422,3 +422,40 @@ Not verified: an interactive session with the `/` menu (the walkthrough's sectio
 External panel, round 1 (Codex gpt-6.1-sol and Claude Opus 5.5, high effort, read-only, staggered parallel launches through the orchestrator; every finding checked in the main session before acting). Both said REVISE. Fixed: `test-code` step 4 told Claude to break the code and revert for every new test, which contradicted the Level 2 persona ("no deliberate-bug experiments unless the group asks") and, with a whole-tree revert, could wipe uncommitted tests, so it now offers one small break and undoes that one edit by hand; the `skills/README.md` row for `test-code` still carried the rejected "must-not-break list, five to eight tests" choreography; the `style-code` audit told Claude to run a configured formatter, which can rewrite files, so it now asks for check-only mode; a `test-code` line discouraging "the same path twice with different numbers" would discourage scale and precision tests, deleted; "a browser, a GPU, a remote service" as things tests cannot cover became things the tests here cannot exercise; the four "Make it stick" sections repeated the README's installation text into every invocation (and, for `review-code`, into the forked reviewer's prompt), deleted and their two distinct tips moved to the README; `review-code`'s "After the review" section was addressed to the main session, which never sees a forked skill's body, deleted (the README's session walk-through keeps the triage advice); a duplicated test-naming line in `style-code`, deleted; the playbook's review prompt had been rewritten rather than extended, and its build prompt differed from the Level 1 brief, both aligned with the briefs; the decisions entry claimed a template rule in `test-code` that only `plan-code` has. Two structural fixes: the Level 3 persona now has Claude pass the base, the plan and "three to five findings" as the skill's arguments, because the fork does not see the persona, and that is what keeps a short honest review from failing the three-row gate; and the build now copies only the skills an exercise's manifest lists, because `test-code` shipped model-invocable into the TDD Ladder could answer "use TDD" for the literal persona and hide the Level 1 lesson. Rejected: dropping the skill line from the participant `CLAUDE.md` because the personas repeat it (the repo duplicates every standing rule in both places on purpose).
 
 Round 2 (same panel, continuations of the round-1 sessions): every round-1 item confirmed fixed. Two one-line defects found and fixed: the `test-code` description still said "see every new test fail once", contradicting the revised step 4, and a round-1 sentence in this entry still described the old mechanism for the Level 3 finding count. Bloat removed: a README bullet that repeated the session walk-through. Codex kept one item open: a review with fewer than three findings cannot satisfy the three-row Level 3 gate; the gate is unchanged (it is the exercise's, and ACCEPT and REJECT rows count), and the Level 3 brief's "If it goes differently" now says to ask for the next most important findings, low severity included. No further round: neither reviewer reported a new serious finding, and Claude Opus said the remaining edits needed no re-review.
+
+## Other agent harnesses (2026-10-16)
+
+Some participants will bring their own agent (Codex, Cursor, Copilot, Antigravity, OpenCode). The full brief, with the findings, the rejected options and the review log, is `docs/HARNESS-PORTABILITY.md`; this entry records what was built and what was verified. Claude Code stays the recommended, unchanged path.
+
+### Design
+
+| Area | Decision |
+|---|---|
+| Instruction file | `workshop/AGENTS.workshop.md` (renamed from `CLAUDE.workshop.md`) is written to `AGENTS.md`: the canonical, harness-neutral rules, levels and "Never" list. |
+| `CLAUDE.md` | Rendered by the build from the shared `gatekit/agents/CLAUDE.md`: an `@AGENTS.md` import plus a short Claude Code section (model line with `__MODEL_NAME__` from `models.default`, the PERSONA block, the Skill-tool rule). |
+| `OTHER-AGENTS.md` | One shared page, `gatekit/agents/OTHER-AGENTS.md`, copied only when the manifest sets `"other_agents": true`. Explorer only. TDD Ladder and Speed Run are Claude Code only (their lessons arrive by hook) and say so in their walkthroughs. |
+| Hooks | Not ported and the hook syntax is unchanged. Elsewhere the written rules in `AGENTS.md` are the fallback, by design (trust, not a fortress). `OTHER-AGENTS.md` carries an opt-out line for harnesses that import Claude Code hooks. |
+| Skills | Stay in `.claude/skills/` only, with a read-the-file fallback; Explorer's `AGENTS.md` allows reading a shipped `SKILL.md` when a prompt names the skill. |
+| Level changes | No PERSONA arrives on other harnesses; `OTHER-AGENTS.md` asks the group to have the agent run `./gate brief` at the start and after each unlock. Not in `AGENTS.md`, because Claude Code's subagents read it and never get a PERSONA, so a rule there would change the Claude path. |
+| Wording | "The agent" replaces "Claude" in participant text and in Explorer's walkthrough; Claude Code keys and commands appear in brackets; "Claude Code" is kept where it names the product. The TDD Ladder and Speed Run walkthroughs keep "Claude": they describe a Claude Code run. |
+| Build and gatekit | `tools/build.py` writes `AGENTS.md`, renders `CLAUDE.md`, copies `OTHER-AGENTS.md`, and fails if `workshop/AGENTS.workshop.md` is missing. `manifest.py` accepts an optional boolean `other_agents` and rejects other types. `hooklib.FROZEN_FILES` gained `AGENTS.md` and `OTHER-AGENTS.md`. Preflight checks that `AGENTS.md` and `CLAUDE.md` exist. |
+| Documents | `gatekit/README.md` documents the instruction files and `other_agents`, and section 11 now says that fixed success lines make the crypto gates a casual-reading barrier only (Explorer's packs hold nothing secret). Walkthroughs and the top-level README gained one line each; Explorer's walkthrough has a "Groups on other agents" subsection. |
+
+### Deviations from `docs/`
+
+None of `docs/01`–`05` anticipated other harnesses. The participant instruction file is now `AGENTS.md` (with a thin `CLAUDE.md`), not `CLAUDE.md`; where `docs/` or `BUILD-SPEC.md` say the participant file is `CLAUDE.md` or `CLAUDE.workshop.md`, `AGENTS.md` and `AGENTS.workshop.md` win. `BUILD-SPEC.md` was updated to match.
+
+### Verified facts
+
+| Item | Finding | Source and version |
+|---|---|---|
+| Claude Code and `AGENTS.md` | Read only when no `CLAUDE.md` exists (v2.1.277 or later). | <https://code.claude.com/docs/en/memory>, installed Claude Code 2.1.301 |
+| The `@AGENTS.md` import | The documented bridge; it never loads `AGENTS.md` twice. | Same |
+| `.agents/skills` | Claude Code does not read it (it reads `.claude/skills`). | Same |
+| Copilot CLI hooks | `copilot help config` documents `disableAllHooks` (default false); this is the opt-out in `OTHER-AGENTS.md`. | Copilot CLI 1.0.91, run locally |
+| Cursor third-party import | The setting is named "Include Third-Party Plugins, Skills, and Other Configs". Documented, untested: Cursor is not installed here. | <https://cursor.com/docs/reference/third-party-hooks>, docs only |
+| Other harnesses | Skills folders, plan or ask modes and `AGENTS.md` support are from the official docs read 2026-10-16. Untested. | Official docs, 2026-10-16 |
+
+### Rehearsals and review
+
+No rehearsal on another harness yet; the owner will rehearse. Until then "supported" means accommodated with documented fallbacks, and the Explorer timings are calibrated on Claude Code with Sonnet only. Review: two rounds on the brief with Codex gpt-6.1-sol, then an independent panel on the implementation (Codex gpt-6.1-sol and Claude Fable 5.1, high effort, read-only; both APPROVE WITH CHANGES, no serious issues). Every finding was checked and fixed; see `docs/HARNESS-PORTABILITY.md` section 9.

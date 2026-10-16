@@ -10,7 +10,7 @@ Keep this short and honest. Write as you go. This feeds the show-and-tell.
 
 ### The "caught it" moment
 
-### Decisions Claude made for us
+### Decisions the agent made for us
 
 ## Level 1: "Use TDD, please"
 
@@ -20,7 +20,7 @@ Keep this short and honest. Write as you go. This feeds the show-and-tell.
 
 ### The "caught it" moment
 
-### Decisions Claude made for us
+### Decisions the agent made for us
 
 ## Level 2: Decide before you test
 
@@ -30,7 +30,7 @@ Keep this short and honest. Write as you go. This feeds the show-and-tell.
 
 ### The "caught it" moment
 
-### Decisions Claude made for us
+### Decisions the agent made for us
 
 ## Level 3: Red, green, refactor, for real
 
@@ -40,7 +40,7 @@ Keep this short and honest. Write as you go. This feeds the show-and-tell.
 
 ### The "caught it" moment
 
-### Decisions Claude made for us
+### Decisions the agent made for us
 
 ## Level 4: Think like a physicist
 
@@ -50,7 +50,7 @@ Keep this short and honest. Write as you go. This feeds the show-and-tell.
 
 ### The "caught it" moment
 
-### Decisions Claude made for us
+### Decisions the agent made for us
 
 ## Level 5: Test the tests
 
@@ -60,7 +60,7 @@ Keep this short and honest. Write as you go. This feeds the show-and-tell.
 
 ### The "caught it" moment
 
-### Decisions Claude made for us
+### Decisions the agent made for us
 
 ## Reflections
 

@@ -66,7 +66,7 @@ def count_spec_decisions(text):
 def spec_written_and_code_untouched(root, state, manifest):
     path = os.path.join(root, "SPEC.md")
     if not os.path.exists(path):
-        return False, ("SPEC.md does not exist yet. Ask Claude to write it from your decisions, "
+        return False, ("SPEC.md does not exist yet. Ask the agent to write it from your decisions, "
                        "with numbered items (1. ..., 2. ...).")
     with open(path, encoding="utf-8") as fh:
         count = count_spec_decisions(fh.read())

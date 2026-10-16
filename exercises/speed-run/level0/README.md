@@ -25,19 +25,21 @@ The big idea: **measure first, and decide what "correct" means before you see an
 - **Scribe:** keeps `LOG.md`: prompts that worked, prompts that failed, the "caught it" moment.
 - **Coach:** your leader. Asks questions rather than giving answers, and steps in on tooling problems.
 
-Hands off the code: humans read, think and type prompts. All code changes go through Claude.
+Hands off the code: humans read, think and type prompts. All code changes go through the agent.
 
 ## Two windows
 
-1. **Claude window (large):** Claude Code runs here. Only the Driver types in it.
-2. **Gate terminal:** a separate terminal for the humans. `./gate unlock`, `./gate hint`, `./race submit` and `./race install-solution` are typed here. Claude never types there.
-3. **Plan mode:** the Claude session starts in plan mode (read-only planning). Press `Shift+Tab` until it says plan mode is off before asking for runs or edits.
+This exercise needs Claude Code.
+
+1. **Agent window (large):** Claude Code runs here. Only the Driver types in it.
+2. **Gate terminal:** a separate terminal for the humans. `./gate unlock`, `./gate hint`, `./race submit` and `./race install-solution` are typed here. The agent never types there.
+3. **Plan mode:** the agent session starts in plan mode (read-only planning). Press `Shift+Tab` until it says plan mode is off before asking for runs or edits.
 
 ## Level 0: Measure before you touch anything (about 7 minutes)
 
-Find out how slow the reference is, and where the time goes, before changing anything. Claude does the runs; you read the numbers.
+Find out how slow the reference is, and where the time goes, before changing anything. The agent does the runs; you read the numbers.
 
-1. In Claude: `make bench N=500 IMPL=reference`, then `N=1000`, then `N=2000`. Each run is timed and checked (against the golden counts at N = 2000, and against the reference itself for smaller N).
+1. In the agent window: `make bench N=500 IMPL=reference`, then `N=1000`, then `N=2000`. Each run is timed and checked (against the golden counts at N = 2000, and against the reference itself for smaller N).
 2. `make profile` runs the reference at N = 1000 under a profiler. Find the call that is made most often.
 3. `make fit` fits time against N and predicts the runtime at N = 200,000. Write down the exponent and the predicted time. The reference takes about 0.2 s at N = 2000 and roughly an hour at N = 200,000 on a laptop; the group measures the real number.
 4. In the gate terminal, run `./gate unlock`. It asks how many unique pairs, and so `math.sqrt` calls, the reference evaluates at N = 1000, then one reflection question: the predicted runtime at 200,000 and how you got it.
@@ -45,14 +47,14 @@ Find out how slow the reference is, and where the time goes, before changing any
 ## What to watch for
 
 - Haiku will want to optimise straight away ("I can vectorise this!"). At this level the guard refuses edits to `fast.py`. When that happens, read the refusal aloud: it is on purpose.
-- Any number Claude quotes should have a command and its output next to it.
+- Any number the agent quotes should have a command and its output next to it.
 - When a run fails or is stopped, `make` adds its own `make: *** [bench] Error 1` line. That is not a crash: the harness output above it says what happened.
 
 ## Commands
 
 | Command | Where | What it does |
 |---|---|---|
-| `make bench N=2000 IMPL=reference` | Claude or gate terminal | Times `reference` or `fast` on N points, checks the counts, records the run |
+| `make bench N=2000 IMPL=reference` | Agent or gate terminal | Times `reference` or `fast` on N points, checks the counts, records the run |
 | `make check N=2000` | Either | Correctness only; prints a per-bin diff table if counts differ |
 | `make profile` | Either | Profiles the reference at N = 1000 |
 | `make fit` | Either | Fits the scaling and predicts the time at N = 200,000 |

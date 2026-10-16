@@ -1,16 +1,16 @@
 ---
 name: style-code
-description: Coding guidelines for small scientific Python tools, covering structure, names, comments, errors and numbers. Use when asked to write or change code following the style-code skill, or run /style-code to audit changed files without editing them.
+description: Coding guidelines for small scientific Python tools, covering structure, names, comments, errors and numbers. Use when asked to write or change code following the style-code skill, or to audit changed files for style without editing them.
 ---
 
 # Write code a colleague can read
 
-Style exists so that someone else, or you in six months, can read the code, trust it and change it. The project's own conventions win: `CLAUDE.md`, a style guide, a formatter or linter configuration, and the surrounding code. Where the project has no convention, use these.
+Style exists so that someone else, or you in six months, can read the code, trust it and change it. The project's own conventions win: the project's agent instructions file (`AGENTS.md` or `CLAUDE.md`), a style guide, a formatter or linter configuration, and the surrounding code. Where the project has no convention, use these.
 
 ## Two ways to use it
 
 - **While writing:** name the skill in the request ("following the style-code skill") and apply the guidelines as the code is written.
-- **As an audit:** `/style-code [paths]` checks the named files, or the files changed since the last commit, and reports. It changes nothing.
+- **As an audit:** when asked to audit named files, check those; otherwise check the files changed since the last commit. Report; change nothing.
 
 ## Guidelines
 

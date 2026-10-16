@@ -2,7 +2,7 @@
   "tiers": [
     {
       "unlock_after_minutes": 0,
-      "text": "Ask Claude to attack your code, not just agree with it."
+      "text": "Ask the agent to attack your code, not just agree with it."
     },
     {
       "unlock_after_minutes": 5,
@@ -10,7 +10,7 @@
     },
     {
       "unlock_after_minutes": 10,
-      "text": "Add a `## Mutation report` section to LOG.md listing each mutant, killed or survived, and whether a survivor is a real gap or an equivalent mutant. Then ask Claude which tests are redundant and pick one to delete for the reflection."
+      "text": "Add a `## Mutation report` section to LOG.md listing each mutant, killed or survived, and whether a survivor is a real gap or an equivalent mutant. Then ask the agent which tests are redundant and pick one to delete for the reflection."
     }
   ]
 }

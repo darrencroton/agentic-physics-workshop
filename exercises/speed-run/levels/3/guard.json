@@ -9,5 +9,5 @@
     "race.toml",
     "bench/**"
   ],
-  "message": "At this level Claude may edit files under paircount/ (fast.py, C source and the compiled library) and LOG.md. reference.py, the package __init__.py, race.toml and bench/ are frozen so that every score is measured the same way."
+  "message": "At this level the agent may edit files under paircount/ (fast.py, C source and the compiled library) and LOG.md. reference.py, the package __init__.py, race.toml and bench/ are frozen so that every score is measured the same way."
 }

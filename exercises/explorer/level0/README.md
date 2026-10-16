@@ -2,11 +2,11 @@
 
 ## The story
 
-Your group has a dataset and a question you can't answer from a table: **what does it look like?** You want a quick tool that lets you pick any columns as the axes of a 2D or 3D plot, colour the points by another column, and explore in a browser: rotate, zoom, hover. Nothing does exactly this for your data, so Claude will build it.
+Your group has a dataset and a question you can't answer from a table: **what does it look like?** You want a quick tool that lets you pick any columns as the axes of a 2D or 3D plot, colour the points by another column, and explore in a browser: rotate, zoom, hover. Nothing does exactly this for your data, so the agent will build it.
 
 It's a prototype: quick and dirty is fine. But you'll build it the way you'd want a careful student to: **plan it, build it in checked steps, test it, and have it reviewed**, committing each step that works. Each stage is a gate.
 
-The big idea: **a good agentic workflow is a habit, not a technique.** `PLAYBOOK.md` is that habit on one page. Every level uses one part of it, and it's yours to take home. The four skills in `.claude/skills/` (plan-code, style-code, test-code and review-code) are the same habit as Claude Code skills, used at each level and also yours to take home.
+The big idea: **a good agentic workflow is a habit, not a technique.** `PLAYBOOK.md` is that habit on one page. Every level uses one part of it, and it's yours to take home. The four skills in `.claude/skills/` (plan-code, style-code, test-code and review-code) are the same habit as agent skills, used at each level and also yours to take home.
 
 ## Your dataset
 
@@ -71,45 +71,47 @@ Axis titles show the column name and unit. Hovering a point shows every numeric 
 
 ## Roles
 
-- **Driver:** types the prompts into Claude Code. Rotates at each gate.
+- **Driver:** types the prompts into the agent. Rotates at each gate.
 - **Navigator:** owns the plan and the scope, and watches the clock. Asks "is it in the plan?"
 - **Sceptic:** owns the acceptance criteria and the evidence. Nothing is committed until the Sceptic has seen the command and its output and, once the page exists, someone has looked at it.
-- **Scribe:** keeps `LOG.md`: prompts that worked, prompts that failed, the "caught it" moment, the decisions Claude made for you.
+- **Scribe:** keeps `LOG.md`: prompts that worked, prompts that failed, the "caught it" moment, the decisions the agent made for you.
 - **Coach:** your leader. Asks questions rather than giving answers, and steps in on tooling problems.
 
-Hands off the code: humans read, look and decide. All code changes, and all commits, go through Claude.
+Hands off the code: humans read, look and decide. All code changes, and all commits, go through the agent.
 
 ## Two windows, and a browser
 
-1. **Claude window (large):** Claude Code runs here. Only the Driver types in it.
-2. **Gate terminal:** a separate terminal for the humans. `./gate unlock` and `./gate hint` are typed here, and it's where you run `make open`, `make list` and `make test` yourselves. Claude never types there.
-3. **Browser:** `make open` shows the page. Claude can't see it; you can.
+1. **Agent window (large):** the agent (Claude Code) runs here. Only the Driver types in it.
+2. **Gate terminal:** a separate terminal for the humans. `./gate unlock` and `./gate hint` are typed here, and it's where you run `make open`, `make list` and `make test` yourselves. The agent never types there.
+3. **Browser:** `make open` shows the page. The agent can't see it; you can.
 
-The Claude session starts in **plan mode**: Claude reads and proposes, but changes nothing. That is where Level 0 happens. `Shift+Tab` cycles the modes, and the line under the prompt shows which one is on. When you approve a plan, Claude leaves plan mode and starts on it.
+Not using Claude Code? Read `OTHER-AGENTS.md` first.
+
+The agent session starts in **plan mode**: the agent reads and proposes, but changes nothing. That is where Level 0 happens. (`Shift+Tab` cycles the modes in Claude Code; the line under the prompt shows which one is on.) When you approve a plan, the agent leaves plan mode and starts on it.
 
 ## Level 0: Plan (about 8 minutes)
 
 No code yet. Agree a plan, write it down, commit it.
 
 1. Read this README together.
-2. In Claude (plan mode), the playbook's *Understand* and *Plan* prompts in one go:
+2. In the agent window (plan mode), the playbook's *Understand* and *Plan* prompts in one go:
 
    > "Read README.md, data/README.md and the column file for our dataset. Say what the data contains, which columns have missing values and how many, and anything unclear. Then, using the plan-code skill, propose a plan: the goal, the decisions it depends on, the design, two build steps that each end in something we can run and look at, acceptance criteria we can check, and what's out of scope. Ask me about any decision you're unsure of. Don't write any code."
 
    If your dataset has no missing values, the decision still matters: the tool must handle any CSV, and at Level 2 a test with a small made-up file can check it.
-3. Read it. Argue about it. Change it. The four decisions in `PLAN.md` are the group's, not Claude's. The Sceptic owns the acceptance criteria (at least three, each something you can check by eye or by test). The Navigator cuts anything beyond the interface above.
-4. Approve the plan and ask Claude to write it into `PLAN.md`, keeping the template's headings and the `Dataset:` line exactly as `Dataset: data/pulsars.csv` or `Dataset: data/dimuons.csv`. Then ask Claude to commit it.
+3. Read it. Argue about it. Change it. The four decisions in `PLAN.md` are the group's, not the agent's. The Sceptic owns the acceptance criteria (at least three, each something you can check by eye or by test). The Navigator cuts anything beyond the interface above.
+4. Approve the plan and ask the agent to write it into `PLAN.md`, keeping the template's headings and the `Dataset:` line exactly as `Dataset: data/pulsars.csv` or `Dataset: data/dimuons.csv`. Then ask the agent to commit it.
 5. `./gate check` names the first thing still missing. When it passes, run `./gate unlock` in the gate terminal.
 
 ## If it goes differently
 
-- The plan has more than two steps: ask Claude to merge them into two, each ending in something you can run and look at. The split that works: the command line, `--list` and `data.json` first; then the page, with your decisions and the initial view built in. Two bigger steps get you to the page sooner, and the gate checks it.
-- Claude asks something nobody knows: pick a reasonable answer, write it in `PLAN.md` and move on.
-- Claude tries to write code: at this level the guard refuses everything except `PLAN.md` and `LOG.md`. Read the refusal aloud: it's on purpose.
+- The plan has more than two steps: ask the agent to merge them into two, each ending in something you can run and look at. The split that works: the command line, `--list` and `data.json` first; then the page, with your decisions and the initial view built in. Two bigger steps get you to the page sooner, and the gate checks it.
+- The agent asks something nobody knows: pick a reasonable answer, write it in `PLAN.md` and move on.
+- The agent tries to write code: at this level the guard refuses everything except `PLAN.md` and `LOG.md`. Read the refusal aloud: it's on purpose.
 
 ## What to watch for
 
-- Decisions Claude makes silently: dropping rows, clipping logs, which columns the page opens on. Each one belongs in `PLAN.md`, decided by you.
+- Decisions the agent makes silently: dropping rows, clipping logs, which columns the page opens on. Each one belongs in `PLAN.md`, decided by you.
 - A plan bigger than the job: class hierarchies, config systems, a build step for the JavaScript. It's a prototype.
 - A step that ends in nothing you can see, such as "set up the package". Each step should end in a command you can run.
 
@@ -117,7 +119,7 @@ No code yet. Agree a plan, write it down, commit it.
 
 `./gate check` needs every section of `PLAN.md` filled in: the four decisions answered, two steps, at least three acceptance criteria, and at least 1 commit with `PLAN.md` committed.
 
-The reflection (logged): one thing in Claude's plan you changed, and why.
+The reflection (logged): one thing in the agent's plan you changed, and why.
 
 When the check passes: `./gate unlock`.
 
@@ -125,7 +127,7 @@ When the check passes: `./gate unlock`.
 
 | Command | Where | What it does |
 |---|---|---|
-| `make explore` | Claude or gate terminal | Runs the tool on the `PLAN.md` dataset into `out/` (once Claude has built it) |
+| `make explore` | Agent or gate terminal | Runs the tool on the `PLAN.md` dataset into `out/` (once the agent has built it) |
 | `make explore DATA=path/to/other.csv` | Either | Runs it on another CSV |
 | `make open` | Gate terminal | Opens `out/explorer.html` in your browser |
 | `make list` | Either | Lists the columns, units and missing counts (once the tool has `--list`) |

@@ -1,12 +1,12 @@
 # Tests
 
-## Our list (before asking Claude): things that must not break
+## Our list (before asking the agent): things that must not break
 - data.json must be strict JSON: no NaN or Infinity, missing values as null, every list the same length.
 - A selected column with missing values must drop only those rows, and the page must say how many.
 - The same --seed must give the same rows, and never more than --max-points.
 - A missing file must give a one-line error and a non-zero exit, never a traceback.
 
-## Claude's plan: each test, what it checks, and what it will not cover
+## The agent's plan: each test, what it checks, and what it will not cover
 1. Numeric detection without a sidecar: columns that parse as float are numeric, text columns become labels. Does not cover locale-specific number formats.
 2. Numeric detection with a sidecar: units, descriptions and log flags are carried through; the sidecar's `numeric` flag overrides detection. Does not cover sidecars naming columns absent from the CSV.
 3. Missing counts: empty fields become null and are counted per column; nan and inf also count as missing. Does not cover quoted fields containing only spaces.

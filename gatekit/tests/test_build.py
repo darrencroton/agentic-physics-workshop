@@ -7,7 +7,7 @@ import sys
 import tempfile
 import unittest
 
-from gatekit import crypto, ptyhelper, state as st
+from gatekit import crypto, manifest as mf, ptyhelper, state as st
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TOP = os.path.dirname(os.path.dirname(HERE))
@@ -48,7 +48,8 @@ class BuildAndUnlockTests(unittest.TestCase):
 
     def test_build_layout_and_determinism(self):
         self.build()
-        for rel in ("gate", "preflight", "CLAUDE.md", "README.md", ".claude/settings.json",
+        for rel in ("gate", "preflight", "AGENTS.md", "CLAUDE.md", "README.md",
+                    ".claude/settings.json",
                     ".claude/hooks/guard.py", ".gatekit/gatekit/cli.py", ".gatekit/manifest.json",
                     ".gatekit/levels/0/persona.txt", ".vault/level1.pack", ".vault/master.check",
                     ".workshop/state.json", ".workshop/levels/0/guard.json", ".gitignore",
@@ -81,6 +82,34 @@ class BuildAndUnlockTests(unittest.TestCase):
         from gatekit import packs
         self.assertEqual(packs.open_pack(first, [master]), packs.open_pack(second, [master]))
         self.assertNotEqual(first, second)
+
+    def test_agent_instruction_files(self):
+        self.build()
+        with open(os.path.join(self.out, "AGENTS.md")) as fh:
+            self.assertEqual(fh.read(), "# Fixture AGENTS\n")
+        with open(os.path.join(self.out, "CLAUDE.md")) as fh:
+            claude = fh.read()
+        self.assertTrue(claude.startswith("@AGENTS.md"))
+        self.assertIn("starts on Haiku", claude)
+        self.assertNotIn("__MODEL_NAME__", claude)
+        self.assertFalse(os.path.exists(os.path.join(self.out, "OTHER-AGENTS.md")))
+        self.assertFalse(os.path.exists(os.path.join(self.out, "agents")))
+        path = os.path.join(self.exercises, "fixture", "manifest.json")
+        with open(path) as fh:
+            manifest = json.load(fh)
+        manifest["other_agents"] = True
+        with open(path, "w") as fh:
+            json.dump(manifest, fh)
+        self.build()
+        self.assertTrue(os.path.isfile(os.path.join(self.out, "OTHER-AGENTS.md")))
+
+    def test_build_requires_agents_workshop_file(self):
+        os.unlink(os.path.join(self.exercises, "fixture", "workshop", "AGENTS.workshop.md"))
+        proc = subprocess.run([PY, BUILD, "fixture", "--master-passphrase-file", self.passfile,
+                               "--out", self.out, "--exercises-dir", self.exercises],
+                              capture_output=True, text=True)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("AGENTS.workshop.md", proc.stderr)
 
     def test_deny_entries_fall_back_to_tdd(self):
         spec = importlib.util.spec_from_file_location("build_tool", BUILD)
@@ -244,6 +273,21 @@ class BuildAndUnlockTests(unittest.TestCase):
         self.assertIn("[ok  ] guard denies", proc.stdout)
         self.assertIn("[ok  ] ./gate status runs", proc.stdout)
         self.assertIn("[ok  ] TTY detection", proc.stdout)
+
+
+class ManifestTests(unittest.TestCase):
+    def manifest(self, **extra):
+        data = {"exercise": "ex", "title": "Ex",
+                "levels": [{"id": 0, "title": "A", "persona": "coach"}]}
+        data.update(extra)
+        return data
+
+    def test_other_agents_must_be_boolean(self):
+        mf.validate(self.manifest())
+        mf.validate(self.manifest(other_agents=True))
+        for bad in ("yes", 1, None):
+            with self.assertRaises(mf.ManifestError):
+                mf.validate(self.manifest(other_agents=bad))
 
 
 if __name__ == "__main__":

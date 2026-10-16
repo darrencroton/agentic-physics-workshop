@@ -16,7 +16,7 @@
            "prompt": "How many client acceptance tests passed? (from ./tdd score)",
            "validator": "tdd.equals_last_acceptance_count"}
         ],
-        "reflection": "Name two decisions Claude made that nobody asked you about."
+        "reflection": "Name two decisions the agent made that nobody asked you about."
       }
     },
     {
@@ -26,7 +26,7 @@
         "condition": "tdd.new_attempt_and_score_at_level",
         "reflections": [
           "Did any test fail before the implementation existed? (y/n)",
-          "Where did the expected values come from? (a) human hand calculation, (b) Claude's mental arithmetic, (c) running the implementation, (d) independent reference."
+          "Where did the expected values come from? (a) human hand calculation, (b) the agent's mental arithmetic, (c) running the implementation, (d) independent reference."
         ],
         "post_unlock": "tdd.record_tree_hash"
       }

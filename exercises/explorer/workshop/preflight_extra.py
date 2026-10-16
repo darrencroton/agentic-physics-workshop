@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Exercise-specific preflight checks for Explorer (run in .venv).
 
-The tool itself (`python -m explorer`) is not checked: Claude builds it.
+The tool itself (`python -m explorer`) is not checked: the agent builds it.
 """
 
 import os
@@ -47,6 +47,7 @@ def check_plotlyjs():
 def check_files():
     for rel in DATASETS + ("data/pulsars.columns.json", "data/dimuons.columns.json",
                            "data/README.md", "PLAN.md", "PLAYBOOK.md",
+                           "OTHER-AGENTS.md",
                            "explorer/__init__.py", "tests/__init__.py",
                            ".claude/agents/reviewer.md",
                            ".claude/skills/plan-code/SKILL.md",

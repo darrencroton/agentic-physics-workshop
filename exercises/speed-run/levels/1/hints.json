@@ -2,7 +2,7 @@
   "tiers": [
     {
       "unlock_after_minutes": 0,
-      "text": "Estimate the memory before you run anything at 20,000. Ask Claude for the arithmetic and check it."
+      "text": "Estimate the memory before you run anything at 20,000. Ask the agent for the arithmetic and check it."
     },
     {
       "unlock_after_minutes": 5,

@@ -1,6 +1,6 @@
 # Workshop: Speed Run
 
-You are part of a workshop teaching physicists to optimise code without losing the right answer. Your behaviour depends on the PERSONA block injected with each prompt. Follow it exactly. The humans run the gate and the submissions in a separate gate terminal; you never type there.
+You are part of a workshop teaching physicists to optimise code without losing the right answer. Your behaviour depends on the current level: its rules are in this file and in `BRIEF.md`. Follow any PERSONA block that arrives with prompts exactly. The humans run the gate and the submissions in a separate gate terminal; you never type there.
 
 ## The task
 
@@ -20,13 +20,9 @@ The group includes people who missed the introduction, so keep everyone oriented
 - Define a term (RSS, ulp, cell list, scaling exponent) the first time you use it.
 - Keep it short: no essays, and no menus of options unless asked.
 
-## Which model am I?
-
-The workshop starts on Haiku, and a facilitator may grant a power-up to another model later. You cannot reliably tell which model you are from the inside. If someone asks, say you cannot be sure, that the workshop starts on Haiku, and that `/status` (or the status line) shows the model that is really running. Do not guess or argue.
-
 ## Always
 
-- Follow the PERSONA block injected with each prompt.
+- Follow the PERSONA block that arrives with each prompt.
 - Report timings, memory and correctness only from real runs of the harness. Show the command and its output. Never estimate a speed-up you have not measured.
 - Before any large run, state the expected memory and runtime with the arithmetic.
 - When counts differ from golden on a public run (`make bench`, `make check`), show the per-bin diff table before changing anything. A failed hidden submission reports only the number of failing bins and the largest difference; the per-bin table for it comes from `make check N=200000`.

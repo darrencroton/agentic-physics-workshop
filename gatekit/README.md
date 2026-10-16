@@ -2,7 +2,7 @@
 
 ## 1. What it is
 
-gatekit is a stdlib-only toolkit that turns an exercise into a ladder of levels, each unlocked by a human at a terminal. A level's files sit in an encrypted pack until the group passes the level's check and answers its gate question(s); hooks keep Claude Code inside the current level's rules. It is a learning scaffold, not an exam proctor (see "Honest limits").
+gatekit is a stdlib-only toolkit that turns an exercise into a ladder of levels, each unlocked by a human at a terminal. A level's files sit in an encrypted pack until the group passes the level's check and answers its gate question(s); hooks keep Claude Code inside the current level's rules (the hooks are Claude Code only; on other agent harnesses the written rules in `AGENTS.md` are the fallback, by design). It is a learning scaffold, not an exam proctor (see "Honest limits").
 
 `tools/build.py <exercise> --master-passphrase-file <path>` assembles `dist/<exercise>/` from `gatekit/` and `exercises/<exercise>/`. The output is wiped and recreated, then committed as "Workshop start" and tagged `start`.
 
@@ -10,7 +10,9 @@ gatekit is a stdlib-only toolkit that turns an exercise into a ladder of levels,
 dist/<exercise>/
   gate                     # launcher: python3, adds .gatekit/ to sys.path, calls gatekit.cli.main
   preflight                # machine readiness check; --setup builds .venv (rendered with __SETUP_PYTHON__)
-  CLAUDE.md                # participant rules, from workshop/CLAUDE.workshop.md
+  AGENTS.md                # participant rules (harness-neutral), from workshop/AGENTS.workshop.md
+  CLAUDE.md                # rendered from gatekit/agents/CLAUDE.md: imports AGENTS.md, adds the Claude Code section
+  OTHER-AGENTS.md          # only when the manifest sets "other_agents": true, from gatekit/agents/OTHER-AGENTS.md
   <level 0 files>          # copied from exercises/<name>/level0/
   <other workshop/ files>  # copied from exercises/<name>/workshop/ (launchers such as tdd, data, ...)
   .claude/
@@ -33,6 +35,13 @@ dist/<exercise>/
 ```
 
 `LOG.md` is created in the repo root the first time a hint, reflection or skip is logged.
+
+### Instruction files
+
+- `exercises/<name>/workshop/AGENTS.workshop.md` is required. The build writes it to `AGENTS.md`, the canonical, harness-neutral rules (standing rules, levels, the "Never" list). The build fails if it is missing.
+- `CLAUDE.md` is rendered from the shared template `gatekit/agents/CLAUDE.md`: a first line `@AGENTS.md` (Claude Code's documented import, so the rules load once) and a short Claude Code section. `__MODEL_NAME__` is replaced by the manifest's `models.default`, capitalised (`Sonnet`, `Haiku`). Claude Code reads `AGENTS.md` only when there is no `CLAUDE.md`, which is why this file exists.
+- `gatekit/agents/OTHER-AGENTS.md` is the single page for participants on another agent harness. The build copies it to the repo root only when the manifest sets `"other_agents": true`.
+- The templates live in `gatekit/agents/`, not `gatekit/templates/`, because the build copies everything in `templates/` unconditionally.
 
 ## 2. The `gate` commands
 
@@ -60,6 +69,7 @@ The manifest lives at `exercises/<name>/manifest.json` and is copied to `.gateki
   "exercise": "tdd-ladder",              // must match state.json; a mismatch tells you to reset
   "title": "The TDD Ladder",
   "tool": "tddtool",                     // optional: package under .gatekit/ (conditions, validators, hooks into status etc.)
+  "other_agents": false,                 // optional boolean, default false: ship OTHER-AGENTS.md (build); other types are rejected
   "human_only": {"tdd": ["red", "green", "refactor", "done", "abort", "score", "new-attempt"]},  // optional and illustrative here: launcher -> subcommands only humans may run (see section 8); each exercise declares its own; absent means this tdd list
   "models": {
     "default": "haiku",                  // rendered into .claude/settings.json "model" (build)
@@ -108,6 +118,8 @@ The manifest lives at `exercises/<name>/manifest.json` and is copied to `.gateki
 ```
 
 `human_only` maps an exercise launcher name (the executable at the repo root, such as `race`) to the subcommands Claude must never run. Names and subcommands must match `[A-Za-z0-9][A-Za-z0-9_-]*`. The guard builds its Bash patterns from it and the build renders the `settings.json` deny rules from it (section 8). When the field is absent the hard-coded TDD Ladder list applies (`tdd red|green|refactor|done|abort|score|new-attempt`); `{}` means no human-only exercise commands. Every launcher named in `human_only` is also frozen against edits and added to the build's executable launchers, alongside the hard-coded `gate`, `preflight`, `tdd` and `race`. The `gate` list is always hard-coded. A malformed field makes the build fail and the guard deny every Bash call.
+
+`other_agents` is an optional boolean (default false). When true the build copies `gatekit/agents/OTHER-AGENTS.md` into the participant repo; set it only for an exercise that works without the Claude Code hooks (today, Explorer). `manifest.py` rejects any other type.
 
 `skills` is an optional list of skill names; the build copies `skills/<name>/` from the builder repository into the participant repo's `.claude/skills/<name>/` for each one, and fails on a name with no `SKILL.md`. An exercise whose lesson depends on Claude getting no process advice (the TDD Ladder's literal levels) should leave it out.
 
@@ -240,7 +252,7 @@ The phase is read from `.tdd/phase` (`none`, `red`, `green` or `refactor`; anyth
 Always blocked, whatever the level (`hooklib.py`):
 
 - `SECRET_DIRS` (no read, list or write): `.vault`, `.workshop`, `.tdd`, `.claude`, `.gatekit`, `.tdd-tools`, `.git`.
-- `FROZEN_FILES` (readable, never editable; the manifest's `human_only` launchers are added at run time): `gate`, `tdd`, `race`, `preflight`, `CLAUDE.md`, `README.md`, `BRIEF.md`, `CLIENT_SPEC.md`, `Makefile`, `pytest.ini`, `requirements.txt`, `.gitignore`, plus the `data/` directory.
+- `FROZEN_FILES` (readable, never editable; the manifest's `human_only` launchers are added at run time): `gate`, `tdd`, `race`, `preflight`, `AGENTS.md`, `CLAUDE.md`, `OTHER-AGENTS.md`, `README.md`, `BRIEF.md`, `CLIENT_SPEC.md`, `Makefile`, `pytest.ini`, `requirements.txt`, `.gitignore`, plus the `data/` directory.
 
 ### Bash matching is best effort
 
@@ -308,14 +320,16 @@ This is a learning scaffold, not an exam proctor (docs/00 §5.6). A group that w
 
 ### Hard to bypass
 
-- Crypto gates (Speed Run Levels 0–2 and Explorer Level 1; the Explorer's other gates are reflections with no graded answer, so their slot needs the check token T alone): a slot opens only with the check token T plus the human answer, and no key for them exists in the repo, so they are hard against offline decryption without the answer. The answer itself is a soft secret: it sits in plaintext in the fourth hint tier under `.workshop/levels/N/` once a level is open (Level 0 from the start) and, for the Explorer, in the tool source (`.gatekit/exploretool/__init__.py`), protected only by the guard. The shipped manifest carries no `accept`, `lo` or `hi` for crypto questions (the build strips them), but the hint files and tool source do. The Speed Run's check scripts also print a fixed line, so each crypto gate's only secret is the human answer (one value, 23 values, or four letters), which a determined group could guess offline against the pack. The TDD Ladder and the Speed Run race (Level 3) use verified gates, which are soft barriers (below).
+- Crypto gates (Speed Run Levels 0–2 and Explorer Level 1; the Explorer's other gates are reflections with no graded answer, so their slot needs the check token T alone): a slot opens only with the check token T plus the human answer. The answer is a soft secret: it sits in plaintext in the fourth hint tier under `.workshop/levels/N/` once a level is open (Level 0 from the start) and, for the Explorer, in the tool source (`.gatekit/exploretool/__init__.py`), protected only by the guard. The shipped manifest carries no `accept`, `lo` or `hi` for crypto questions (the build strips them), but the hint files and tool source do.
+- **Fixed success lines.** The Explorer's checks (`exploretool/gates.py`, `success_line`) and the Speed Run's Level 0–2 checks (`racetool/gates.py`, `success_line`) print the fixed line `{"level": N, "ok": true}` on a pass, and T is the SHA-256 of that line. The line is in the tool source under `.gatekit/`, so the crypto gate stops casual reading of the packs, not a determined agent that can read `.gatekit/`. Under Claude Code the guard hides `.gatekit/`; elsewhere only the written rules do. For Explorer the packs hold nothing secret (briefs, personas, hints and file templates; no hidden assets), so that is acceptable. The Speed Run's only remaining secret is the human answer (one value, 23 values, or four letters), which a determined group could guess offline against the pack; the Speed Run is Claude Code only.
+- The TDD Ladder and the Speed Run race (Level 3) use verified gates, which are soft barriers (below).
 - Writes outside the repo or to frozen files, and `..`, absolute, `~` and `/tmp/../` paths through Read and Edit.
 - A wrong master passphrase leaks nothing (PBKDF2, 100k iterations).
 
 ### Soft
 
-- The teacher persona and `CLAUDE.md` rules are instructions Claude is asked to follow.
-- Verified gates (all of tdd-ladder, and the Speed Run race at Level 3): the encrypted packs and the TTY requirement hold only because `CLAUDE.md`, the persona and the guard tell Claude not to cheat, and because a group would have to ask it to. See the structural limit below.
+- The teacher persona and the `AGENTS.md` rules are instructions the agent is asked to follow. The hooks (guard, persona, model lock) run only in Claude Code; on other harnesses the written rules are the fallback, by design.
+- Verified gates (all of tdd-ladder, and the Speed Run race at Level 3): the encrypted packs and the TTY requirement hold only because `AGENTS.md`, the persona and the guard tell Claude not to cheat, and because a group would have to ask it to. See the structural limit below.
 - Path and command guards on Bash are regexes (section 8). They were tightened after the review but are still regex-based, so shell indirection always beats them.
 
 ### Bypassable by a determined human
@@ -332,7 +346,7 @@ Hooks may not run until the folder is trusted in the first interactive launch; t
 
 An adversarial review attacked a fresh `dist/tdd-ladder` as a Claude session whose tool calls pass through `guard.py`.
 
-**Structural limit (no cheap fix).** Claude may edit `tests/**` and may run `./tdd test`, pytest or `python3 tests/x.py`. Any Python file under `tests/` runs at import time with the repo's own permissions. It can read `.gatekit/tddtool/_pepper.py` and `.vault/keys.bin`, unseal every level secret and decrypt every pack (`CLIENT_SPEC.md`, the reference, the mutants). It can also call `os.openpty` to drive `./gate` and `./tdd` as if a human typed. So for verified gates neither the encrypted packs nor the TTY requirement is hard against a code-running Claude; both are soft barriers. The master passphrase is not needed to open tdd-ladder packs offline: `keys.bin` plus the pepper suffice. Crypto gates stay hard against offline decryption without the answer because no key for them exists in the repo, but the answer is guard-protected plaintext in the hint files and the Explorer's tool source.
+**Structural limit (no cheap fix).** Claude may edit `tests/**` and may run `./tdd test`, pytest or `python3 tests/x.py`. Any Python file under `tests/` runs at import time with the repo's own permissions. It can read `.gatekit/tddtool/_pepper.py` and `.vault/keys.bin`, unseal every level secret and decrypt every pack (`CLIENT_SPEC.md`, the reference, the mutants). It can also call `os.openpty` to drive `./gate` and `./tdd` as if a human typed. So for verified gates neither the encrypted packs nor the TTY requirement is hard against a code-running Claude; both are soft barriers. The master passphrase is not needed to open tdd-ladder packs offline: `keys.bin` plus the pepper suffice. Crypto gates need T plus the answer, but T comes from a fixed success line in the tool source (see the bullet above) and the answer is guard-protected plaintext in the hint files and the Explorer's tool source, so they too hold only while the agent is kept out of `.gatekit/`.
 
 **Second limit.** The vault and the pepper are committed to git, because they must travel with the clone. Git object readers (`git show`, `git cat-file`, `git archive`, `git log -p`, `git grep`) can therefore print them. The guard blocks the common spellings, but `$VAR`, `printf`, `base64 | sh`, `eval` or string concatenation in Python always beats a regex.
 

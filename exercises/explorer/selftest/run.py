@@ -241,7 +241,8 @@ def preflight(repo):
     code, out = repo.pty([repo.path("preflight")], timeout=300)
     check(code == 0 and "Preflight passed" in out, "./preflight passes through a pty",
           out[-600:] if code else "")
-    for rel in ("README.md", "CLAUDE.md", "PLAN.md", "PLAYBOOK.md", "LOG.md", "Makefile",
+    for rel in ("README.md", "AGENTS.md", "CLAUDE.md", "OTHER-AGENTS.md",
+                "PLAN.md", "PLAYBOOK.md", "LOG.md", "Makefile",
                 "requirements.txt", "data/pulsars.csv", "data/dimuons.csv",
                 "explorer/__init__.py", "tests/__init__.py", ".claude/agents/reviewer.md",
                 ".claude/skills/plan-code/SKILL.md",
@@ -282,7 +283,7 @@ def level0(repo, plan_name):
     refused(repo, "no commit since start", "complete PLAN.md not committed")
     repo.commit("Plan", "PLAN.md")
     repo.append("PLAN.md", "\nA stray line.\n")
-    refused(repo, "PLAN.md has uncommitted changes: ask Claude to commit, then unlock",
+    refused(repo, "PLAN.md has uncommitted changes: ask the agent to commit, then unlock",
             "PLAN.md edited after the commit")
     repo.revert("PLAN.md")
     passes(repo, "level 0")
@@ -317,7 +318,7 @@ def level1_pulsars(repo):
     section("Level 1: build (pulsars)")
     guard_probe(repo, denied=("tests/test_x.py", "PLAYBOOK.md", "Makefile", "data/pulsars.csv"),
                 allowed=("explorer/data.py", "PLAN.md"))
-    refused(repo, "there is no explorer/__main__.py yet: ask Claude to add the command line",
+    refused(repo, "there is no explorer/__main__.py yet: ask the agent to add the command line",
             "no __main__.py")
     install_solution(repo, nan=True)
     repo.commit("Step 1 (writes NaN)", "explorer")
@@ -326,7 +327,7 @@ def level1_pulsars(repo):
     nan_main = read(os.path.join(SOLUTION_NAN, "explorer", "__main__.py"))
     check('float("nan")' in nan_main, "solution_nan writes float('nan')")
     install_solution(repo)
-    refused(repo, "1 commit since the last gate; this level needs at least 2: ask Claude to "
+    refused(repo, "1 commit since the last gate; this level needs at least 2: ask the agent to "
             "commit each step that works (two commits or more)", "1 commit")
     repo.commit("Step 1: strict JSON", "explorer")
     repo.install(os.path.join(SOLUTION_NAN, "explorer", "__main__.py"),
@@ -363,7 +364,7 @@ def level1_pulsars(repo):
     repo.append("explorer/page.py", "# step 2, second look in the browser\n")
     repo.commit("Step 2: initial view", "explorer")
     repo.append("explorer/data.py", "# work in progress\n")
-    refused(repo, "explorer/ has uncommitted changes: ask Claude to commit, then unlock",
+    refused(repo, "explorer/ has uncommitted changes: ask the agent to commit, then unlock",
             "uncommitted edit to explorer/data.py")
     repo.commit("Step 2: hover fix", "explorer")
     out = time_explore(repo, "data/pulsars.csv (PLAN.md)")
@@ -400,7 +401,8 @@ def level2(repo):
     refused(repo, 'TESTS.md has 0 items under "Our list"', "template TESTS.md")
     template = repo.text("TESTS.md")
     repo.write("TESTS.md", template.replace("-\n-\n-\n", "- a\n- b\n- c\n"))
-    refused(repo, "TESTS.md has nothing under \"Claude's plan\" yet", "Claude's plan not written")
+    refused(repo, "TESTS.md has nothing under \"The agent's plan\" yet",
+            "the agent's plan not written")
     repo.install(os.path.join(SOLUTION, "TESTS.md"), "TESTS.md")
     repo.install(os.path.join(SOLUTION, "tests_four", "test_explorer.py"),
                  os.path.join("tests", "test_explorer.py"))
@@ -417,7 +419,7 @@ def level2(repo):
         "def test_%d():\n    assert True\n\n\n" % i for i in range(5)))
     refused(repo, "no test module under tests/ imports explorer", "tests without explorer")
     repo.write("tests/test_explorer.py", full)
-    refused(repo, "no commits since the last gate; this level needs at least 1: ask Claude to "
+    refused(repo, "no commits since the last gate; this level needs at least 1: ask the agent to "
             "commit the tests and TESTS.md", "tests not committed")
     repo.commit("Tests", "tests", "TESTS.md")
     code, out, seconds = repo.make("test")
@@ -455,7 +457,7 @@ def level3(repo):
     refused(repo, "REVIEW.md has 2 triaged findings; this level needs at least 3",
             "two findings triaged")
     repo.write("REVIEW.md", sample)
-    refused(repo, "no commits since the last gate; this level needs at least 1: ask Claude to "
+    refused(repo, "no commits since the last gate; this level needs at least 1: ask the agent to "
             "commit each fix and REVIEW.md", "REVIEW.md not committed")
     repo.commit("Review triaged", "REVIEW.md")
     for sidecar, dataset in (("data/pulsars.columns.json", "data/pulsars.csv"),

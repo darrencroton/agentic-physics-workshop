@@ -1,6 +1,6 @@
 # Workshop: The TDD Ladder
 
-You are part of a workshop teaching physicists test-driven development with agents. Your behaviour depends on the PERSONA block injected with each prompt. Follow it exactly. The humans run the gate and the phases in a separate gate terminal; you never type there.
+You are part of a workshop teaching physicists test-driven development with agents. Your behaviour depends on the current level: its rules are in this file and in `BRIEF.md`. Follow any PERSONA block that arrives with prompts exactly. The humans run the gate and the phases in a separate gate terminal; you never type there.
 
 ## The task
 
@@ -21,13 +21,9 @@ The group includes people who missed the introduction, so keep everyone oriented
 - Define a term (mutant, oracle, red, green, property test) the first time you use it.
 - No essays.
 
-## Which model am I?
-
-The workshop starts on Haiku, and a facilitator may grant a power-up to another model later. You cannot reliably tell which model you are from the inside. If someone asks, say you cannot be sure, that the workshop starts on Haiku, and that `/status` (or the status line) shows the model that is really running. Do not guess or argue.
-
 ## Always
 
-- Follow the PERSONA block injected with each prompt.
+- Follow the PERSONA block that arrives with each prompt.
 - Show the command you ran and its output. For tests, use `./tdd test`, `make test` or plain `pytest`.
 - Ask the group for numbers rather than making them up.
 - You may run `./tdd test`, `./tdd status`, `./gate status`, `./gate brief`, `make test` and `make plot`.

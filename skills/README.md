@@ -1,24 +1,31 @@
 # Four skills for working with a coding agent
 
-Four small, general skills for Claude Code that make a good agentic coding workflow a habit: plan first, write readable code, test what must not break, and get an independent review. They are written for anyone whose code is mostly small scientific tools, and they do not depend on any project, tool or workshop.
+Four small, general skills for coding agents (the Agent Skills format) that make a good agentic coding workflow a habit: plan first, write readable code, test what must not break, and get an independent review. They are written for anyone whose code is mostly small scientific tools, and they do not depend on any project, tool or workshop.
 
 | Skill | What it does | How to call it |
 |---|---|---|
-| `plan-code` | Reads first, surfaces every decision, writes a short `PLAN.md` with runnable steps and checkable acceptance criteria. No code. | `/plan-code`, or "... using the plan-code skill" |
-| `style-code` | Guidelines for structure, names, comments, errors and numbers. Applies them while writing, or audits changed files without editing them. | "... following the style-code skill", or `/style-code [paths]` |
-| `test-code` | Agrees a test plan before any test is written, tests behaviour through the public interface, and shows that a test can fail. | `/test-code`, or "... using the test-code skill" |
-| `review-code` | A fresh-context review in a subagent that has not seen the conversation: ranked findings with file and line, nothing edited. You decide what to do with each. | `/review-code [base]`, or "Review ... using the review-code skill" |
+| `plan-code` | Reads first, surfaces every decision, writes a short `PLAN.md` with runnable steps and checkable acceptance criteria. No code. | "... using the plan-code skill" |
+| `style-code` | Guidelines for structure, names, comments, errors and numbers. Applies them while writing, or audits changed files without editing them. | "... following the style-code skill", or "Audit these files with the style-code skill" |
+| `test-code` | Agrees a test plan before any test is written, tests behaviour through the public interface, and shows that a test can fail. | "... using the test-code skill" |
+| `review-code` | A fresh-context review (a subagent in Claude Code) that has not seen the conversation: ranked findings with file and line, nothing edited. You decide what to do with each. | "Review ... using the review-code skill" |
+
+Name the skill in your prompt (in Claude Code you can also type `/plan-code`, `/review-code` and so on).
 
 Each skill is one `SKILL.md` file. Open it and read it: it is short, and it says what it will and will not do.
 
 ## Install
 
-Claude Code reads skills from two places. Pick one.
+Agents read skills from two places. Pick one.
 
-- **One project:** copy the four directories into `.claude/skills/` at the project root, so `.claude/skills/plan-code/SKILL.md` and so on. Commit them, and everyone who clones the project gets them.
-- **Every project:** copy them into `~/.claude/skills/` (or symlink: `ln -s "$(pwd)/skills/plan-code" ~/.claude/skills/plan-code`).
+| Agent | One project | Every project |
+|---|---|---|
+| Claude Code | `.claude/skills/` (Cursor, Copilot and OpenCode read it too) | `~/.claude/skills/` |
+| Codex, Antigravity (and most others) | `.agents/skills/` | see your agent's docs (Codex: `~/.agents/skills/`) |
 
-A new skills directory is picked up at the next start of `claude`, or straight away with `/reload-skills`. Type `/` to see them listed.
+- **One project:** copy the four directories into the folder above at the project root, so `.claude/skills/plan-code/SKILL.md` and so on. Commit them, and everyone who clones the project gets them.
+- **Every project:** copy them into the user-level folder (or symlink: `ln -s "$(pwd)/skills/plan-code" ~/.claude/skills/plan-code`).
+
+In Claude Code, a new skills directory is picked up at the next start of `claude`, or straight away with `/reload-skills`. Type `/` to see them listed.
 
 ## A typical session
 
@@ -31,8 +38,8 @@ The skills are the habit written down. The decisions stay yours.
 
 ## Make it stick
 
-- The Guidelines section of `style-code` is short enough to paste into a project's `CLAUDE.md`, which applies it to every session without naming the skill.
-- Once tests exist, a Stop hook that runs them stops the agent finishing with them failing. In `.claude/settings.json` (a failing pytest exits 1, and only exit code 2 blocks, so wrap it):
+- The Guidelines section of `style-code` is short enough to paste into a project's `AGENTS.md` (or `CLAUDE.md`), which applies it to every session without naming the skill.
+- Once tests exist, a Stop hook that runs them stops the agent finishing with them failing. Claude Code example, in `.claude/settings.json` (a failing pytest exits 1, and only exit code 2 blocks, so wrap it):
 
   ```json
   {"hooks": {"Stop": [{"hooks": [{"type": "command",

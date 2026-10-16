@@ -54,6 +54,8 @@ Do this a few days before the session, with a network connection. You need a Mac
 
 Do not install anything else. If preflight asks for something, check with the facilitator first.
 
+This exercise needs Claude Code: its lessons depend on Claude Code hooks (the personas, the model lock and the guard), so groups on another agent should do Explorer instead.
+
 1. Clone the bundle the facilitator sent (adjust the path to wherever you saved it):
 
    ```zsh

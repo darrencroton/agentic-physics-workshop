@@ -83,6 +83,13 @@ def check_git():
     report(tag == "start", "git tag 'start' present")
 
 
+def check_instructions():
+    for name in ("AGENTS.md", "CLAUDE.md"):
+        present = os.path.isfile(os.path.join(ROOT, name))
+        report(present, "%s present" % name,
+               "" if present else "rebuild or restore the file")
+
+
 def check_hooks():
     hooks_dir = os.path.join(ROOT, ".claude", "hooks")
     for name in sorted(os.listdir(hooks_dir)) if os.path.isdir(hooks_dir) else []:
@@ -178,14 +185,15 @@ def main(argv):
     check_python()
     check_venv()
     check_git()
+    check_instructions()
     check_hooks()
     check_state()
     check_tty()
     check_exercise()
     print()
     if all(results):
-        print("Preflight passed. Reminder: open `claude` in this folder once "
-              "and accept the workspace trust dialog so the hooks load.")
+        print("Preflight passed. Open your agent in this folder. In Claude "
+              "Code, accept the workspace trust dialog so the hooks load.")
         return 0
     print("Preflight found %d problem(s)." % results.count(False))
     return 1

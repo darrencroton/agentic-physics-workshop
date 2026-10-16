@@ -9,7 +9,7 @@ from tddtool import phases, scoring
 USAGE = """usage: ./tdd <command>
 
   status               level, phase, cycle count, last score
-  test [pytest args]   run the test suite in .venv (Claude may use this)
+  test [pytest args]   run the test suite in .venv (the agent may use this)
   ladder               scores recorded so far, by level
   red "<behaviour>"    (humans) open a cycle: one behaviour, one test
   green                (humans) tests committed and failing for the right reason

@@ -43,7 +43,7 @@ ai-project-session/                 # top-level git repo (dist/ and **/.venv/ gi
 │       ├── manifest.json           # levels, personas, guards, gates, hints (Section 4.3)
 │       ├── level0/                 # participant-visible starting content (README, src stub, data…)
 │       ├── levels/1..5/            # per-level content to pack: BRIEF.md, persona.txt, hints.json, guard.json, extra files
-│       ├── workshop/               # CLAUDE.workshop.md, exercise-specific tools (tdd), pytest plugin
+│       ├── workshop/               # AGENTS.workshop.md, exercise-specific tools (tdd), pytest plugin
 │       ├── hidden/                 # reference impl, mutants, acceptance tests (packed into .vault)
 │       ├── answers.json            # gate answers/validators (never copied to dist)
 │       └── selftest/               # scripted walkthrough, sample suites, expected score bands
@@ -55,7 +55,7 @@ ai-project-session/                 # top-level git repo (dist/ and **/.venv/ gi
 
 1. Wipe and recreate `dist/<name>/`.
 2. Copy `level0/`, the gatekit templates and the exercise tools.
-3. Render `CLAUDE.workshop.md` → `CLAUDE.md`.
+3. Write `workshop/AGENTS.workshop.md` → `AGENTS.md`; render `gatekit/agents/CLAUDE.md` (an `@AGENTS.md` import plus the Claude Code section) → `CLAUDE.md`; copy `gatekit/agents/OTHER-AGENTS.md` when the manifest sets `"other_agents": true`.
 4. Pack `levels/N` → `.vault/levelN.pack` and `hidden/` → `.vault/scoring.pack`.
 5. Write `.workshop/` scaffolding (gitignored).
 6. Run `git init`, commit as "Workshop start", and tag `start`.
@@ -133,7 +133,7 @@ If a fact differs from `docs/00` Section 5.5, adapt the design and log it.
 - TTY-required commands check that **both** `sys.stdin.isatty()` and `sys.stdout.isatty()` are true, and refuse otherwise with: *"This command is for humans, in the gate terminal."*
 - Answers are read with `input()` (visible). Passphrases are read with `getpass`.
 - Self-tests drive these commands through a pseudo-terminal (stdlib `pty` / `os.openpty`).
-- **Known limitation, document it:** Claude could also use `pty`. The guard heuristics and `CLAUDE.md` rule against this; it is part of the "honest limits".
+- **Known limitation, document it:** Claude could also use `pty`. The guard heuristics and the `AGENTS.md` rule against this; it is part of the "honest limits".
 
 ### 4.3 Manifest (`exercises/<name>/manifest.json`)
 
@@ -238,9 +238,9 @@ WORKSHOP LEVEL n — <title> — persona: <mode>
 
 **`settings.json` template:** as in `docs/00` Section 5.5, corrected per Section 3 of this spec. (As built: `gatekit/templates/.claude/settings.json`; `docs/00` no longer carries the skeleton.)
 
-### 4.9 Participant `CLAUDE.md`
+### 4.9 Participant `AGENTS.md` and `CLAUDE.md`
 
-Built from `workshop/CLAUDE.workshop.md`, as drafted in each exercise doc. It must include the "Never" list matching the guard.
+A new exercise provides `workshop/AGENTS.workshop.md`, as drafted in each exercise doc, and the build writes it to `AGENTS.md`. It is harness-neutral ("the agent", not "Claude") and must include the "Never" list matching the guard, which is the fallback wherever the hooks do not run. `CLAUDE.md` is not written per exercise: the build renders it from `gatekit/agents/CLAUDE.md`. See `docs/HARNESS-PORTABILITY.md` and `gatekit/README.md`.
 
 ---
 
@@ -251,7 +251,7 @@ Follow `docs/04-tdd-ladder.md` with these resolutions.
 ### 5.1 Repo (`dist/tdd-ladder/`)
 
 ```
-README.md  CLAUDE.md  LOG.md  SPEC.md (absent until L2)  Makefile  pytest.ini  requirements.txt
+README.md  AGENTS.md  CLAUDE.md  LOG.md  SPEC.md (absent until L2)  Makefile  pytest.ini  requirements.txt
 gate  tdd  preflight
 src/hzbin/__init__.py  data.py  plot.py  binning.py (stub raising NotImplementedError, final signature + docstring)
 tests/__init__.py (empty)

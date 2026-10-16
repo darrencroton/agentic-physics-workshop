@@ -6,7 +6,7 @@
     },
     {
       "unlock_after_minutes": 5,
-      "text": "./gate check prints the first thing that is missing. Paste that line to Claude."
+      "text": "./gate check prints the first thing that is missing. Paste that line to the agent."
     },
     {
       "unlock_after_minutes": 10,

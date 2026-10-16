@@ -37,10 +37,10 @@ CHECKED_PATHS = {
     3: ("explorer", "tests", "REVIEW.md"),
 }
 COMMIT_FIX = {
-    0: "ask Claude to commit PLAN.md",
-    1: "ask Claude to commit each step that works (two commits or more)",
-    2: "ask Claude to commit the tests and TESTS.md",
-    3: "ask Claude to commit each fix and REVIEW.md",
+    0: "ask the agent to commit PLAN.md",
+    1: "ask the agent to commit each step that works (two commits or more)",
+    2: "ask the agent to commit the tests and TESTS.md",
+    3: "ask the agent to commit each fix and REVIEW.md",
 }
 DECISIONS = (
     ("Values <= 0 on a log axis", ("log",)),
@@ -179,7 +179,7 @@ def git_evidence(root, level, heads=None):
     paths = CHECKED_PATHS[level]
     changed = dirty(root, paths)
     if changed:
-        raise CheckFailed("%s has uncommitted changes: ask Claude to commit, then unlock"
+        raise CheckFailed("%s has uncommitted changes: ask the agent to commit, then unlock"
                           % _label(root, changed[0], paths))
 
 
@@ -317,8 +317,8 @@ def _check_plan(root):
     found = sections(text)
     template = [label + ":" for label, _ in DECISIONS]
     if not any(_meaningful(lines, template) for _, lines in found):
-        raise CheckFailed("PLAN.md is still the template: in plan mode, ask Claude to "
-                          "propose a plan, change it together, then have Claude save it "
+        raise CheckFailed("PLAN.md is still the template: in plan mode, ask the agent to "
+                          "propose a plan, change it together, then have the agent save it "
                           "as PLAN.md and commit it")
     plan_dataset(root)
     for key, heading in PLAN_SECTIONS:
@@ -376,14 +376,14 @@ def _check_tests_md(root):
     items = [line for line in _bullets(ours) if _plain(line)]
     if len(items) < 3:
         raise CheckFailed("TESTS.md has %s under \"Our list\": write at least 3 things "
-                          "that must not break, before asking Claude"
+                          "that must not break, before asking the agent"
                           % _plural(len(items), "item"))
-    plan = find_section(found, "claude's plan")
+    plan = find_section(found, "the agent's plan")
     if plan is None:
-        raise CheckFailed("TESTS.md has no \"## Claude's plan\" section: keep the "
+        raise CheckFailed("TESTS.md has no \"## The agent's plan\" section: keep the "
                           "template's headings")
-    if not _meaningful(plan, ["(Claude writes it here)"]):
-        raise CheckFailed("TESTS.md has nothing under \"Claude's plan\" yet: ask Claude "
+    if not _meaningful(plan, ["(the agent writes it here)"]):
+        raise CheckFailed("TESTS.md has nothing under \"The agent's plan\" yet: ask the agent "
                           "for a plan of five to eight tests (what each checks, the "
                           "coverage, what it won't cover) and to write it there")
 
@@ -465,10 +465,10 @@ def run_pytest(root):
                                   cwd=root, capture_output=True, text=True,
                                   timeout=PYTEST_TIMEOUT, stdin=subprocess.DEVNULL)
         except subprocess.TimeoutExpired:
-            raise CheckFailed("make test took over %d s: ask Claude why the tests are "
+            raise CheckFailed("make test took over %d s: ask the agent why the tests are "
                               "so slow" % PYTEST_TIMEOUT)
         if proc.returncode == 5:
-            raise CheckFailed("pytest found no tests: ask Claude to write them in tests/, "
+            raise CheckFailed("pytest found no tests: ask the agent to write them in tests/, "
                               "in files named test_*.py")
         try:
             suite = ET.parse(report).getroot()
@@ -489,7 +489,7 @@ def run_pytest(root):
     if proc.returncode in (2, 3, 4) or (failed and failed >= totals["tests"]
                                          and totals["errors"]):
         raise CheckFailed("make test could not collect or run the tests (exit %d: %s): "
-                          "run make test and show Claude the error"
+                          "run make test and show the agent the error"
                           % (proc.returncode, _tail(proc.stdout + proc.stderr)))
     if failed or proc.returncode != 0:
         if failed:
@@ -499,7 +499,7 @@ def run_pytest(root):
                           % (proc.returncode, _tail(proc.stdout + proc.stderr)))
     if totals["tests"] < MIN_TESTS:
         raise CheckFailed("pytest collected %s; this level needs at least %d, all "
-                          "passing: ask Claude for the tests you agreed in TESTS.md"
+                          "passing: ask the agent for the tests you agreed in TESTS.md"
                           % (_plural(totals["tests"], "test"), MIN_TESTS))
     passed = totals["tests"] - totals["skipped"]
     if passed < MIN_TESTS:
@@ -776,7 +776,7 @@ def _check_html(folder, what, names):
 
 def _tool_checks(root, dataset):
     if not os.path.isfile(os.path.join(root, "explorer", "__main__.py")):
-        raise CheckFailed("there is no explorer/__main__.py yet: ask Claude to add the "
+        raise CheckFailed("there is no explorer/__main__.py yet: ask the agent to add the "
                           "command line")
     all_columns, numeric = _sidecar(root, dataset)
     header = _csv_header(root, dataset)

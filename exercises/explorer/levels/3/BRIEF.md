@@ -4,13 +4,13 @@
 
 ## Where we are
 
-The tool works and has tests. Now get a fresh pair of eyes. The author grading its own work is not a review, so the review comes from the `review-code` skill, which runs in a subagent: a fresh context that has not seen this conversation and judges only the code and `PLAN.md`. Some of what it finds will be wrong. You decide.
+The tool works and has tests. Now get a fresh pair of eyes. The author grading its own work is not a review, so the review comes from the `review-code` skill, which runs in a fresh context (a subagent in Claude Code) that has not seen this conversation and judges only the code and `PLAN.md`. Some of what it finds will be wrong. You decide.
 
 `REVIEW.md` is open, and `explorer/` and `tests/` stay open for the fixes. `PLAN.md` and `TESTS.md` are frozen now.
 
 ## What to do
 
-1. **Before you ask:** write two things in `REVIEW.md` that you think a reviewer will find. One minute. (`REVIEW.md` is not code: type into it yourselves, or dictate it to Claude.)
+1. **Before you ask:** write two things in `REVIEW.md` that you think a reviewer will find. One minute. (`REVIEW.md` is not code: type into it yourselves, or dictate it to the agent.)
 2. The playbook's *Independent review*:
 
    > "Use the review-code skill to review the code since start against PLAN.md. Rank the findings by severity and paste them into the table in REVIEW.md, most severe first. Don't fix anything."
@@ -31,7 +31,7 @@ The tool works and has tests. Now get a fresh pair of eyes. The author grading i
 
 ## Finished early
 
-Unlocked with time to spare? Ask Claude for the feature you agreed at Level 1, or one of these, the same way: one step, run it, look, commit.
+Unlocked with time to spare? Ask the agent for the feature you agreed at Level 1, or one of these, the same way: one step, run it, look, commit.
 
 - A day/night button that switches the page between light and dark colours.
 - Select points with the mouse (box or lasso, in the 2D view) and show how many you picked, with their labels if the dataset has them.

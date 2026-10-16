@@ -9,5 +9,5 @@
     "tests/**",
     "PLAYBOOK.md"
   ],
-  "message": "At this level Claude may edit explorer/, PLAN.md and LOG.md (scratch files go in out/); tests/ is frozen until Level 2, so build first and test next."
+  "message": "At this level the agent may edit explorer/, PLAN.md and LOG.md (scratch files go in out/); tests/ is frozen until Level 2, so build first and test next."
 }

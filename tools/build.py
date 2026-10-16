@@ -5,10 +5,12 @@ usage: tools/build.py <exercise> --master-passphrase-file <path> [--out DIR]
                       [--setup-python PATH] [--keep-venv]
 
 Steps: wipe and recreate the output, copy level0/, templates, tools and the
-skills the manifest lists, render CLAUDE.md, render settings.json (model and
-the human-only deny rules from the manifest), make the launchers executable,
-pack levels and hidden assets, write .workshop/, git init, commit "Workshop
-start" and tag `start`.
+skills the manifest lists, write AGENTS.md from workshop/AGENTS.workshop.md,
+render CLAUDE.md (an import of AGENTS.md naming the default model) from
+gatekit/agents/, copy OTHER-AGENTS.md when the manifest sets "other_agents",
+render settings.json (model and the human-only deny rules from the manifest),
+make the launchers executable, pack levels and hidden assets, write
+.workshop/, git init, commit "Workshop start" and tag `start`.
 """
 
 import argparse
@@ -30,6 +32,8 @@ from gatekit import answers, crypto, hooklib, packs, manifest as mf  # noqa: E40
 
 LEVEL_PRIVATE = ("persona.txt", "hints.json", "guard.json")
 DENY_PLACEHOLDER = "__HUMAN_ONLY_DENY__"
+MODEL_PLACEHOLDER = "__MODEL_NAME__"
+AGENTS_SOURCE = "AGENTS.workshop.md"
 # Finder metadata that may reappear while the output is being wiped.
 IGNORED_LEFTOVERS = (".DS_Store",)
 
@@ -107,6 +111,7 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
     manifest = mf.load_manifest(os.path.join(src, "manifest.json"))
     master = read_passphrase(passphrase_file)
     templates = os.path.join(TOP, "gatekit", "templates")
+    agents = os.path.join(TOP, "gatekit", "agents")
     out = os.path.abspath(out or os.path.join(TOP, "dist", exercise))
     protected = [os.path.abspath(p) for p in (TOP, src, os.path.join(TOP, "gatekit"),
                                               os.path.join(TOP, "exercises"),
@@ -143,10 +148,13 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
               os.path.join(out, ".gatekit", "levels", "0"))
 
     workshop_src = os.path.join(src, "workshop")
+    if not os.path.isfile(os.path.join(workshop_src, AGENTS_SOURCE)):
+        raise SystemExit("exercise lacks workshop/%s (CLAUDE.md imports it)"
+                         % AGENTS_SOURCE)
     for name in os.listdir(workshop_src) if os.path.isdir(workshop_src) else []:
         path = os.path.join(workshop_src, name)
-        if name == "CLAUDE.workshop.md":
-            shutil.copy2(path, os.path.join(out, "CLAUDE.md"))
+        if name == AGENTS_SOURCE:
+            shutil.copy2(path, os.path.join(out, "AGENTS.md"))
         elif name == "preflight_extra.py":
             shutil.copy2(path, os.path.join(out, ".gatekit", name))
         elif os.path.isdir(path) and name == manifest.get("tool"):
@@ -156,8 +164,17 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
         else:
             shutil.copy2(path, os.path.join(out, name))
 
+    model = manifest.get("models", {}).get("default", "haiku")
+    shutil.copy2(os.path.join(agents, "CLAUDE.md"),
+                 os.path.join(out, "CLAUDE.md"))
+    render(os.path.join(out, "CLAUDE.md"),
+           {MODEL_PLACEHOLDER: model.capitalize()})
+    if manifest.get("other_agents", False):
+        shutil.copy2(os.path.join(agents, "OTHER-AGENTS.md"),
+                     os.path.join(out, "OTHER-AGENTS.md"))
+
     render(os.path.join(out, ".claude", "settings.json"),
-           {"__MODEL__": manifest.get("models", {}).get("default", "haiku")})
+           {"__MODEL__": model})
     render_human_only_deny(os.path.join(out, ".claude", "settings.json"),
                            manifest)
     render(os.path.join(out, "preflight"),

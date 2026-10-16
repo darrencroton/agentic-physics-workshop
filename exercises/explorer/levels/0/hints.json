@@ -2,7 +2,7 @@
   "tiers": [
     {
       "unlock_after_minutes": 0,
-      "text": "If Claude hasn't said which columns have missing values and how many, ask. (make list answers that once the tool exists.)"
+      "text": "If the agent hasn't said which columns have missing values and how many, ask. (make list answers that once the tool exists.)"
     },
     {
       "unlock_after_minutes": 3,

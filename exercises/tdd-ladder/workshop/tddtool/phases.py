@@ -8,7 +8,7 @@ from gatekit import tty
 from tddtool import common as C
 
 MIN_LEVEL_FOR_PHASES = 3
-RESTORE_HINT = (" A new cycle needs a green suite and Claude cannot edit src/ or "
+RESTORE_HINT = (" A new cycle needs a green suite and the agent cannot edit src/ or "
                 "tests/ with no cycle open. In the gate terminal, restore the last "
                 "good version (git log --oneline, then git checkout <commit> -- "
                 "src tests and git commit -m restore) or delete the offending "
@@ -69,7 +69,7 @@ def cmd_red(root, args):
     C.write_phase(root, "red")
     _say("")
     _say("Phase RED: %s" % behaviour)
-    _say("Claude writes ONE test for this behaviour. The expected value comes "
+    _say("The agent writes ONE test for this behaviour. The expected value comes "
          "from a human. Commit the test, then run ./tdd green.")
     return 0
 
@@ -129,7 +129,7 @@ def cmd_green(root, args):
     C.write_phase(root, "green")
     _say("")
     _say("Red observed for the right reason: %s" % ", ".join(sorted(failed)))
-    _say("Phase GREEN: tests/ is frozen. Claude writes the minimum code to "
+    _say("Phase GREEN: tests/ is frozen. The agent writes the minimum code to "
          "pass. Then commit and run ./tdd refactor or ./tdd done.")
     return 0
 

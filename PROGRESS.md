@@ -25,6 +25,17 @@
 
 - **Four take-home skills** (`skills/`): `plan-code`, `style-code`, `test-code`, `review-code`, one generic SKILL.md each plus `skills/README.md` (install into `.claude/skills/` or `~/.claude/skills/`). `tools/build.py` copies the ones an exercise's manifest lists (`"skills"`) into `dist/<name>/.claude/skills/`; only Explorer lists them so far. Explorer uses them: the playbook prompts keep their wording and name the skill; `review-code` is a plain forked subagent (`context: fork`) and the `reviewer` agent is now the fallback. Briefs, personas, hints, `PLAYBOOK.md`, the participant `CLAUDE.md`, the manifest take-home note and the walkthrough updated; preflight and the self-test check the four files ship. Skill loading, invocation by name and the fork's round trip verified headless in a built repo on Claude Code 2.1.300 (`docs/DECISIONS.md`).
 
+## Done (2026-10-16)
+
+- **Other agent harnesses** (brief `docs/HARNESS-PORTABILITY.md`, decisions in `docs/DECISIONS.md`).
+  - **Instruction files:** participant instructions are now `workshop/AGENTS.workshop.md`, built to `AGENTS.md`. The build renders `CLAUDE.md` from `gatekit/agents/CLAUDE.md`: `@AGENTS.md` plus a shared Claude Code section with the model, PERSONA and Skill-tool lines.
+  - **`OTHER-AGENTS.md`:** ships only when the manifest sets `"other_agents": true`. Only Explorer does; TDD Ladder and Speed Run stay Claude Code only.
+  - **Hooks:** not ported; the written rules are the fallback.
+  - **Wording:** "Claude" became "the agent" in participant text and the Explorer walkthrough, with Claude Code keys in brackets. Explorer's Level 2 heading is now "## The agent's plan", with the gate updated to match.
+  - **Review:** two rounds on the brief (Codex gpt-6.1-sol). Then an independent panel on the implementation (Codex gpt-6.1-sol and Claude Fable 5.1): round 1 APPROVE WITH CHANGES with no serious issues, all fixed; round 2 APPROVE from both.
+  - **Receipts:** gatekit 68 tests on Python 3.14 and 3.9.6; ruff clean; self-tests TDD Ladder 112, Speed Run 82, Explorer 144.
+  - **Headless Claude Code check** (2.1.301, built Explorer): the `@AGENTS.md` import loads, and the Level 0 persona arrives by hook.
+
 ## How to re-run everything
 
 ```zsh
@@ -39,9 +50,13 @@ Each self-test rebuilds its `dist/<name>` (keeping `.venv`) and leaves it clean 
 ## Next
 
 1. Human calibration runs on Haiku for both exercises (`exercises/<name>/FACILITATOR-WALKTHROUGH.md`), then a trial with the research group. Watch, in particular: whether "Explain as you go" makes the literal persona narrate its design choices at TDD Level 0; whether a Haiku-written cell list fits the 14-minute Speed Run Level 2; the Speed Run Level 3 pacing with the ~20 s submit.
-2. Calibration run on Sonnet for Explorer, with a stopwatch (walkthrough section 1): record Level 1's time above all, now with two steps; if it still runs over 20 minutes, move part of Level 0 into the README. Watch that the heredoc commit, data reads and the reviewer's commands pass the guard in a live session. Also confirm in that run that plan mode's plan file is written without a guard refusal (the guard now allows `~/.claude/plans`), that `/` lists the four skills, and that the forked `review-code` review runs the tests (headless it chose not to) and comes back in a usable time.
+2. Calibration run on Sonnet for Explorer (now on the agent-neutral wording), with a stopwatch (walkthrough section 1): record Level 1's time above all, now with two steps; if it still runs over 20 minutes, move part of Level 0 into the README. Watch that the heredoc commit, data reads and the reviewer's commands pass the guard in a live session. Also confirm in that run that plan mode's plan file is written without a guard refusal (the guard now allows `~/.claude/plans`), that `/` lists the four skills, and that the forked `review-code` review runs the tests (headless it chose not to) and comes back in a usable time.
 3. Skills in the other two exercises: add `"skills"` to their manifests and name the skills in the briefs together, in a calibration pass. Natural places: `plan-code` at TDD Level 2 (the spec interview) and Speed Run Levels 1 and 2 (the optimisation plan); `test-code` at TDD Levels 1 and 3 (it must not override the oracle and phase rules); `review-code` at TDD Level 5 and on the Speed Run winning commit. Add in a calibration pass, one exercise at a time.
 4. Phases 3 and 5 (Exercises A and C): not started. Gaps in BUILD-SPEC §9.
+5. Other-harness rehearsals for Explorer (owner), following `docs/HARNESS-PORTABILITY.md` §7.
+   - Copilot CLI first: do the imported `.claude/settings.json` hooks work, block every call, or do nothing? Does the Claude Code section of `CLAUDE.md` (which Copilot also reads) confuse it about reading skills?
+   - Then one full Codex path.
+   - Record the results in `docs/DECISIONS.md`, and adjust the opt-out line in `OTHER-AGENTS.md` if needed.
 
 ## Open questions
 

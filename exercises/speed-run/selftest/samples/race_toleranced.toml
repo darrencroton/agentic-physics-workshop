@@ -1,4 +1,4 @@
-# What "correct" means for your entry. Humans edit this file; Claude never does.
+# What "correct" means for your entry. Humans edit this file; the agent never does.
 # exact: every bin identical to the golden counts.
 # toleranced: a bin passes when |count - golden| <= sigma_fraction * sqrt(golden).
 #   sigma_fraction must be > 0 and <= 0.2, and justification must be a real paragraph.

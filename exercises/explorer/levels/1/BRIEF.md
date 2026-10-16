@@ -10,26 +10,26 @@
 
 ## What to do
 
-1. Make sure Claude is out of plan mode (`Shift+Tab` cycles the modes; the line under the prompt shows which is on). Then the playbook's *Build in checked steps*:
+1. Make sure the agent is out of plan mode (`Shift+Tab` in Claude Code cycles the modes; the line under the prompt shows which is on). Then the playbook's *Build in checked steps*:
 
    > "Implement step 1 of PLAN.md only, following the coding guidelines in the style-code skill. Run it, show me the exact command and output, and tell me what I can run to check it myself."
 
-2. Run what Claude suggests in the gate terminal and look at the result. Once the page exists, that's `make explore` then `make open`. If it works, ask Claude to commit it.
+2. Run what the agent suggests in the gate terminal and look at the result. Once the page exists, that's `make explore` then `make open`. If it works, ask the agent to commit it.
 3. Then: "Next step." Repeat until the plan is done.
-4. Run `./gate check` after each step. It names the first thing still missing; paste that line to Claude.
+4. Run `./gate check` after each step. It names the first thing still missing; paste that line to the agent.
 5. When it passes, play with the page for a minute: rotate, zoom, hover, switch columns, palettes and log axes. Agree one feature the group would add, and the Scribe writes it in `LOG.md`. Don't build it now.
 
 ## If it goes differently
 
-- A command doesn't work yet (`make list` before the tool has `--list`, say): that part isn't built yet. Ask Claude which step adds it.
-- A step is too big to finish cleanly: ask Claude to stop, show what works, and commit that much. Then carry on.
-- Claude starts on the next step unasked: the Driver presses `Esc` and asks for one step.
-- Claude seems unsure of a plotly detail: "check the installed version's documentation".
+- A command doesn't work yet (`make list` before the tool has `--list`, say): that part isn't built yet. Ask the agent which step adds it.
+- A step is too big to finish cleanly: ask the agent to stop, show what works, and commit that much. Then carry on.
+- The agent starts on the next step unasked: the Driver stops it (`Esc` in Claude Code) and asks for one step.
+- The agent seems unsure of a plotly detail: "check the installed version's documentation".
 
 ## What to watch for
 
 - "This should work now" with no command and output. The Sceptic asks for them.
-- `./gate check` saying `data.json` is not valid JSON. That's a real bug, and one Python makes easy. Paste the sentence to Claude.
+- `./gate check` saying `data.json` is not valid JSON. That's a real bug, and one Python makes easy. Paste the sentence to the agent.
 - Hover showing another row's values after sampling, or a colour bar with no unit. Only someone looking at the browser catches these.
 
 ## Opening the gate

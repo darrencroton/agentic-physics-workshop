@@ -6,12 +6,12 @@
 
 At Level 3 you wrote example tests ("these inputs, this number"). Each checks only a few points, so some mutants (deliberately buggy copies of a correct solution) usually survive. Physics gives you something stronger: rules that hold for any input. A **property test** checks such a rule, for example that shuffling the data must not change the answer. One property test can kill a whole class of bug.
 
-You still use red, green, refactor, with Claude as coach and the humans owning the phases and numbers. Use fixed seeds in random tests, and justify tolerances with a binomial argument, not by feel.
+You still use red, green, refactor, with the agent as coach and the humans owning the phases and numbers. Use fixed seeds in random tests, and justify tolerances with a binomial argument, not by feel.
 
 ## What to do
 
 1. Pick at least three properties from the menu.
-2. For each one, run `./tdd red "<property>"`, have Claude write the test, commit, then `./tdd green`, and so on. A property test often passes first time on a correct implementation. That is fine: `./tdd abort "already satisfied"` closes the cycle (answer yes to keep the test) and you move to the next property.
+2. For each one, run `./tdd red "<property>"`, have the agent write the test, commit, then `./tdd green`, and so on. A property test often passes first time on a correct implementation. That is fine: `./tdd abort "already satisfied"` closes the cycle (answer yes to keep the test) and you move to the next property.
 3. Keep the whole suite under 10 seconds. Use fixed seeds in any random test.
 4. Run `./tdd score` in the gate terminal and see which survivors remain.
 

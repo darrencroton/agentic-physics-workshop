@@ -6,6 +6,7 @@ Schema (documented in gatekit/README.md):
   "exercise": "tdd-ladder",
   "title": "The TDD Ladder",
   "tool": "tddtool",                      # optional module under .gatekit/
+  "other_agents": true,                   # optional bool: ship OTHER-AGENTS.md
   "models": {"default": "haiku", "allowed": ["haiku"]},
   "levels": [
     {"id": 0, "title": "...", "persona": "literal", "target_minutes": 5,
@@ -87,6 +88,8 @@ def validate(manifest):
                 raise ManifestError(
                     "level %d: question '%s': text_from must look like "
                     "'tool.function'" % (index, question["id"]))
+    if not isinstance(manifest.get("other_agents", False), bool):
+        raise ManifestError("'other_agents' must be true or false")
     models = manifest.get("models", {})
     if "allowed" in models and not isinstance(models["allowed"], list):
         raise ManifestError("models.allowed must be a list")

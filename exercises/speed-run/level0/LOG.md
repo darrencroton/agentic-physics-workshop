@@ -12,7 +12,7 @@ Keep this short and honest. Write as you go. This feeds the show-and-tell.
 
 ### Numbers we measured (N, seconds, exponent, predicted time at 200,000)
 
-### Decisions Claude made for us
+### Decisions the agent made for us
 
 ## Level 1: Vectorise, and survive the memory wall
 
@@ -24,7 +24,7 @@ Keep this short and honest. Write as you go. This feeds the show-and-tell.
 
 ### Our memory estimate (with the arithmetic) and what the harness measured
 
-### Decisions Claude made for us
+### Decisions the agent made for us
 
 ## Level 2: Reduce the work, defend the answer
 
@@ -36,7 +36,7 @@ Keep this short and honest. Write as you go. This feeds the show-and-tell.
 
 ### Division we chose, `sigma_fraction`, and the evidence that decided it
 
-### Decisions Claude made for us
+### Decisions the agent made for us
 
 ## Level 3: Open race
 
@@ -46,7 +46,7 @@ Keep this short and honest. Write as you go. This feeds the show-and-tell.
 
 ### The "caught it" moment
 
-### Decisions Claude made for us
+### Decisions the agent made for us
 
 ## Submissions
 

@@ -10,16 +10,16 @@ At Level 2 you decided what the function should do, and `CLIENT_SPEC.md` showed 
 - **Green:** write the least code that makes it pass.
 - **Refactor:** tidy the code while the tests stay green.
 
-The tool enforces the phases. Humans own them and the numbers: Claude may not invent expected values. The **oracle** (the trusted source of an expected number) is a person with a calculator.
+The tool enforces the phases. Humans own them and the numbers: the agent may not invent expected values. The **oracle** (the trusted source of an expected number) is a person with a calculator.
 
 The unlock has already saved your earlier work on a branch and restored the stub. Implement `CLIENT_SPEC.md` one behaviour at a time, referencing it and `SPEC.md` with `@`.
 
 ## The cycle
 
-1. **Red.** In the gate terminal: `./tdd red "<behaviour>"`. Claude writes **one** test for that behaviour. Only `tests/` can change.
-2. **Oracle.** The expected value comes from a human. The Sceptic computes it by hand on a tiny input (2 to 4 points, exact fractions where possible). No numbers from Claude.
+1. **Red.** In the gate terminal: `./tdd red "<behaviour>"`. The agent writes **one** test for that behaviour. Only `tests/` can change.
+2. **Oracle.** The expected value comes from a human. The Sceptic computes it by hand on a tiny input (2 to 4 points, exact fractions where possible). No numbers from the agent.
 3. **Commit the test.** Then, in the gate terminal: `./tdd green`. The tool checks that the test fails for the right reason (an assertion or `NotImplementedError`, not an import error).
-4. **Green.** Claude writes the minimum code to pass. Tests are frozen. Only `src/` can change.
+4. **Green.** The agent writes the minimum code to pass. Tests are frozen. Only `src/` can change.
 5. Run the tests, see them pass, commit.
 6. Every few cycles, `./tdd refactor` (tests stay frozen), then `./tdd done`. A cycle only counts once `./tdd done` has closed it.
 
@@ -39,10 +39,10 @@ If a test is wrong, the group decides to go back to red: `./tdd abort "wrong ora
 
 ## What to watch for
 
-- Claude writing three tests when you asked for one. Navigator: say no.
-- Numbers appearing from Claude. Sceptic: did you compute that?
+- The agent writing three tests when you asked for one. Navigator: say no.
+- Numbers appearing from the agent. Sceptic: did you compute that?
 - A tolerance that is looser than it needs to be. Ask what justifies it.
-- Claude trying to edit a test during green, and the block that follows. Discuss it.
+- The agent trying to edit a test during green, and the block that follows. Discuss it.
 
 Run `./tdd score` now and then. A **false alarm** is one of your tests failing on a correct solution: the test is wrong.
 

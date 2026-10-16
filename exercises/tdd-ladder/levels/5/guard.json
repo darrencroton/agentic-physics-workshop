@@ -6,5 +6,5 @@
     "LOG.md",
     "SPEC.md"
   ],
-  "message": "At this level Claude may edit src/, tests/, mutants/, SPEC.md and LOG.md."
+  "message": "At this level the agent may edit src/, tests/, mutants/, SPEC.md and LOG.md."
 }

@@ -83,6 +83,7 @@ class GuardTests(unittest.TestCase):
     def test_blocks_frozen_path_edits(self):
         self.deny(tool("Edit", file_path="README.md", old_string="a", new_string="b"), "read-only")
         self.deny(tool("Write", file_path="Makefile", content="x"), "read-only")
+        self.deny(tool("Write", file_path="AGENTS.md", content="x"), "read-only")
         self.deny(tool("Write", file_path="data/new.csv", content="x"))
         self.deny(tool("Write", file_path=".claude/settings.json", content="{}"))
         self.deny(tool("Write", file_path="/tmp/outside.txt", content="x"), "outside")

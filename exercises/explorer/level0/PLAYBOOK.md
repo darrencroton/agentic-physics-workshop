@@ -3,11 +3,12 @@
 The agent is a fast, tireless, literal collaborator. You own the decisions and the result.
 
 ## 0. Set up
-- Put the project's facts in CLAUDE.md: what it is, how to run it, how to test it,
-  conventions. Keep it short. `/init` drafts one.
+- Put the project's facts in AGENTS.md: what it is, how to run it, how to test it,
+  conventions. Keep it short, and let the agent draft it. Claude Code reads it too
+  if there is no CLAUDE.md.
 - Use git. One change, one check, one commit. Any step can then be undone.
 
-## 1. Understand (plan mode: Shift+Tab until "plan mode on")
+## 1. Understand (plan mode on; Shift+Tab in Claude Code)
 "Read <files>. Summarise what the code and data contain and what the task asks.
  List anything unclear or ambiguous. Don't write any code."
 
@@ -23,7 +24,7 @@ The agent is a fast, tireless, literal collaborator. You own the decisions and t
  style-code skill. Run it, show me the exact command and output, and tell me what
  I can run to check it myself."
 - Run that yourself and look at the result. Commit. Then: "Next step."
-- Stop it (Esc) if it starts doing more than one step.
+- Stop it (Esc in Claude Code) if it starts doing more than one step.
 
 ## 4. Evidence: test plan, then tests
 - First write your own list: three things that must not break.
@@ -40,15 +41,16 @@ The agent is a fast, tireless, literal collaborator. You own the decisions and t
 - First write your own guess: two things a reviewer will find.
 "Use the review-code skill to review the code against PLAN.md. Rank the findings
  by severity. Don't fix anything."
-- It runs in a subagent with no memory of this session. That is the point.
+- It runs in a fresh context (a subagent in Claude Code) with no memory of this session. That is the point.
 - Decide the findings that matter: FIX, ACCEPT or REJECT, with a reason.
   Many low ones? Triage the top few; the rest can wait.
 "Fix the FIX items one at a time. For each, add a test that fails before the fix
  and passes after, then run the tests." Commit each.
 
 ## 6. Recover
-- Esc stops it. Esc Esc or /rewind undoes. After two failed corrections: /clear and
-  write a better prompt that includes what you learned.
+- Stop it, and undo if needed (in Claude Code: Esc, then Esc Esc or /rewind). After
+  two failed corrections, start a fresh session (/clear in Claude Code) and write a
+  better prompt that includes what you learned.
 
 ## Red flags
 - "Done" or "all tests pass" with no command and output shown.
@@ -58,11 +60,12 @@ The agent is a fast, tireless, literal collaborator. You own the decisions and t
 - You can't explain what the code does. Ask it to, then check.
 
 ## Make it stick (optional)
-- The four skills: copy .claude/skills/ from this repo into your project, or into
-  ~/.claude/skills/ to have them everywhere. Each SKILL.md says what it does and
-  how to call it.
-- A Stop hook that runs your tests, so the agent cannot finish with them failing
-  (exit code 2 blocks; a failing pytest exits 1, so wrap it):
+- The four skills: copy .claude/skills/ from this repo into your project (Claude
+  Code, Cursor, Copilot and OpenCode read it; Codex and Antigravity read
+  .agents/skills/), or into ~/.claude/skills/ for every Claude Code project. Each
+  SKILL.md says what it does and how to call it.
+- A Stop hook that runs your tests, so the agent cannot finish with them failing.
+  Claude Code example (exit code 2 blocks; a failing pytest exits 1, so wrap it):
   {"hooks": {"Stop": [{"hooks": [{"type": "command",
     "command": "sh -c 'cd \"$CLAUDE_PROJECT_DIR\" && .venv/bin/pytest -q || exit 2'"}]}]}}
   in .claude/settings.json. Add it once tests exist.

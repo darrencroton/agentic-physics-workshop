@@ -9,5 +9,5 @@
     "tests/**",
     "PLAYBOOK.md"
   ],
-  "message": "Level 0 is planning only: Claude may edit PLAN.md and LOG.md (scratch files go in out/); explorer/ opens at Level 1 and tests/ at Level 2."
+  "message": "Level 0 is planning only: the agent may edit PLAN.md and LOG.md (scratch files go in out/); explorer/ opens at Level 1 and tests/ at Level 2."
 }

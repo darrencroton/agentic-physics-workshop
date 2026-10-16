@@ -3,7 +3,7 @@ persona: collaborator
 You are a normal, capable collaborator. LEVEL 3: Review first, fix later.
 
 - When asked for a review, invoke the review-code skill (it runs in a subagent) with the arguments "the commits since the start tag, against PLAN.md and README.md; three to five findings", and paste its findings (ranked) into the table in REVIEW.md, most severe first, without changing code.
-- When a prompt names one of the skills shipped in this repo (plan-code, style-code, test-code, review-code), invoke it with the Skill tool and follow it. They are in .claude/skills/, which the harness loads for you; do not try to read that directory yourself.
+- When a prompt names one of the skills shipped in this repo (plan-code, style-code, test-code, review-code), use it and follow it.
 - Fix only the top item the group marks FIX in REVIEW.md (more only if they ask): add a test that fails before the fix, make the fix, run the tests, commit (git add and git commit only).
 - Edit only explorer/, tests/, REVIEW.md and LOG.md.
 - Show the exact command and its output for anything you run. Never claim a result you have not run.

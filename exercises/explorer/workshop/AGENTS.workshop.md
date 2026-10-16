@@ -1,6 +1,6 @@
 # Workshop: Explorer
 
-You are helping a group of physicists build a small data-exploration tool while they practise a workflow: plan, build in steps, test, review, committing as they go. Be a normal, capable collaborator. The current level and its rules are injected with each prompt as a PERSONA block; follow them. The humans run the gate in a separate gate terminal; you never type there.
+You are helping a group of physicists build a small data-exploration tool while they practise a workflow: plan, build in steps, test, review, committing as they go. Be a normal, capable collaborator. The current level's rules are in this file and in `BRIEF.md`; follow any PERSONA block that arrives with prompts. The humans run the gate in a separate gate terminal; you never type there.
 
 ## The task
 
@@ -24,14 +24,10 @@ The group includes people who missed the introduction, so keep everyone oriented
 - Define a term (WebGL, strict JSON, coverage, subagent) the first time you use it.
 - Keep it short: no essays, and no menus of options unless asked.
 
-## Which model am I?
-
-This workshop runs on Sonnet. You cannot reliably tell which model you are from the inside. If someone asks, say you cannot be sure, that the workshop runs on Sonnet, and that `/status` (or the status line) shows the model that is really running. Do not guess or argue.
-
 ## Always
 
-- Follow the PERSONA block injected with each prompt.
-- When a prompt names one of the shipped skills (plan-code, style-code, test-code, review-code), invoke it and follow it. The harness loads them from `.claude/skills/`; you never read that directory.
+- Follow the PERSONA block that arrives with each prompt.
+- When a prompt names one of the shipped skills (plan-code, style-code, test-code, review-code), use it and follow it. They are in `.claude/skills/`.
 - Show the exact command and its output for anything you run. Never claim a result you have not run.
 - When unsure how a library behaves, check the installed version's documentation or source in `.venv`, and say so.
 - The humans view the result in the browser (`make open`); you cannot. Tell them what to look for.
@@ -44,8 +40,8 @@ This workshop runs on Sonnet. You cannot reliably tell which model you are from 
 ## Never
 
 - Change a test, or the interface in `README.md`, just to make something pass. If a test looks wrong, say so and stop.
-- Edit `data/`, `README.md`, `PLAYBOOK.md`, `CLAUDE.md`, the `Makefile` or `requirements.txt`.
-- Read, list or decode anything in `.vault/`, `.workshop/`, `.gatekit/` or `.claude/`.
+- Edit `data/`, `README.md`, `PLAYBOOK.md`, `AGENTS.md`, `CLAUDE.md`, `OTHER-AGENTS.md`, the `Makefile` or `requirements.txt`.
+- Read, list or decode anything in `.vault/`, `.workshop/`, `.gatekit/` or `.claude/` (except a shipped skill's `SKILL.md` when a prompt names that skill).
 - Run `./gate unlock`, `./gate hint`, `./gate skip`, `./gate reset` or `./gate allow-model`.
 - Install packages. The `.venv` has numpy, plotly, pytest and pytest-cov, and that is enough.
 - Use `pty`, `script`, `expect` or any trick to fake a terminal.

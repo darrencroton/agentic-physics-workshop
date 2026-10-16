@@ -12,13 +12,13 @@ import os
 import re
 import sys
 
-# Paths Claude may never read, list or write.
+# Paths the agent may never read, list or write.
 SECRET_DIRS = (".vault", ".workshop", ".tdd", ".claude", ".gatekit",
                ".tdd-tools", ".git")
-# Paths Claude may read but never edit (launchers and build-controlled files).
-FROZEN_FILES = ("gate", "tdd", "race", "preflight", "CLAUDE.md", "README.md",
-                "BRIEF.md", "CLIENT_SPEC.md", "Makefile", "pytest.ini",
-                "requirements.txt", ".gitignore")
+# Paths the agent may read but never edit (launchers and build-controlled files).
+FROZEN_FILES = ("gate", "tdd", "race", "preflight", "AGENTS.md", "CLAUDE.md",
+                "OTHER-AGENTS.md", "README.md", "BRIEF.md", "CLIENT_SPEC.md",
+                "Makefile", "pytest.ini", "requirements.txt", ".gitignore")
 FROZEN_DIRS = ("data",)
 
 PATH_TOOLS = {"Read": "file_path", "Edit": "file_path", "Write": "file_path",
@@ -211,13 +211,13 @@ def in_dir(rel, directory):
 
 
 def is_secret(rel):
-    """True for paths Claude may never touch (case-insensitive)."""
+    """True for paths the agent may never touch (case-insensitive)."""
     low = rel.lower()
     return any(in_dir(low, d.lower()) for d in SECRET_DIRS)
 
 
 def is_frozen(rel, launchers=()):
-    """True for build-controlled paths Claude may read but not edit.
+    """True for build-controlled paths the agent may read but not edit.
 
     `launchers` are extra frozen file names, such as the manifest's
     human-only launchers.

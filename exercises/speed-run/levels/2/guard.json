@@ -9,5 +9,5 @@
     "race.toml",
     "bench/**"
   ],
-  "message": "At this level Claude may edit files under paircount/ (fast.py and any new files) and LOG.md. reference.py, the package __init__.py, race.toml and bench/ are frozen: the humans decide the division in race.toml, and the harness must stay trustworthy."
+  "message": "At this level the agent may edit files under paircount/ (fast.py and any new files) and LOG.md. reference.py, the package __init__.py, race.toml and bench/ are frozen: the humans decide the division in race.toml, and the harness must stay trustworthy."
 }

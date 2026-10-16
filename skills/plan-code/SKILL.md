@@ -9,7 +9,7 @@ A plan is a short written agreement about what will be built, in what order, and
 
 ## Steps
 
-1. **Read before planning.** Read the files, data and docs the task names, and the project's `README.md` and `CLAUDE.md` if they exist. Run the existing tests or the tool once if that is cheap. Say in a few lines what you found and list anything unclear.
+1. **Read before planning.** Read the files, data and docs the task names, and the project's `README.md` and its agent instructions (`AGENTS.md`, or `CLAUDE.md` if there is none) if they exist. Run the existing tests or the tool once if that is cheap. Say in a few lines what you found and list anything unclear.
 2. **Ask, do not assume.** Every choice you would otherwise make silently is a decision for the human: edge cases in the data (missing values, zeros, empty input), defaults, which library, what the first version leaves out. Put each one as a question with your recommended answer, and wait.
 3. **Propose the plan** in the format below. Size it to the job: as few steps as the work needs, each ending in something the human can run and look at.
 4. **Revise until approved.** The human may change anything. Record the decisions as they were made, not as you proposed them.

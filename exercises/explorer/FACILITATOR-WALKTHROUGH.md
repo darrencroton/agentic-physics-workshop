@@ -11,7 +11,7 @@ The lecture, roles by group size, the run-sheet and the trial are in `docs/00-fa
 
 Every timing and size below was **measured on an M1 Max (Python 3.13.2, numpy 2.3.2, plotly 7.1.0); calibrate on your own laptop** before you quote a number to a group. Unlike the other exercises, the clock is not the main risk here: there are no planted bugs and no hidden assets, so what happens at each level depends on what Sonnet does on the day. The checks only prove that each step happened.
 
-Explorer runs on **Sonnet**, not Haiku. The lesson is the workflow (plan, build in checked steps, test, review), not supervising a weak model, and building Python plus a JavaScript page in 18 minutes is a real risk on Haiku. The lecture's "weak model" slide does not apply to this group: tell them Claude is a normal, helpful collaborator today.
+Explorer runs on **Sonnet**, not Haiku. The lesson is the workflow (plan, build in checked steps, test, review), not supervising a weak model, and building Python plus a JavaScript page in 18 minutes is a real risk on Haiku. The lecture's "weak model" slide does not apply to this group: tell them the agent is a normal, helpful collaborator today.
 
 ## 1. Facilitator: build and rehearse
 
@@ -78,10 +78,23 @@ Do not install anything else. If preflight asks for something, check with the fa
    1. `/hooks`: four events must be listed (SessionStart, UserPromptSubmit, PreToolUse, PreModelSwitch). If the list is empty, the trust dialog was not accepted: `/exit` and run `claude` again.
    2. `/status`: the model line must say Sonnet.
    3. `/model` and pick another model (Haiku, say): it must be refused. Picking Sonnet again is allowed.
-   4. Type `/` in Claude and confirm `plan-code`, `style-code`, `test-code` and `review-code` are listed. If not, run `/reload-skills`; if they are still missing, see section 6. The playbook prompts name them.
+   4. Type `/` in Claude Code and confirm `plan-code`, `style-code`, `test-code` and `review-code` are listed. If not, run `/reload-skills`; if they are still missing, see section 6. The playbook prompts name them.
    5. `/agents` (or the agent list in your version): `reviewer` must be listed, as a project agent. It is only the fallback for Level 3 (the main route is the `review-code` skill). If it is missing, see section 6.
    6. `/exit`.
 5. Rehearse: play Level 0 yourself following section 5, and reset (section 7) so the group's log starts empty. Level 0 needs nothing built, so it is a quick way to see the gate, the guard and the plan-mode start.
+
+### Groups on other agents
+
+Explorer can be done on another agent harness (Codex, Cursor, Copilot, Antigravity, OpenCode). The group reads `OTHER-AGENTS.md` in the repo, which covers the participant side. The rules are in `AGENTS.md`, which these harnesses read; `CLAUDE.md` imports it for Claude Code.
+
+Without Claude Code the group loses:
+
+- the guard and the other hooks: the rules are written in `AGENTS.md` instead and rest on trust, and the gates still check the work;
+- the per-prompt persona, so the group asks the agent to run `./gate brief` at the start and after each unlock;
+- the model lock, and the plan-mode start (they use the agent's own plan or ask mode);
+- the forked review: they open a fresh session in the same folder instead.
+
+The timings are calibrated on Claude Code with Sonnet only, and no other harness has been rehearsed yet. Cursor and Copilot may run the Claude Code hooks from `.claude/settings.json`; if every command is refused, `OTHER-AGENTS.md` says how to turn that off. Claude Code stays the recommended setup.
 
 ## 4. Running the session
 
@@ -89,19 +102,19 @@ Do not install anything else. If preflight asks for something, check with the fa
 
 | Window | Command | Who types |
 |---|---|---|
-| Claude (large) | `claude`, in the repo | the Driver |
+| The agent (large) | `claude`, in the repo | the Driver |
 | Gate (small) | a fresh Terminal window in the repo, then `./gate …`, `make open`, `make list`, `make test` | the humans |
 | Browser | `make open` shows `out/explorer.html` | everyone looks |
 
-Open the gate terminal from Terminal itself, not from inside Claude Code: the gate refuses to run from Claude's shell and says so. Claude cannot see the browser; that is the point of Level 1.
+Open the gate terminal from Terminal itself, not from inside Claude Code: the gate refuses to run from the agent's shell and says so. The agent cannot see the browser; that is the point of Level 1.
 
-The session starts in plan mode on Sonnet. `Shift+Tab` leaves plan mode once the group has agreed a plan. `/model` to anything but Sonnet is refused.
+The session starts in plan mode on Sonnet. `Shift+Tab` (in Claude Code) leaves plan mode once the group has agreed a plan. `/model` to anything but Sonnet is refused.
 
-**Which model is it, really?** Trust `/status`, not what Claude says about itself.
+**Which model is it, really?** Trust `/status`, not what the agent says about itself.
 
 ### Choosing the dataset
 
-Before the session, choose the group's dataset: pulsars (`data/pulsars.csv`, for the astro and cosmology end of the room) or dimuons (`data/dimuons.csv`, for the particle end). Edit the `Dataset:` line of `PLAN.md` in the group's clone and leave it **uncommitted** (Claude commits `PLAN.md` at Level 0, which is what the gate wants):
+Before the session, choose the group's dataset: pulsars (`data/pulsars.csv`, for the astro and cosmology end of the room) or dimuons (`data/dimuons.csv`, for the particle end). Edit the `Dataset:` line of `PLAN.md` in the group's clone and leave it **uncommitted** (the agent commits `PLAN.md` at Level 0, which is what the gate wants):
 
 ```text
 Dataset: data/pulsars.csv
@@ -111,7 +124,7 @@ That line is the only place the dataset is named. The Makefile reads it, so `mak
 
 ### Opening (60 seconds, read aloud)
 
-> "Today we build a real tool, a 3D explorer for our data, and we build it the way you'd want a careful student to: plan, build in two checked steps, test, review, and commit as we go. Claude is a normal, helpful collaborator today; the gates just make sure we do each step. The gate terminal is ours: Claude can't type there, and that's where we run the tests ourselves. Roles: [assign]. The keyboard rotates at each gate. All code goes through Claude; we read, look, decide. At the end, `PLAYBOOK.md` is yours to take home, and the four skills in `.claude/skills/` with it."
+> "Today we build a real tool, a 3D explorer for our data, and we build it the way you'd want a careful student to: plan, build in two checked steps, test, review, and commit as we go. The agent is a normal, helpful collaborator today; the gates just make sure we do each step. The gate terminal is ours: the agent can't type there, and that's where we run the tests ourselves. Roles: [assign]. The keyboard rotates at each gate. All code goes through the agent; we read, look, decide. At the end, `PLAYBOOK.md` is yours to take home, and the four skills in `.claude/skills/` with it."
 
 You are the Coach: you ask questions and fix tooling, and you do not drive. Allocate the roles (described in the repo's `README.md`) by group size, as below. The Driver rotates at each gate through everyone except you, so every other member types; you drive only with two people or to fix a technical problem.
 
@@ -122,9 +135,9 @@ You are the Coach: you ask questions and fix tooling, and you do not drive. Allo
 | 4 | Driver (rotating), Navigator, Sceptic. You: Coach and Scribe. |
 | 5 | Driver (rotating), Navigator, Browser Sceptic (looks at every result), Evidence Sceptic (wants every command and output). You: Coach and Scribe. |
 
-- **The expert who wants to write it by hand:** "You'd be faster today. The point is the habit for when the code is ten times bigger. Can you get Claude to do it the way you would?"
+- **The expert who wants to write it by hand:** "You'd be faster today. The point is the habit for when the code is ten times bigger. Can you get the agent to do it the way you would?"
 - **Plotting rabbit holes** (styling, extra controls): the Navigator owns scope. "Is it in the plan?" Suggestions go in the log for later.
-- **Correction spirals:** after two failed corrections, `/clear` and a better prompt.
+- **Correction spirals:** after two failed corrections, start a fresh session (`/clear` in Claude Code) with a better prompt.
 
 ### Time checkpoints
 
@@ -145,33 +158,33 @@ Need the master passphrase, which the facilitator holds, so call them over: `./g
 
 ## 5. Level by level
 
-Every gate check prints one sentence on failure naming the first thing that is wrong and how to fix it, and the success line on a pass. Tell the Driver to run `./gate check` early and often and paste the sentence to Claude. Every gate also requires new commits since the previous unlock and a clean tree for the paths it checks, so every brief ends "commit, then unlock". Humans do not touch the code: Claude makes the commits when asked.
+Every gate check prints one sentence on failure naming the first thing that is wrong and how to fix it, and the success line on a pass. Tell the Driver to run `./gate check` early and often and paste the sentence to the agent. Every gate also requires new commits since the previous unlock and a clean tree for the paths it checks, so every brief ends "commit, then unlock". Humans do not touch the code: The agent makes the commits when asked.
 
 ### Level 0: Plan (8 min, collaborator)
 
-1. The group reads the README, then in plan mode gives Claude one prompt that combines the playbook's *Understand* and *Plan* prompts: summarise the data (including which columns have missing values and how many), then, using the plan-code skill, propose a plan. They argue with it, then have Claude save it as `PLAN.md` and commit it.
-2. `make list` cannot work yet: the tool does not exist until Level 1, so it fails with "No module named explorer.__main__; 'explorer' is a package and cannot be directly executed". That is expected. The README prompt asks Claude for the missing-value counts up front (hint 1 is the fallback if it doesn't say); the commands table says `make list` works once the tool has `--list`. (Pulsars: `P1` misses 1,524 values, `AGE`, `BSURF` and `EDOT` 1,605 each, and 74 pulsars have no distance, so their `XX`, `YY`, `ZZ` are blank. Dimuons has no missing values, but 60,000 rows to sample down.)
-3. Gate (`crypto-reflection`, no graded question). The check requires `PLAN.md` to be complete: `Dataset:` exactly one of the two shipped paths; each of the four decision lines (values at or below zero on a log axis; missing values in a selected column; the initial selection when the page opens; sampling above `--max-points`) answered after the colon; each section filled with something other than the template; at least three acceptance criteria and exactly two steps (top-level list items; sub-bullets do not count). A longer plan is refused: "PLAN.md lists 8 steps; merge them into two, each ending in something you can run and look at: the command line and data.json, then the page". Two steps keeps Level 1 to two stop-run-look-commit cycles; the README, the persona and the hint all suggest the same split (the command line, `--list` and `data.json`; then the page with the decisions and the initial view); the solo run's three-step plan split that way, with a small third step the cap now folds into the second. Steps written as `###` headings or an indented list count too; prose with no list is refused with "write the two steps as a numbered list". Also at least one commit since `start` and `PLAN.md` clean. The reflection (logged): one thing in Claude's plan you changed, and why.
+1. The group reads the README, then in plan mode gives the agent one prompt that combines the playbook's *Understand* and *Plan* prompts: summarise the data (including which columns have missing values and how many), then, using the plan-code skill, propose a plan. They argue with it, then have the agent save it as `PLAN.md` and commit it.
+2. `make list` cannot work yet: the tool does not exist until Level 1, so it fails with "No module named explorer.__main__; 'explorer' is a package and cannot be directly executed". That is expected. The README prompt asks the agent for the missing-value counts up front (hint 1 is the fallback if it doesn't say); the commands table says `make list` works once the tool has `--list`. (Pulsars: `P1` misses 1,524 values, `AGE`, `BSURF` and `EDOT` 1,605 each, and 74 pulsars have no distance, so their `XX`, `YY`, `ZZ` are blank. Dimuons has no missing values, but 60,000 rows to sample down.)
+3. Gate (`crypto-reflection`, no graded question). The check requires `PLAN.md` to be complete: `Dataset:` exactly one of the two shipped paths; each of the four decision lines (values at or below zero on a log axis; missing values in a selected column; the initial selection when the page opens; sampling above `--max-points`) answered after the colon; each section filled with something other than the template; at least three acceptance criteria and exactly two steps (top-level list items; sub-bullets do not count). A longer plan is refused: "PLAN.md lists 8 steps; merge them into two, each ending in something you can run and look at: the command line and data.json, then the page". Two steps keeps Level 1 to two stop-run-look-commit cycles; the README, the persona and the hint all suggest the same split (the command line, `--list` and `data.json`; then the page with the decisions and the initial view); the solo run's three-step plan split that way, with a small third step the cap now folds into the second. Steps written as `###` headings or an indented list count too; prose with no list is refused with "write the two steps as a numbered list". Also at least one commit since `start` and `PLAN.md` clean. The reflection (logged): one thing in the agent's plan you changed, and why.
 
-Observe: which decisions did Claude make silently (dropping rows, clipping logs, which columns the page opens on)? Does the group notice, or accept the plan unread? Is the plan bigger than the job (class hierarchies, a config system, a build step for the JavaScript)?
+Observe: which decisions did the agent make silently (dropping rows, clipping logs, which columns the page opens on)? Does the group notice, or accept the plan unread? Is the plan bigger than the job (class hierarchies, a config system, a build step for the JavaScript)?
 
-Ask: "Which decisions did Claude make for us? Do we agree?" The Sceptic owns the acceptance criteria and the Navigator cuts the scope.
+Ask: "Which decisions did the agent make for us? Do we agree?" The Sceptic owns the acceptance criteria and the Navigator cuts the scope.
 
 Try deliberately:
 
-- Ask Claude to "just write the code". The guard refuses: "Level 0 is planning only: Claude may edit PLAN.md and LOG.md, and explorer/ opens at Level 1 and tests/ at Level 2." Read it aloud: the plan is where the decisions are cheap to change.
-- Unlock with the template `PLAN.md` or without committing: "no commit since start: ask Claude to commit PLAN.md (this level needs at least 1)". Change the `Dataset:` line to anything else and the gate says it must be exactly `data/pulsars.csv` or `data/dimuons.csv`.
+- Ask the agent to "just write the code". The guard refuses: "Level 0 is planning only: the agent may edit PLAN.md and LOG.md, and explorer/ opens at Level 1 and tests/ at Level 2." Read it aloud: the plan is where the decisions are cheap to change.
+- Unlock with the template `PLAN.md` or without committing: "no commit since start: ask the agent to commit PLAN.md (this level needs at least 1)". Change the `Dataset:` line to anything else and the gate says it must be exactly `data/pulsars.csv` or `data/dimuons.csv`.
 
 ### Level 1: Build the prototype (18 min, collaborator)
 
-1. The unlock opens `explorer/` for editing (and freezes `tests/`). The group leaves plan mode and has Claude implement step 1 of the plan only, following the coding guidelines in the style-code skill, run it, show the command and output, and say what the group can run to check it; then runs that in the gate terminal (once the page exists, `make explore` then `make open`), has Claude commit, and goes to the next step. The plan has two steps, so this is two cycles; the two-commit minimum matches. The generated page embeds plotly.js (about 5 MB), so `out/explorer.html` is a few MB. `make explore` should take well under 5 s.
+1. The unlock opens `explorer/` for editing (and freezes `tests/`). The group leaves plan mode and has the agent implement step 1 of the plan only, following the coding guidelines in the style-code skill, run it, show the command and output, and say what the group can run to check it; then runs that in the gate terminal (once the page exists, `make explore` then `make open`), has the agent commit, and goes to the next step. The plan has two steps, so this is two cycles; the two-commit minimum matches. The generated page embeds plotly.js (about 5 MB), so `out/explorer.html` is a few MB. `make explore` should take well under 5 s.
 2. Gate (`crypto`, one graded question). The check runs the tool four times on the `PLAN.md` dataset: with the defaults; with `--max-points 500` (must write exactly 500 rows and still report the same `n_read`); with `--list` (must name every column of the column file); and on a file that does not exist (non-zero exit and no `Traceback`). It reads `data.json` as strict JSON with the structure in the README, and checks that `explorer.html` has plotly.js inline, no `<script src="http...">`, the five `<select>`s and four checkboxes with the right ids and an option for every numeric column, and the strings `scattergl` and `scatter3d` outside the plotly.js code. It also needs at least **2 commits** since the Level 0 unlock and `explorer/` and `PLAN.md` clean.
 3. The question needs a human who has looked at the page, and `./gate unlock` asks only the one for the group's dataset (it reads the `Dataset:` line; if it cannot, it asks a neutral question and the leader gives the dataset's question aloud). A wrong answer prints "Not quite" and a dataset-specific hint, and the group runs `./gate unlock` again. **Pulsars:** plot `XX`, `YY`, `ZZ` and rotate it; the known pulsars crowd around one point. What is there? Answer **`sun`**. **Dimuons:** plot `M` against `pt1` with log axes; which particle makes the sharp band near 3.1 GeV? Answer **`jpsi`**. Matching ignores case, spaces and punctuation, and maps ψ to `psi`. Accepted for both datasets: `sun`, `the sun`, `our sun`, `solar system` (and `the`/`our` forms), `earth`, `the earth`, `us`, `solar neighbourhood` (UK and US spellings, with `the`), `jpsi`, `j/psi`, `jψ`, `psi`, `the j/psi`, `j/psi meson`, `jpsi meson`. It is a whole-answer match, not a search inside a sentence: a longer answer such as "the Sun, at the centre of the crowd" will be refused, so tell groups to answer in a word or two.
 4. The reflection (logged): one feature the group would add. After the check passes, the group plays with the page for a minute (rotate, zoom, hover, switch columns, palettes and log axes) and agrees one feature. The Scribe writes it in `LOG.md`; it is not built now. Typical ones are a slider, a trace-per-label, saved views and a second colour column; a group with time after Level 3 may build it (the Finished early section of the Level 3 brief offers it, or two others).
 
 Observe:
 
-- Claude tries to build everything in one go. The Driver stops it (`Esc`) and asks for one step.
+- The agent tries to build everything in one go. The Driver stops it (`Esc` in Claude Code) and asks for one step.
 - "This should work now" with no command and output run. The Sceptic asks for them.
 - A plotly detail recalled wrongly (the hover template, the colour-bar title, the 3D trace). "Check the installed version's documentation" is worth a minute.
 - `data.json` contains `NaN` and the check says: "data.json is not valid JSON (NaN is not JSON; write it with allow_nan=False)". That is two minutes of real debugging, on a mistake Python makes easy.
@@ -182,19 +195,19 @@ Ask: "What did that step change? Show me in the browser. Is it committed?"
 
 Try deliberately:
 
-- Ask Claude to write tests now. The guard refuses ("tests/ is frozen until Level 2, so build first and test next").
-- Have Claude write `NaN` into `data.json` and run `./gate check`: the sentence above. This is the bug that a human would not see and the check does.
-- Commit once, then `./gate unlock`: "1 commit since the last gate; this level needs at least 2: ask Claude to commit each step that works (two commits or more)". Leave `explorer/` changes uncommitted: "explorer/ has uncommitted changes: ask Claude to commit, then unlock". (The commit count is checked first.)
+- Ask the agent to write tests now. The guard refuses ("tests/ is frozen until Level 2, so build first and test next").
+- Have the agent write `NaN` into `data.json` and run `./gate check`: the sentence above. This is the bug that a human would not see and the check does.
+- Commit once, then `./gate unlock`: "1 commit since the last gate; this level needs at least 2: ask the agent to commit each step that works (two commits or more)". Leave `explorer/` changes uncommitted: "explorer/ has uncommitted changes: ask the agent to commit, then unlock". (The commit count is checked first.)
 - Answer the question with the wrong word (`moon`): refused with a hint for the dataset; the group can try again.
 
 ### Level 2: Test (8 min, collaborator)
 
-1. The unlock opens `tests/`, `explorer/` and `TESTS.md` and freezes `PLAN.md`. The Scribe writes three things that must not break under "Our list" before anyone asks Claude anything (two minutes, no Claude). Then one prompt asks Claude, using the test-code skill, for a plan of five to eight tests (one line each, the coverage, what it will not cover), written straight into `TESTS.md` under "Claude's plan", without writing any tests yet. Claude should not run unasked experiments (deliberate bugs, coverage write-ups, extra tests). The group compares the two lists and agrees what to write. Then Claude writes and runs the tests, commits, and the group runs `make test` and, if there's time, `make coverage` in the gate terminal.
-2. Gate (`crypto-reflection`). `TESTS.md` has at least three bullets under "Our list" and real text under "Claude's plan"; `make test` finds at least five tests and all pass; at least one test module imports `explorer`; at least 1 commit since the Level 1 unlock; `explorer/`, `tests/` and `TESTS.md` clean. The reflection (logged): what did Claude's plan cover that yours didn't, or the reverse?
+1. The unlock opens `tests/`, `explorer/` and `TESTS.md` and freezes `PLAN.md`. The Scribe writes three things that must not break under "Our list" before anyone asks the agent anything (two minutes, no agent). Then one prompt asks the agent, using the test-code skill, for a plan of five to eight tests (one line each, the coverage, what it will not cover), written straight into `TESTS.md` under "The agent's plan", without writing any tests yet. The agent should not run unasked experiments (deliberate bugs, coverage write-ups, extra tests). The group compares the two lists and agrees what to write. Then the agent writes and runs the tests, commits, and the group runs `make test` and, if there's time, `make coverage` in the gate terminal.
+2. Gate (`crypto-reflection`). `TESTS.md` has at least three bullets under "Our list" and real text under "The agent's plan"; `make test` finds at least five tests and all pass; at least one test module imports `explorer`; at least 1 commit since the Level 1 unlock; `explorer/`, `tests/` and `TESTS.md` clean. The reflection (logged): what did the agent's plan cover that yours didn't, or the reverse?
 
 Observe:
 
-- Claude writes tests immediately unless held to the plan; the brief tells it to wait.
+- The agent writes tests immediately unless held to the plan; the brief tells it to wait.
 - The easy pure functions tested and the page left untested. Coverage shows it. The discussion to have: pytest can test the data preparation, `data.json` and the page's structure, but not what the page does in the browser, which needs a human.
 - A failing test "fixed" by changing the test. The one thing never to accept: a failing test is a finding. Fix the code, or decide the test was wrong and say why.
 
@@ -202,13 +215,13 @@ Ask: "What won't these tests catch? Does that matter for us?"
 
 Try deliberately:
 
-- Unlock with an empty `TESTS.md`: "TESTS.md has 0 items under "Our list": write at least 3 things that must not break, before asking Claude". With four tests: "pytest collected 4 tests; this level needs at least 5, all passing: ask for the tests you agreed in TESTS.md". A failing test: "make test: 1 of 6 tests fail: fix the code, not the tests, then commit".
-- *Does the alarm ring?* Ask Claude to break one behaviour on purpose (drop the unit from a title, write `NaN` into `data.json`), run the tests, see whether they fail, then revert. A test that never fails proves nothing. This is the hint 3 exercise and the best use of a spare minute.
-- Ask Claude to weaken a test so that it passes. Watch whether the Sceptic notices.
+- Unlock with an empty `TESTS.md`: "TESTS.md has 0 items under "Our list": write at least 3 things that must not break, before asking the agent". With four tests: "pytest collected 4 tests; this level needs at least 5, all passing: ask for the tests you agreed in TESTS.md". A failing test: "make test: 1 of 6 tests fail: fix the code, not the tests, then commit".
+- *Does the alarm ring?* Ask the agent to break one behaviour on purpose (drop the unit from a title, write `NaN` into `data.json`), run the tests, see whether they fail, then revert. A test that never fails proves nothing. This is the hint 3 exercise and the best use of a spare minute.
+- Ask the agent to weaken a test so that it passes. Watch whether the Sceptic notices.
 
 ### Level 3: Review (8 min, collaborator, last level)
 
-1. The unlock opens `REVIEW.md` and freezes `PLAN.md` and `TESTS.md`. The group writes two things they think a reviewer will find (one minute), then asks Claude, in one prompt, to use the review-code skill to review the code since start against PLAN.md, rank the findings by severity and paste them into the table in `REVIEW.md`, most severe first, without fixing anything. The `review-code` skill (`.claude/skills/review-code/SKILL.md`) runs in a forked subagent (`context: fork`): a fresh context that has not seen the conversation. The shipped `reviewer` agent (`.claude/agents/reviewer.md`, on Sonnet, tools `Read`, `Grep`, `Glob`, `Bash`) is the fallback if the skill will not load. The persona has Claude ask the skill for three to five findings (the fork does not see the persona, so the number travels as the skill's arguments); the group compares them with their guesses and triages the top three to five themselves: **FIX**, **ACCEPT** (true, but not worth fixing in a prototype) or **REJECT** (wrong), with one line of reason; the rest can stay undecided. Claude fixes the top FIX item (more if there is time), with a test that fails before the fix, runs the tests and commits. The skill tells the reviewer to read the code, run the tool and the tests once each, and not to write scratch scripts or new tests.
+1. The unlock opens `REVIEW.md` and freezes `PLAN.md` and `TESTS.md`. The group writes two things they think a reviewer will find (one minute), then asks the agent, in one prompt, to use the review-code skill to review the code since start against PLAN.md, rank the findings by severity and paste them into the table in `REVIEW.md`, most severe first, without fixing anything. The `review-code` skill (`.claude/skills/review-code/SKILL.md`) runs in a forked subagent (`context: fork`): a fresh context that has not seen the conversation. The shipped `reviewer` agent (`.claude/agents/reviewer.md`, on Sonnet, tools `Read`, `Grep`, `Glob`, `Bash`) is the fallback if the skill will not load. The persona has the agent ask the skill for three to five findings (the fork does not see the persona, so the number travels as the skill's arguments); the group compares them with their guesses and triages the top three to five themselves: **FIX**, **ACCEPT** (true, but not worth fixing in a prototype) or **REJECT** (wrong), with one line of reason; the rest can stay undecided. The agent fixes the top FIX item (more if there is time), with a test that fails before the fix, runs the tests and commits. The skill tells the reviewer to read the code, run the tool and the tests once each, and not to write scratch scripts or new tests.
 2. Gate (`crypto-reflection`, the last level: it marks the workshop complete). `REVIEW.md` has at least two guess bullets and at least three table rows each with a decision in {FIX, ACCEPT, REJECT} and a non-empty reason; the tests pass; the Level 1 run checks pass again on the `PLAN.md` dataset; at least 1 commit since the Level 2 unlock; `explorer/`, `tests/` and `REVIEW.md` clean. The reflection (logged): what did the review find that the tests didn't? The gate prints the note that `PLAYBOOK.md` is theirs to take home, with the four skills in `.claude/skills/`.
 
 Observe:
@@ -231,19 +244,19 @@ Honest limit: the check scripts print a fixed line, so each crypto gate's only s
 
 | Symptom | Do |
 |---|---|
-| Group stuck | `./gate hint` (3 tiers; at Level 1 a fourth gives the answer), then a question. A stuck Level 1 is the likeliest. The last resort is `./gate skip --master` (needs the master passphrase), which opens the next level but installs no code. To let the group still test and review a real tool, copy `exercises/explorer/selftest/solution/explorer/` from the builder repo into the group's `explorer/` and have the group ask Claude to commit it (or commit it yourself in the gate terminal). |
+| Group stuck | `./gate hint` (3 tiers; at Level 1 a fourth gives the answer), then a question. A stuck Level 1 is the likeliest. The last resort is `./gate skip --master` (needs the master passphrase), which opens the next level but installs no code. To let the group still test and review a real tool, copy `exercises/explorer/selftest/solution/explorer/` from the builder repo into the group's `explorer/` and have the group ask the agent to commit it (or commit it yourself in the gate terminal). |
 | Build too slow for the time | The same: `./gate skip --master`, then copy and commit the reference solution (above). Say so to the group. |
-| `./gate` says it is "for humans, in the gate terminal" | It was run from Claude's shell, or from a window opened from Claude Code. Use a fresh Terminal window. |
-| `make list` fails at Level 0 ("'explorer' is a package and cannot be directly executed") | Expected: the tool does not exist until Level 1. Ask Claude for the missing counts instead. |
+| `./gate` says it is "for humans, in the gate terminal" | It was run from the agent's shell, or from a window opened from Claude Code. Use a fresh Terminal window. |
+| `make list` fails at Level 0 ("'explorer' is a package and cannot be directly executed") | Expected: the tool does not exist until Level 1. Ask the agent for the missing counts instead. |
 | `make open` does nothing | Open `out/explorer.html` from Finder, or `open out/explorer.html`. Check `out/` was written (`make explore` first). |
-| Page blank in the browser, or a JavaScript error | plotly.js not embedded, or a script error: open the browser console (Safari: Develop, Show JavaScript Console) and paste the message to Claude. `./gate check` names the embedding case. |
-| `data.json` check fails | Almost always `NaN` in a column of missing values. Paste the sentence to Claude: `allow_nan=False`, and write missing values as `null`. |
-| Claude's Bash command is refused and Claude says it won't reword it | The guard reads quotes, heredocs and redirects, so reading `data/`, regexes, and Claude's usual heredoc commit message are allowed; it still refuses writes to frozen or secret paths, and a few odd spellings fall back to the strict rules. A command that both writes (`cp`, `mv`, `rm`, `tee`, `sed -i`, `python script.py`, a write call in `python -c`) and names `data/` is still refused, for example `cp data/pulsars.csv /tmp/x.csv`; a plain redirect such as `head -5 data/pulsars.csv > out/small.csv` is allowed. Every refusal tells Claude not to reword the command but to say so and use a `make` target or the tests. If the command really was harmless, note it for the facilitator and carry on another way. |
-| `./gate unlock` says "no commit since start" or "N commits ... needs at least ..." | Claude has not committed. Ask it to commit, then `./gate status` shows commits since the last gate. |
+| Page blank in the browser, or a JavaScript error | plotly.js not embedded, or a script error: open the browser console (Safari: Develop, Show JavaScript Console) and paste the message to the agent. `./gate check` names the embedding case. |
+| `data.json` check fails | Almost always `NaN` in a column of missing values. Paste the sentence to the agent: `allow_nan=False`, and write missing values as `null`. |
+| The agent's Bash command is refused and the agent says it won't reword it | The guard reads quotes, heredocs and redirects, so reading `data/`, regexes, and the agent's usual heredoc commit message are allowed; it still refuses writes to frozen or secret paths, and a few odd spellings fall back to the strict rules. A command that both writes (`cp`, `mv`, `rm`, `tee`, `sed -i`, `python script.py`, a write call in `python -c`) and names `data/` is still refused, for example `cp data/pulsars.csv /tmp/x.csv`; a plain redirect such as `head -5 data/pulsars.csv > out/small.csv` is allowed. Every refusal tells the agent not to reword the command but to say so and use a `make` target or the tests. If the command really was harmless, note it for the facilitator and carry on another way. |
+| `./gate unlock` says "no commit since start" or "N commits ... needs at least ..." | The agent has not committed. Ask it to commit, then `./gate status` shows commits since the last gate. |
 | Hooks not loaded | `/hooks`; if empty, exit, re-open `claude` in the repo and accept trust. |
-| A skill is not listed, or Claude says "unknown skill" | `/reload-skills`; if it is still missing, `/exit`, re-open `claude` in the repo and accept trust. For Level 3 the `reviewer` agent in `.claude/agents/` still works as a fallback, with the old prompt: "Use the reviewer agent to review the code since start against PLAN.md. Rank the findings by severity and paste them into the table in REVIEW.md, most severe first. Don't fix anything." |
-| `reviewer` agent not found (only matters if the `review-code` skill is also unavailable) | `/agents`: it should be listed as a project agent. If not, the workspace trust dialog was not accepted: `/exit`, re-open `claude`, accept. If it is still missing, the group can ask Claude to review in a fresh subagent with the same prompt (the file is `.claude/agents/reviewer.md`). Record whether the guard fires on the subagent's own tool calls. |
-| Claude names the wrong model | Not an override. Check `/status`. |
+| A skill is not listed, or the agent says "unknown skill" | `/reload-skills`; if it is still missing, `/exit`, re-open `claude` in the repo and accept trust. For Level 3 the `reviewer` agent in `.claude/agents/` still works as a fallback, with the old prompt: "Use the reviewer agent to review the code since start against PLAN.md. Rank the findings by severity and paste them into the table in REVIEW.md, most severe first. Don't fix anything." |
+| `reviewer` agent not found (only matters if the `review-code` skill is also unavailable) | `/agents`: it should be listed as a project agent. If not, the workspace trust dialog was not accepted: `/exit`, re-open `claude`, accept. If it is still missing, the group can ask the agent to review in a fresh subagent with the same prompt (the file is `.claude/agents/reviewer.md`). Record whether the guard fires on the subagent's own tool calls. |
+| The agent names the wrong model | Not an override. Check `/status`. |
 | Page opens very slowly | The dimuon file has 60,000 rows, sampled to 20,000 by default; `--max-points 5000` makes it quicker. |
 
 ## 7. Reset between runs
@@ -262,7 +275,7 @@ This is the canonical reset (`docs/DECISIONS.md`, 2026-10-13). `git reset --hard
 - `.workshop/state.json`: per-level times, hints, failed attempts and skips.
 - `LOG.md`: the Scribe's notes and the reflections.
 - The Level 1 play suggestion: the group's feature.
-- `TESTS.md` (the group's list against Claude's plan) and `REVIEW.md` (guesses, findings, triage). These two comparisons are the show-and-tell material.
+- `TESTS.md` (the group's list against the agent's plan) and `REVIEW.md` (guesses, findings, triage). These two comparisons are the show-and-tell material.
 - `git log --oneline`: the commits are the group's path through the plan.
 
-Copy them out before `./gate reset`, and leaders send their copies to the facilitator. For the show-and-tell, ask each group: one decision Claude made that they hadn't (and whether they changed it); one thing the tests did not catch; one finding they rejected, and why; and the moment the browser showed something the check could not. Also ask what time Level 1 finished: it is the calibration number for the next run.
+Copy them out before `./gate reset`, and leaders send their copies to the facilitator. For the show-and-tell, ask each group: one decision the agent made that they hadn't (and whether they changed it); one thing the tests did not catch; one finding they rejected, and why; and the moment the browser showed something the check could not. Also ask what time Level 1 finished: it is the calibration number for the next run.

@@ -10,7 +10,7 @@ Keep this short and honest. Write as you go. This feeds the show-and-tell.
 
 ### The "caught it" moment
 
-### Decisions Claude made for us, and what we changed
+### Decisions the agent made for us, and what we changed
 
 ## Level 1: Build the prototype
 
@@ -32,7 +32,7 @@ Keep this short and honest. Write as you go. This feeds the show-and-tell.
 
 ### The "caught it" moment
 
-### Our list against Claude's test plan: what each missed
+### Our list against the agent's test plan: what each missed
 
 ## Level 3: Review
 
