@@ -379,9 +379,10 @@ def level3(repo):
     not_survivor = next(s for s in ("S3", "S4", "S5", "S1", "S6") if s not in spec_ids)
     code, out = repo.gate("unlock", answers=[("surviving mutant?", not_survivor)])
     check(code == 1 and "Not quite" in out, "wrong survivor spec rejected")
-    code, out = repo.gate("unlock", answers=[("surviving mutant?", "none")])
-    check(code == 1 and "Not quite" in out, "'none' rejected while mutants survive")
-    code, out = repo.gate("unlock", answers=[("surviving mutant?", spec_ids[0].lower())])
+    code, out = repo.gate("unlock", answers=[("surviving mutant?", "none - we killed all 16")])
+    check(code == 1 and "Not quite" in out, "'none - we killed all 16' rejected while mutants survive")
+    both = "%s, %s" % (not_survivor.lower(), spec_ids[0])
+    code, out = repo.gate("unlock", answers=[("surviving mutant?", both)])
     check(code == 0 and "Level 4 unlocked" in out, "L3 -> L4 unlock", out[-300:])
 
 
@@ -394,7 +395,7 @@ def level4(repo):
           "%d/%d/%.1f" % (killed, fa, suite))
     code, out = repo.gate("unlock", answers=[("coverage fraction?", "0.02")])
     check(code == 1 and "Not quite" in out, "wrong binomial sigma rejected")
-    code, out = repo.gate("unlock", answers=[("coverage fraction?", "0.0093")])
+    code, out = repo.gate("unlock", answers=[("coverage fraction?", "sqrt(0.683*0.317/2500) = 0.0093")])
     check(code == 0 and "Level 5 unlocked" in out, "L4 -> L5 unlock", out[-300:])
 
 

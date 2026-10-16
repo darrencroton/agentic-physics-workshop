@@ -140,7 +140,7 @@ Need the master passphrase, which the facilitator holds, so call them over: `./g
 
 1. Driver asks Claude for `make bench N=500 IMPL=reference`, then 1000, then 2000, then `make profile`, then `make fit`. A group that types `make bench N=1000` without `IMPL=reference` runs the default `IMPL=fast`; those runs do not count towards the gate, which asks for reference records.
 2. Expected (M1 Max): about 0.22 s at N = 2000, exponent about 2.0 (`make fit` prints it), predicted time at 200,000 about 37 minutes; the briefs say "about an hour". Profile: `math.sqrt` called 499,500 times at N = 1000.
-3. Gate terminal: `./gate unlock`. Answer **499500** (N(N-1)/2). Reflection: the predicted minutes at 200,000 and how it was reached (the fit, or (200000/2000)² × t(2000)).
+3. Gate terminal: `./gate unlock`. Answer **499500** (N(N-1)/2). Any number in the typed answer counts (the last six are tried), and "500k" and "N(N-1)/2 = 499,500" both pass; the log grid accepts about 499,400 to 500,090, so N(N+1)/2 = 500,500, N(N-1) and N² are refused. Reflection: the predicted minutes at 200,000 and how it was reached (the fit, or (200000/2000)² × t(2000)).
 
 Observe: does Haiku offer to optimise before measuring? How many of the group can say why the exponent is 2? Does anyone read the profile superficially?
 
@@ -191,7 +191,7 @@ Ask: "Was that number from the harness? Is it committed?"
 
 Intel Macs: without FMA instructions (no `-mfma`), clang does not contract, so the FMA trap, the `l3_c_default` sample and the Level 3 hint do not fire. Apple silicon is assumed.
 
-Honest limit: the Speed Run's crypto gates reduce to the human answer, because the check output is fixed. The answer spaces (one value at Level 0, 23 at Level 1, four letters at Level 2) are the only secret. The Level 3 claim that a hard-coded answer scores 0 is soft against code the harness runs, which can read `.gatekit/racetool/golden.json`. See `gatekit/README.md` section 11 in the builder repository.
+Honest limit: the Speed Run's crypto gates reduce to the human answer, because the check output is fixed. The answer spaces (six values at Level 0, 23 at Level 1, four letters at Level 2) are the only secret, and a typed answer can carry up to six numbers, so each attempt is up to six guesses. The Level 3 claim that a hard-coded answer scores 0 is soft against code the harness runs, which can read `.gatekit/racetool/golden.json`. See `gatekit/README.md` section 11 in the builder repository.
 
 ## 6. When something goes wrong
 

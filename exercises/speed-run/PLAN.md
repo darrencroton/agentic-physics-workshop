@@ -22,9 +22,9 @@ Consequences: r_max = 10 (15 log bins, 16 edges from 0.5 to 10); the toleranced 
 
 | L | Title | Min | Persona | Machine check (crypto script reads the signed bench log) | Graded question (one) | Reflection (logged) |
 |---|---|---|---|---|---|---|
-| 0 | Measure before you touch anything | 7 | coach | ≥ 3 valid `reference` records with distinct N in [500, 4000], recorded at level 0; ≥ 1 `profile` record | "How many unique pairs, and so `math.sqrt` calls, does the reference evaluate at N = 1000?" numeric, decimals 0, accept 499500 | "From your fit, the reference's predicted runtime at N = 200,000 (in minutes), and how you got it:" |
+| 0 | Measure before you touch anything | 7 | coach | ≥ 3 valid `reference` records with distinct N in [500, 4000], recorded at level 0; ≥ 1 `profile` record | "How many unique pairs, and so `math.sqrt` calls, does the reference evaluate at N = 1000?" numeric-log, 4 decimals, lo 499500, hi 500000 (about 499,402 to 500,092 accepted) | "From your fit, the reference's predicted runtime at N = 200,000 (in minutes), and how you got it:" |
 | 1 | Vectorise, and survive the memory wall | 10 | coach | a `fast` record at `mock_20k`, recorded at level 1, pass in division **exact**, seconds < 10 (the untouched pure-Python entry does 20k in ~22 s), peak RSS < 1.5 GB, `source_hash` equal to the current `paircount/` tree | "How many gigabytes is ONE 200,000 × 200,000 float64 matrix?" numeric, decimals 0, accept 298–320 | "Your memory estimate before the 20k run, and what the harness measured:" |
-| 2 | Reduce the work, defend the answer | 14 | coach | a `fast` record at `mock_200k`, recorded at level 2, pass in the declared division, seconds < 60, peak RSS < 1.5 GB, `source_hash` and `toml_hash` current | "Golden counts [100, 1000000]; yours [101, 1000010]; declared sigma_fraction 0.05. Which bins pass? (a) both, (b) the first only, (c) the second only, (d) neither. Your answer (a-d):" choice, accept c | "Which division did you enter, and what evidence decided it?" |
+| 2 | Reduce the work, defend the answer | 14 | coach | a `fast` record at `mock_200k`, recorded at level 2, pass in the declared division, seconds < 60, peak RSS < 1.5 GB, `source_hash` and `toml_hash` current | "Golden counts [100, 1000000]; yours [101, 1000010]; declared sigma_fraction 0.05. Which bins pass? (a) both, (b) the first only, (c) the second only, (d) neither. Your answer (a-d):" choice, accept c ("c - the second only" also resolves to c) | "Which division did you enter, and what evidence decided it?" |
 | 3 | Open race | 11 | collaborator | `verified`, condition `race.submitted_ok`: ≥ 1 submission with pass = true at level 3 | — | "Your biggest wrong turn, and the evidence that showed it:" |
 
 Level 3 is the last level, so its verified gate needs no secret. Levels 0–2 are `crypto`; the check scripts live in `.gatekit/racetool/checks/levelN.py` (unreadable by Claude), print diagnostics to stderr and exit 1 on failure, and on success print exactly `{"level": N, "ok": true}` (sorted keys, no spaces beyond JSON default of `json.dumps(obj, sort_keys=True)`). Because that output is fixed, the slot secret is effectively the human answer; this is the documented honest limit.
@@ -133,7 +133,7 @@ Exports from `racetool/__init__.py` as gatekit expects: `conditions = {"submitte
   "levels": [
     {"id": 0, "title": "Measure before you touch anything", "persona": "coach", "target_minutes": 7,
      "gate": {"type": "crypto", "check": ".gatekit/racetool/checks/level0.py", "python": "venv", "timeout": 120,
-              "questions": [{"id": "pairs", "kind": "numeric", "decimals": 0, "lo": 499500, "hi": 499500,
+              "questions": [{"id": "pairs", "kind": "numeric-log", "decimals": 4, "lo": 499500, "hi": 500000,
                              "prompt": "How many unique pairs, and so math.sqrt calls, does the reference evaluate at N = 1000?"}],
               "reflection": "From your fit, the reference's predicted runtime at N = 200,000 (in minutes), and how you got it:"}},
     {"id": 1, "title": "Vectorise, and survive the memory wall", "persona": "coach", "target_minutes": 10,
@@ -182,7 +182,7 @@ Global (gatekit): `data/` and the launchers are frozen; `.vault`, `.workshop`, `
 
 1. Build; `./preflight` passes (venv present).
 2. `hidden/verify_assets.py` passes (section 5) and prints the straddler table and timings.
-3. L0: `gate unlock` refused with "no bench runs"; `make bench N=500/1000/2000 IMPL=reference`; `make profile`; `make fit` prints an exponent in [1.8, 2.2]; wrong answer (499501) rejected; 499500 unlocks.
+3. L0: `gate unlock` refused with "no bench runs"; `make bench N=500/1000/2000 IMPL=reference`; `make profile`; `make fit` prints an exponent in [1.8, 2.2]; wrong answer (N(N+1)/2 = 500500) rejected; "N(N-1)/2 = 499,500" unlocks.
 4. L1: install `samples/l1_naive_matrix/fast.py`; `make bench N=20000` is killed by the cap (run with `RACE_RSS_CAP_GB=2.5`) and the record says so; install `samples/l1_chunked/fast.py`; passes exact, < 10 s, < 1.5 GB; stale-evidence check: edit `fast.py` after the run → unlock refused ("fast.py changed since that run"); restore; wrong GB rejected; 320 unlocks.
 5. L2: `samples/l2_sumsq/fast.py` (cell list comparing `s < e*e`) → exact fails with a diff table; set `race.toml` toleranced with sigma 0.1 and a justification → passes; an invalid toml (sigma 0.5) is refused; `samples/l2_celllist/fast.py` (= the solution) → exact passes in < 60 s; answer (c) unlocks (wrong letter rejected first).
 6. L3: `submit` refuses on a dirty `paircount/`; commit; `samples/l3_c_default/` (C with default contraction) → fails exact on the hidden catalogue, scores 0, board shows it; `samples/l3_c_off/` → passes, score > 1; `gate unlock` completes.

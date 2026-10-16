@@ -385,9 +385,9 @@ def level1_pulsars(repo):
     check(repo.state()["levels"]["1"]["failed_attempts"] == 1, "failed attempt counted")
     head = repo.git("rev-parse", "HEAD")
     answer = "a slider for the colour range"
-    code, out = repo.gate("unlock", answers=[(prompt, "The Sun"), ("would add:", answer)])
+    code, out = repo.gate("unlock", answers=[(prompt, "It's the Sun"), ("would add:", answer)])
     check(code == 0 and "Level 2 unlocked" in out and repo.level() == 2,
-          "'The Sun' opens level 2", flat(out)[-300:])
+          "'It's the Sun' opens level 2", flat(out)[-300:])
     check("TESTS.md" in out and os.path.isfile(repo.path("TESTS.md")), "TESTS.md arrived")
     check(repo.heads().get("2") == head, "records.heads['2'] recorded")
     brief_ok(repo)

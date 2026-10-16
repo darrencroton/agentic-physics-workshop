@@ -132,13 +132,16 @@ def mutation_report_in_log(root, state, manifest):
 
 # ------------------------------------------------------------- validators
 
+_NONE_WORD = re.compile(r"\b(?:none|nil)\b", re.IGNORECASE)
+_SPEC_ID = re.compile(r"\bS\s*(\d{1,2})\b", re.IGNORECASE)
+
+
 def equals_last_acceptance_count(root, state, question, answer):
     s = C.last_score(state, _level(state))
-    try:
-        value = int(round(answers.parse_number(answer)))
-    except answers.AnswerError:
+    found = answers.numbers(answer)
+    if not found:
         return False, "Answer with a whole number."
-    if s and value == s["acceptance"]:
+    if s and any(int(round(value)) == s["acceptance"] for value in found):
         return True, ""
     return False, NOT_QUITE
 
@@ -147,14 +150,17 @@ def spec_id_in_last_survivors(root, state, question, answer):
     s = C.last_score(state, _level(state))
     if s is None:
         return False, "no score recorded."
-    text = answer.strip().lower()
-    if text in ("none", "no", "nil", "0"):
+    ids = {"S%d" % int(n) for n in _SPEC_ID.findall(answer)}
+    if not ids and (_NONE_WORD.search(answer)
+                    or answers.canon_keyword(answer) in ("no", "0")):
         if not s["survivors"]:
             return True, ""
         return False, NOT_QUITE
-    sid = C.spec_id(answer)
+    if not ids:
+        sid = C.spec_id(answer)
+        ids = {sid} if sid else set()
     accepted = {part for spec in s["survivor_specs"] for part in spec.split("/")}
-    if sid and sid in accepted:
+    if ids & accepted:
         return True, ""
     return False, NOT_QUITE
 

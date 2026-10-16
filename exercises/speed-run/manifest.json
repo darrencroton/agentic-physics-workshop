@@ -5,7 +5,7 @@
   "levels": [
     {"id": 0, "title": "Measure before you touch anything", "persona": "coach", "target_minutes": 7,
      "gate": {"type": "crypto", "check": ".gatekit/racetool/checks/level0.py", "python": "venv", "timeout": 120,
-              "questions": [{"id": "pairs", "kind": "numeric", "decimals": 0, "lo": 499500, "hi": 499500,
+              "questions": [{"id": "pairs", "kind": "numeric-log", "decimals": 4, "lo": 499500, "hi": 500000,
                              "prompt": "How many unique pairs, and so math.sqrt calls, does the reference evaluate at N = 1000?"}],
               "reflection": "From your fit, the reference's predicted runtime at N = 200,000 (in minutes), and how you got it:"}},
     {"id": 1, "title": "Vectorise, and survive the memory wall", "persona": "coach", "target_minutes": 10,

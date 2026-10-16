@@ -14,7 +14,7 @@
     },
     {
       "unlock_after_minutes": 13,
-      "text": "The gate unlock answer is 499500: the reference compares every pair once, N(N-1)/2 = 1000 x 999 / 2."
+      "text": "The gate unlock answer is 499500 (500k is close enough): the reference compares every pair once, N(N-1)/2 = 1000 x 999 / 2."
     }
   ]
 }

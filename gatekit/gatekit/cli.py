@@ -1,6 +1,7 @@
 """The `gate` command line: status, brief, check, unlock, hint, skip,
 allow-model, reset."""
 
+import itertools
 import json
 import os
 import shutil
@@ -265,22 +266,27 @@ def _ask_graded_verified(root, state, manifest, gate):
 
 
 def _ask_graded_crypto(root, state, manifest, gate, token):
-    """Return (slot secrets, hints of the questions asked)."""
-    canons = []
+    """Return (slot secrets, hints of the questions asked).
+
+    Each graded question can yield several candidate canonical forms (one per
+    number typed); the secrets cover every combination of them.
+    """
+    forms = []
     hints = []
     for question in _questions(gate):
         prompt, hint = _question_text(root, state, manifest, question)
         hints.append(hint)
         answer = tty.ask(prompt.rstrip() + " ")
         try:
-            canon = answers.canonicalise(question, answer)
+            candidates = answers.candidates(question, answer)
         except answers.AnswerError as exc:
             st.log_failed_attempt(state, "crypto-format")
             st.save_state(root, state)
             raise GateError(_with_hints("Please %s." % exc, hints))
-        if canon is not None:
-            canons.append(canon)
-    return [crypto.crypto_slot_secret(token, "|".join(canons))], hints
+        if candidates:
+            forms.append(candidates)
+    return [crypto.crypto_slot_secret(token, "|".join(combo))
+            for combo in itertools.product(*forms)], hints
 
 
 def _install_pack(root, manifest, state, secrets_list, new_level):

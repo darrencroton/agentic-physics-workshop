@@ -181,7 +181,7 @@ Suggested order of behaviours is in `BRIEF.md`. The gate needs 5 valid cycles wi
 
 Ask: "Sceptic, did *you* compute that value? Navigator, is this one behaviour?"
 
-Gate answer: any spec ID listed under "surviving mutants violate" in the last score, or `none` if 16/16.
+Gate answer: any spec ID listed under "surviving mutants violate" in the last score, or `none` if 16/16. Loose forms pass: "s4", "S4 and S5" (any one right id counts) and "none - we killed all 16" (the word none or nil, or just "no" or "0", with no S-prefixed id; it only passes at 16/16).
 
 ### Level 4: Think like a physicist (8 min, persona coach)
 
@@ -189,7 +189,7 @@ The brief has the property-test menu. Three property tests (uniform-σ limit, af
 
 Ask: "What's the binomial σ for your N? Is your bound 3σ?"
 
-Gate answer: √(0.683 × 0.317 / 2500) ≈ 0.0093. Accepted: 0.0090 to 0.0096.
+Gate answer: √(0.683 × 0.317 / 2500) ≈ 0.0093. Accepted: 0.0090 to 0.0096, and any number in the typed answer counts, so "0.93%" and "sqrt(0.683*0.317/2500) = 0.0093" both pass.
 
 ### Level 5: Stretch, test the tests (5 min, persona collaborator)
 

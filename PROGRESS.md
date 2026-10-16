@@ -40,6 +40,15 @@
   - **`contains`:** new optional list on `keyword` questions. An answer containing a term canonicalises to that term, and the build makes one slot per term. Explorer Level 1 accepts anything containing meson, psi or charmonium. `tools/build.py` now fails a build when a graded crypto question accepts no answers.
   - **Review:** external panel (Codex gpt-6.1-sol, Claude Fable 5.1). Round 1 ACCEPT from both, with one moderate and three minor findings: three fixed, one declined. Round 2 ACCEPT from both, with no findings.
   - **Receipts:** gatekit 72 tests on Python 3.14 and 3.9.6; ruff clean; self-tests TDD Ladder 112, Speed Run 82, Explorer 144.
+- **Answers accepted when a group clearly knows them** (KISS scope; decisions and the dropped ideas are in `docs/DECISIONS.md`).
+  - **Numbers:** any number in the answer counts (the last 6), and `%`, `k` and `M` are understood. A crypto gate tries one key per candidate, so each attempt can make up to 6 guesses.
+  - **Choice:** a letter at the start of the answer wins, otherwise the only stand-alone letter.
+  - **Explorer pulsars:** any answer containing sun, solar or earth passes.
+  - **Speed Run pairs:** widened to about 499,402–500,092, using a 4-decimal log grid of 6 slots.
+  - **TDD Ladder:** "none" answers and multi-id answers now pass where they should.
+  - **gatekit fix:** `_grid` now aligns to rounded bounds.
+  - **Review:** external panel (Codex gpt-6.1-sol, Claude Fable 5.1). Round 1: Codex REVISE (two parsing regressions, both fixed), Claude ACCEPT (four clean-ups applied). Round 2: ACCEPT from both.
+  - **Receipts:** gatekit 75 tests on Python 3.14 and 3.9.6; ruff clean; self-tests TDD Ladder 112, Speed Run 82, Explorer 144.
 
 ## How to re-run everything
 

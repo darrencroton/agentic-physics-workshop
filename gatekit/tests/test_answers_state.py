@@ -51,6 +51,35 @@ class AnswerTests(unittest.TestCase):
         self.assertFalse(answers.matches(q, "1e6"))
         self.assertFalse(answers.matches(q, "-5"))
 
+    def test_any_number_percent_and_multipliers(self):
+        q = {"kind": "numeric", "lo": 0.0090, "hi": 0.0096, "decimals": 4}
+        for text in ("sqrt(0.683*0.317/2500) = 0.0093", "0.93%", "0.0093 (not 2500)"):
+            self.assertTrue(answers.matches(q, text), text)
+        self.assertFalse(answers.matches(q, "0.0093 1 2 3 4 5 6"))
+        self.assertEqual(answers.candidates(q, "1, 2, 2, 3"), ["1.0000", "2.0000", "3.0000"])
+        self.assertEqual(len(answers.candidates(q, "1 2 3 4 5 6 7 8")), 6)
+        with self.assertRaises(answers.AnswerError):
+            answers.candidates(q, "none")
+        self.assertEqual(answers.candidates({"kind": "free"}, "x"), [])
+        log = {"kind": "numeric-log", "decimals": 4, "lo": 499500, "hi": 500000}
+        for text in ("N(N-1)/2 = 499,500", "1000*999/2 = 499500", "500k", "0.5M", "499.5k"):
+            self.assertTrue(answers.matches(log, text), text)
+        for text in ("500,500", "999000", "1000000", "500 kB"):
+            self.assertFalse(answers.matches(log, text), text)
+
+    def test_choice_letter_among_words(self):
+        q = {"kind": "choice", "accept": ["c"]}
+        for text in ("c", "(c)", "C.", "c - the second only", "c, second only",
+                     "c - I think the second is a pass", "I think c"):
+            self.assertTrue(answers.matches(q, text), text)
+        for text in ("a b", "ab", "the second only", "42"):
+            self.assertFalse(answers.matches(q, text), text)
+
+    def test_grid_starts_at_rounded_lo(self):
+        q = {"kind": "numeric-log", "decimals": 4, "lo": 499500, "hi": 500000}
+        self.assertEqual(answers.accepted_forms(q),
+                         ["5.6985", "5.6986", "5.6987", "5.6988", "5.6989", "5.6990"])
+
     def test_free(self):
         self.assertTrue(answers.matches({"kind": "free"}, "anything"))
         self.assertEqual(answers.accepted_forms({"kind": "free"}), [])
@@ -60,9 +89,9 @@ class AnswerTests(unittest.TestCase):
         q = {"kind": "numeric", "lo": 0.1, "hi": 0.3, "decimals": 1}
         secrets_list = [crypto.crypto_slot_secret(token, a) for a in answers.accepted_forms(q)]
         pack = packs.build_pack(b"payload", secrets_list, "ex", 1)
-        good = crypto.crypto_slot_secret(token, answers.canonicalise(q, "0.21"))
+        good = crypto.crypto_slot_secret(token, answers.candidates(q, "0.21")[0])
         self.assertEqual(packs.open_pack(pack, [good]), b"payload")
-        bad = crypto.crypto_slot_secret(token, answers.canonicalise(q, "0.4"))
+        bad = crypto.crypto_slot_secret(token, answers.candidates(q, "0.4")[0])
         with self.assertRaises(crypto.PackError):
             packs.open_pack(pack, [bad])
         wrong_token = crypto.crypto_slot_secret(crypto.canonical_token("other"), "0.2")

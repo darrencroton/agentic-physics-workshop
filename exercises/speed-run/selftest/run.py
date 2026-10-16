@@ -233,11 +233,11 @@ def level0(repo):
     check(code == 0 and alpha and 1.8 <= float(alpha.group(1)) <= 2.2,
           "make fit exponent in [1.8, 2.2]", alpha.group(1) if alpha else out[-300:])
     print("    " + "\n    ".join(line for line in out.splitlines() if "predicted" in line))
-    code, out = repo.gate("unlock", answers=[("N = 1000?", "499501")])
-    check(code == 1 and "Not quite" in out, "wrong pair count (499501) rejected")
-    code, out = repo.gate("unlock", answers=[("N = 1000?", "499500"),
+    code, out = repo.gate("unlock", answers=[("N = 1000?", "N(N+1)/2 = 500500")])
+    check(code == 1 and "Not quite" in out, "wrong pair count (N(N+1)/2 = 500500) rejected")
+    code, out = repo.gate("unlock", answers=[("N = 1000?", "N(N-1)/2 = 499,500"),
                                              ("how you got it:", "about 40 minutes from alpha 2")])
-    check(code == 0 and "Level 1 unlocked" in out, "499500 unlocks level 1", flat(out)[-300:])
+    check(code == 0 and "Level 1 unlocked" in out, "N(N-1)/2 = 499,500 unlocks level 1", flat(out)[-300:])
     check(os.path.exists(repo.path("BRIEF.md")), "BRIEF.md appears")
     with open(repo.path("LOG.md")) as fh:
         check("about 40 minutes from alpha 2" in fh.read(), "reflection logged to LOG.md")
@@ -287,9 +287,9 @@ def level1(repo):
     repo.install("l1_chunked")
     code, out = repo.gate("unlock", answers=[("float64 matrix?", "500")])
     check(code == 1 and "Not quite" in out, "wrong matrix size (500 GB) rejected")
-    code, out = repo.gate("unlock", answers=[("float64 matrix?", "320"),
+    code, out = repo.gate("unlock", answers=[("float64 matrix?", "200000^2 * 8 / 1e9 = 320"),
                                              ("what the harness measured:", "3.2 GB; killed")])
-    check(code == 0 and "Level 2 unlocked" in out, "320 unlocks level 2", flat(out)[-300:])
+    check(code == 0 and "Level 2 unlocked" in out, "'200000^2 * 8 / 1e9 = 320' unlocks level 2", flat(out)[-300:])
 
 
 def tool_only_runs(repo):
@@ -380,9 +380,9 @@ def level2(repo):
                     % (rec["seconds"], rec["repeats"], rec["peak_rss_bytes"] / GB)))
     code, out = repo.gate("unlock", answers=[("(a-d):", "a")])
     check(code == 1 and "Not quite" in out, "wrong letter (a) rejected")
-    code, out = repo.gate("unlock", answers=[("(a-d):", "c"),
+    code, out = repo.gate("unlock", answers=[("(a-d):", "c - the second only"),
                                              ("decided it?", "exact; the diff table")])
-    check(code == 0 and "Level 3 unlocked" in out, "(c) unlocks level 3", flat(out)[-300:])
+    check(code == 0 and "Level 3 unlocked" in out, "'c - the second only' unlocks level 3", flat(out)[-300:])
 
 
 def submit(repo, label):

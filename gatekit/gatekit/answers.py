@@ -1,6 +1,11 @@
 """Answer canonicalisation and slot-secret enumeration for gate questions.
 
 Question kinds: keyword, choice, numeric, numeric-log, free.
+
+A typed answer maps to a list of candidate canonical forms (`candidates`): one
+per number for the numeric kinds (the last MAX_NUMBERS found), one for keyword
+and choice questions, none for free text. An answer is accepted if any
+candidate is an accepted form.
 """
 
 import math
@@ -16,7 +21,11 @@ GREEK_ALIASES = {
     "₀": "0", "₁": "1", "₂": "2", "₃": "3", "₄": "4",
 }
 
-_NUMBER_RE = re.compile(r"[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?")
+MAX_NUMBERS = 6
+_NUMBER_RE = re.compile(
+    r"([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)"
+    r"(?:\s*(%)|\s*([kKM])(?![^\W\d_]))?")
+_MULTIPLIERS = {"k": 1e3, "K": 1e3, "M": 1e6}
 
 
 class AnswerError(ValueError):
@@ -31,24 +40,45 @@ def canon_keyword(text):
 
 
 def canon_choice(text):
-    """Single lower-case letter, e.g. 'B)' -> 'b'."""
-    letters = [ch for ch in text.casefold() if ch.isalpha()]
-    if len(letters) != 1:
+    """Option letter: a leading one ('c - I think the second'), else the only
+    stand-alone one ('the answer is c'); 'i' is never an option."""
+    tokens = re.findall(r"[^\W\d_]+", text.casefold())
+    letters = [tok for tok in tokens if len(tok) == 1 and tok != "i"]
+    if tokens and tokens[0] in letters:
+        return tokens[0]
+    if len(set(letters)) != 1:
         raise AnswerError("answer with one letter, e.g. a")
     return letters[0]
 
 
-def parse_number(text):
-    """Parse a float from text, ignoring units and other suffixes."""
+def numbers(text):
+    """The last MAX_NUMBERS finite numbers in `text` (results usually come
+    last); '%' divides by 100, k and M multiply (when not followed by a
+    letter)."""
     text = text.replace(",", "").replace("×10^", "e").replace("x10^", "e")
     text = text.replace("−", "-")
-    match = _NUMBER_RE.search(text)
-    if not match:
+    found = []
+    for number, percent, multiplier in _NUMBER_RE.findall(text):
+        value = float(number)
+        if percent:
+            value /= 100.0
+        elif multiplier:
+            value *= _MULTIPLIERS[multiplier]
+        if math.isfinite(value):
+            found.append(value)
+    return found[-MAX_NUMBERS:]
+
+
+def _numeric_candidates(text, decimals, log):
+    """Canonical form of each number, de-duplicated, in order."""
+    values = numbers(text)
+    if not values:
         raise AnswerError("answer with a number, e.g. 0.0093 or 1.2e-3")
-    try:
-        return float(match.group(0))
-    except ValueError:
-        raise AnswerError("answer with a number")
+    if log:
+        values = [math.log10(v) for v in values if v > 0]
+        if not values:
+            raise AnswerError("answer with a positive number")
+    return list(dict.fromkeys(_fmt(v, decimals) for v in values))
 
 
 def _fmt(value, decimals):
@@ -56,19 +86,6 @@ def _fmt(value, decimals):
     if rounded == 0:
         rounded = 0.0
     return "%.*f" % (decimals, rounded)
-
-
-def canon_numeric(text, decimals):
-    """Round the parsed number to `decimals` places."""
-    return _fmt(parse_number(text), decimals)
-
-
-def canon_numeric_log(text, decimals):
-    """Round log10 of the parsed number to `decimals` places."""
-    value = parse_number(text)
-    if value <= 0:
-        raise AnswerError("answer with a positive number")
-    return _fmt(math.log10(value), decimals)
 
 
 def canon_keyword_contains(question, text):
@@ -81,25 +98,26 @@ def canon_keyword_contains(question, text):
     return canon
 
 
-def canonicalise(question, text):
-    """Canonical form of `text` for the question dict, or None for free text."""
+def candidates(question, text):
+    """Canonical forms to try for `text`: none for free, else at least one."""
     kind = question.get("kind", "free")
     if kind == "keyword":
-        return canon_keyword_contains(question, text)
+        return [canon_keyword_contains(question, text)]
     if kind == "choice":
-        return canon_choice(text)
+        return [canon_choice(text)]
     if kind == "numeric":
-        return canon_numeric(text, int(question.get("decimals", 2)))
+        return _numeric_candidates(text, int(question.get("decimals", 2)), False)
     if kind == "numeric-log":
-        return canon_numeric_log(text, int(question.get("decimals", 1)))
+        return _numeric_candidates(text, int(question.get("decimals", 1)), True)
     if kind == "free":
-        return None
+        return []
     raise AnswerError("unknown question kind: %s" % kind)
 
 
 def _grid(lo, hi, decimals):
     step = 10.0 ** (-decimals)
-    n = int(round((hi - lo) / step))
+    lo = round(lo, decimals)
+    n = int(round((round(hi, decimals) - lo) / step))
     if n < 0 or n > 100_000:
         raise AnswerError("numeric range too wide for the given decimals")
     return [_fmt(lo + i * step, decimals) for i in range(n + 1)]
@@ -131,9 +149,10 @@ def accepted_forms(question):
 def matches(question, text):
     """True if `text` is an accepted answer (local check, no crypto)."""
     try:
-        canon = canonicalise(question, text)
+        forms = candidates(question, text)
     except AnswerError:
         return False
-    if canon is None:
+    if not forms:
         return True
-    return canon in accepted_forms(question)
+    accepted = set(accepted_forms(question))
+    return any(form in accepted for form in forms)
