@@ -1,5 +1,6 @@
 {
   "exercise": "speed-run", "title": "Speed Run", "tool": "racetool",
+  "records": ["LOG.md", "race.toml"],
   "models": {"default": "haiku", "allowed": ["haiku"]},
   "human_only": {"race": ["submit", "install-solution"]},
   "levels": [

@@ -19,22 +19,22 @@ Once per machine, do steps 2 and 3 of "Run the workshop" in the repository [`REA
 
 ```zsh
 cd <this repository>
-python3 tools/build.py speed-run --master-passphrase-file ~/.config/workshop/master-passphrase --keep-venv
+python3 tools/build.py speed-run
 cd dist/speed-run
 ./preflight              # first run sets up .venv (needs the network, about a minute); must end with "Preflight passed"; also compiles a tiny C library with clang
 ```
 
 Then do the Claude Code checks in section 3, step 3, play the whole exercise through once on Haiku using section 5, and reset (section 7). Do at least one `./race submit` in the rehearsal: it re-times the calibration on every submission (about 20 s wall on an M1 Max), and you want to know that time on your machine.
 
-- `--keep-venv` preserves an existing `dist/speed-run/.venv` across rebuilds. Everything else in `dist/speed-run` is regenerated, including the git history, so rebuild only between runs.
+- The build reads the passphrase from `~/.config/workshop/master-passphrase` (`--master-passphrase-file` overrides it) and keeps an existing `dist/speed-run/.venv` (`--fresh-venv` drops it). Everything else in `dist/speed-run` is regenerated, including the git history, so rebuild only between runs.
 - The participant `.venv` is made with `/opt/homebrew/bin/python3.13` when that exists, otherwise `python3`. Pass `--setup-python /path/to/python3` to the build to bake in another Python 3.11+.
-- The master passphrase stays in `~/.config/workshop/master-passphrase`, outside every repo. The build reads it; the repo stores only a check value. You type it at the prompt for `./gate skip --master`, `./gate allow-model` and `./race install-solution`.
+- The master passphrase stays outside every repo; the repo stores only a check value. You type it at the prompt for `./gate skip --master`, `./gate allow-model` and `./race install-solution`.
 
 ### Optional: the Opus control
 
 Before the session, find out what the strongest available model does undirected. Reveal it at the show-and-tell: do the room's directed Haiku entries beat an undirected strong model? Either answer is a good discussion.
 
-1. Build a separate copy, so no group's repo is touched: `python3 tools/build.py speed-run --master-passphrase-file ~/.config/workshop/master-passphrase --out <new folder>` (any empty folder you choose), then `cd` into it and run `./preflight`.
+1. Build a separate copy, so no group's repo is touched: `python3 tools/build.py speed-run --out <new folder>` (any empty folder you choose), then `cd` into it and run `./preflight`.
 2. In a terminal, `./gate skip --master` three times to reach Level 3 (the earlier levels freeze `paircount/`), then `./gate allow-model opus`.
 3. `claude`, `/model` to Opus, leave plan mode, and give the bare instruction "make `count_pairs` as fast as possible". Add nothing.
 4. Commit, then `./race submit` in the terminal. Record the score and whether it passed exact.
@@ -43,15 +43,8 @@ Before the session, find out what the strongest available model does undirected.
 
 Each leader gets a copy of the built participant repo as a git bundle: one file that clones into a complete repo. Never send them, or point participants at, the builder repository; it holds the sources and the answers.
 
-1. Start from a clean repo. A bundle carries everything in the repo, including rehearsal commits and branches, so rebuild (section 1) or reset (section 7) first.
-2. Check it and make the bundle:
-
-   ```zsh
-   cd dist/speed-run
-   git status --short && git log --oneline && git branch   # expect no changes, one commit "Workshop start", only main
-   git bundle create speed-run.bundle --all       # written here; copy it out before a reset or rebuild, which delete it (about 10 MB: the mock catalogues)
-   ```
-
+1. Start from a freshly built or reset repo: a bundle carries everything in the repo.
+2. From this repository's top folder, run `python3 tools/bundle.py speed-run`. It checks that `dist/speed-run` is clean, has one commit, only `main`, `start` at HEAD and level 0, then writes `speed-run.bundle` in the current folder (use `--out PATH` to put it elsewhere) and verifies it.
 3. Send each leader the bundle and this walkthrough file. Ask them to work through section 3 before the leaders' briefing, so problems surface early. A private git remote works too: push `main` and the `start` tag, and send the clone URL instead.
 4. Decide who types the master passphrase. Power-ups, skips and installed solutions ask for it in the group's own gate terminal; a leader's laptop never needs the passphrase file. By default you hold it and type it when a leader calls you over. If a leader will run a group without you in the room, such as a trial, tell them the passphrase. It opens every repo built from the same passphrase file, so if that matters, build their copy from a different passphrase file into another directory (`--out`).
 
@@ -75,11 +68,10 @@ This exercise needs Claude Code: its lessons depend on Claude Code hooks (the pe
    ```
 
 2. `./preflight` creates `.venv` and installs the pinned numpy, scipy, matplotlib and pytest, then checks the machine. The first run needs the network and takes about a minute (the only step that needs the network apart from Claude Code). If it says your Python is too old, it prints the command to run with a newer one. It must end with "Preflight passed"; the first run also sets the workshop up at level 0.
-3. Run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Then, in Claude Code (about a minute):
+3. Run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Preflight has already checked the skill and agent files. In Claude Code (about a minute):
    1. `/hooks`: four events must be listed (SessionStart, UserPromptSubmit, PreToolUse, PreModelSwitch). If the list is empty, the trust dialog was not accepted: `/exit` and run `claude` again.
-   2. `/status`: the model line must say Haiku.
-   3. `/model` and pick Sonnet (or Default): it must be refused with "Today's exercise uses haiku. Ask a facilitator for a power-up." Picking Haiku again is allowed.
-   4. `/exit`.
+   2. `/model` and pick another model: it must be refused. The session stays on Haiku.
+   3. `/exit`.
 4. Rehearse: in a normal terminal, `make bench N=500 IMPL=reference` should print the counts check, the time and a "recorded as ... (level 0)" line. Then play Level 0 yourself following section 5, and reset (section 7) so the group's log and board start empty.
 
 ## 4. Running the session
@@ -209,20 +201,20 @@ Honest limit: the Speed Run's crypto gates reduce to the human answer, because t
 
 ## 7. Reset between runs
 
-In the repo (`dist/speed-run` for the facilitator, your clone for a leader):
+In the repo (`dist/speed-run` for the facilitator, your clone for a leader), in the gate terminal:
 
 ```zsh
-./gate reset                       # confirms, wipes .workshop/ (including the bench log and submissions)
-git reset --hard start && git clean -fdx -e .venv -e .workshop   # restores fast.py, race.toml and LOG.md; removes ignored .so files; keeps .venv
+./gate reset
 ```
 
-The facilitator can instead rebuild (`tools/build.py … --keep-venv`), which also gives fresh packs and secrets; leaders then need a new bundle.
+It asks first, then saves the group's records to `.records/<date-time>/` (git-ignored, kept by every reset, hidden from the agent), puts the repo back to `start`, removes untracked files such as the `.so` files (keeping `.venv`) and returns to level 0. The facilitator can instead rebuild, which also gives fresh packs and secrets; leaders then need a new bundle.
 
 ## 8. What to record
 
-- `.workshop/state.json`: per-level times, hints, failed attempts, skips, model power-ups, submissions.
-- `.workshop/race/bench.jsonl` (`./race log`): every run, including the killed ones. These are the wrong turns.
-- `./race board` for the final scores, and the divisions entered.
-- `LOG.md`: the Scribe's notes and the group's notes under each "Talk it over" heading.
+`./gate reset` saves these to `.records/<date-time>/`, and the leader sends that folder to the facilitator:
 
-Copy all four out before `./gate reset`, and leaders send their copies to the facilitator. For the show-and-tell, ask each group: which division, and why; the biggest wrong turn and the evidence that showed it; and then reveal the Opus control.
+- `state.json`: per-level times, hints, failed attempts, skips, model power-ups, submissions.
+- `bench.jsonl` and `board.txt`: every bench run, including the killed ones (the wrong turns), and the final scores.
+- `work.bundle` (the group's code; clone it with `git clone work.bundle`), `git-log.txt`, `LOG.md` (the Scribe's notes) and `race.toml` (the division entered).
+
+Collect the folder before the next group uses the laptop; it is never in a bundle. For the show-and-tell, ask each group: which division, and why; the biggest wrong turn and the evidence that showed it; and then reveal the Opus control.

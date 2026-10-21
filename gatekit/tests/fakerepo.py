@@ -3,6 +3,7 @@
 import json
 import os
 import shutil
+import subprocess
 import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -89,6 +90,17 @@ def make(level=0, guard=None, manifest=None, allowed=None, phase=None):
         with open(os.path.join(root, ".tdd", "phase"), "w") as fh:
             fh.write(phase + "\n")
     return root
+
+
+def git_init(root):
+    """Make root a git repo on main with one commit tagged start."""
+    shutil.copy(os.path.join(TEMPLATES, ".gitignore"),
+                os.path.join(root, ".gitignore"))
+    base = ["git", "-c", "commit.gpgsign=false", "-c", "user.name=t",
+            "-c", "user.email=t@t"]
+    for args in (["init", "-q", "-b", "main"], ["add", "-A"],
+                 ["commit", "-q", "-m", "Workshop start"], ["tag", "start"]):
+        subprocess.run(base + args, cwd=root, check=True, capture_output=True)
 
 
 def env_for(root):

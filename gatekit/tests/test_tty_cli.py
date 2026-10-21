@@ -48,6 +48,7 @@ class TtyTests(unittest.TestCase):
             self.assertIn("Hint 1 used", fh.read())
 
     def test_reset_through_pty(self):
+        fakerepo.git_init(self.root)
         state = st.load_state(self.root)
         st.advance_level(state, "coach")
         st.save_state(self.root, state)

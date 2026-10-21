@@ -124,6 +124,10 @@ class Repo:
     def level(self):
         return self.state()["level"]
 
+    def record_dirs(self):
+        base = self.path(".records")
+        return sorted(os.listdir(base)) if os.path.isdir(base) else []
+
     def records(self):
         try:
             with open(self.path(".workshop", "race", "bench.jsonl")) as fh:
@@ -483,9 +487,15 @@ def finale(repo, passfile):
     code, out = repo.gate("reset", answers=[("level 0?", "y")])
     check(code == 0 and repo.level() == 0 and not os.path.exists(repo.path("BRIEF.md")),
           "./gate reset back to level 0, BRIEF.md removed", flat(out)[-200:])
+    print("--- ./gate reset output ---\n%s\n---" % out.strip())
     check(repo.records() == [], "reset removed the bench log")
-    repo.git("reset", "-q", "--hard", "start")
-    check(repo.git("status", "--porcelain") == "", "git reset --hard start leaves a clean tree")
+    dirs = repo.record_dirs()
+    check(len(dirs) == 1 and all(os.path.isfile(repo.path(".records", dirs[0], n))
+                                 for n in ("state.json", "git-log.txt", "LOG.md", "race.toml",
+                                           "bench.jsonl", "board.txt")),
+          "reset saved .records/<stamp>/ with state, git log, LOG.md, race.toml, bench log and board",
+          str(dirs))
+    check(repo.git("status", "--porcelain") == "", "reset alone leaves a clean tree")
     code, out = repo.gate("skip", "--master", answers=[("passphrase:", "wrong-" + passphrase)])
     check(code == 1 and "not the master" in out, "gate skip: wrong passphrase rejected")
     code, out = repo.gate("skip", "--master", answers=[("passphrase:", passphrase),
@@ -493,9 +503,8 @@ def finale(repo, passfile):
     check(code == 0 and repo.level() == 1 and os.path.exists(repo.path("BRIEF.md")),
           "./gate skip --master at level 0 opens level 1", flat(out)[-300:])
     code, out = repo.gate("reset", answers=[("level 0?", "y")])
-    check(code == 0 and "Removed unlocked files: BRIEF.md" in out, "reset removes the brief")
-    repo.git("reset", "-q", "--hard", "start")
-    repo.git("clean", "-fdq")
+    check(code == 0 and not os.path.exists(repo.path("BRIEF.md")), "reset removes the brief")
+    check(len(repo.record_dirs()) == 2, "a second records folder was written", str(repo.record_dirs()))
     check(repo.level() == 0 and repo.git("status", "--porcelain") == ""
           and repo.records() == [], "repo left clean at level 0")
 

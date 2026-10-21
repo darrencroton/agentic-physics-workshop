@@ -9,9 +9,9 @@ Your group builds one small function, `binned_weighted_mean`, several times, sta
 Before the day, on your laptop:
 
 - [ ] Python 3.11+, git, a git identity, and Claude Code 2.1.295 or newer signed in.
-- [ ] Cloned the bundle; `./preflight` (first run sets up `.venv`: needs the network, about a minute) ends with "Preflight passed".
-- [ ] In `claude`, `/hooks` lists four events and `/model` refuses anything but Haiku.
-- [ ] Played Levels 0 and 1, then reset (`./gate reset`, `git reset --hard start && git clean -fdx -e .venv -e .workshop`).
+- [ ] Cloned the bundle; `./preflight` (first run sets up `.venv`: needs the network, about a minute) ends with "Preflight passed". It also checks the skill and agent files.
+- [ ] In `claude`, accept the trust dialog; `/hooks` lists four events, and `/model` to another model is refused.
+- [ ] Played Levels 0 and 1, then `./gate reset`.
 
 ## On the day
 
@@ -56,4 +56,4 @@ After each gate a "talk it over" prompt appears with nothing to type: use it for
 
 ## After
 
-Copy `.workshop/state.json` and `LOG.md` out before resetting, and send them to the facilitator. `./tdd ladder` prints the score curve for the show-and-tell. Reset with `./gate reset`, then `git reset --hard start && git clean -fdx -e .venv -e .workshop`, and delete the rehearsal branches with `git branch | grep attempt- | xargs -n1 git branch -D`.
+`./tdd ladder` prints the score curve for the show-and-tell. `./gate reset` saves the group's records (state, ladder, git log, `LOG.md`, `SPEC.md`) and the group's code as `work.bundle` (clone it with `git clone work.bundle`) to `.records/<date-time>/` and returns to level 0, also removing the `attempt-*` branches. `.records` is a hidden folder: `open .records` shows it in Finder, and reset prints its path. Send that folder to the facilitator.

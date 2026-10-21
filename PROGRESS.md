@@ -12,7 +12,7 @@
 
 ## Done (2026-10-14)
 
-- **Phase 6, Exercise E, Explorer** (`exercises/explorer/` → `dist/explorer/`): built. Design in `docs/05-data-explorer.md`, build contract in `exercises/explorer/PLAN.md`, operating guide in `exercises/explorer/FACILITATOR-WALKTHROUGH.md`. Four levels on Sonnet (plan; build the prototype; test; review), all collaborator persona, no planted bugs; `crypto-reflection` gates for 0, 2 and 3 and one graded keyword question at Level 1 (`sun` or `jpsi`); every gate checks commits since the previous unlock and a clean tree. A shipped `reviewer` agent (`.claude/agents/reviewer.md`) gives the Level 3 fresh-context review. `selftest/run.py` passes 134 checks in about 61 s (both datasets, every refusal, skip, reset). Reference solution (`selftest/solution/`): 15 tests, 96% coverage. The generated page was rendered in Chrome: 2D to 3D switch, colour bar, hover, no console errors.
+- **Phase 6, Exercise E, Explorer** (`exercises/explorer/` → `dist/explorer/`): built. Design in `docs/05-data-explorer.md`, build contract in `exercises/explorer/PLAN.md`, operating guide in `exercises/explorer/FACILITATOR-WALKTHROUGH.md`. Four levels on Sonnet (plan; build the prototype; test; review), all collaborator persona, no planted bugs; `crypto-reflection` gates for 0, 2 and 3 and one graded keyword question at Level 1 (`sun` or `jpsi`); every gate checks commits since the previous unlock and a clean tree. A shipped `reviewer` agent (`.claude/agents/reviewer.md`) gives the Level 3 fresh-context review. `selftest/run.py` passes 134 checks in about 61 s (both datasets, every refusal, skip, reset). Reference solution (`hidden/solution/`): 15 tests, 96% coverage. The generated page was rendered in Chrome: 2D to 3D switch, colour bar, hover, no console errors.
 - Datasets: `pulsars.csv` 4,503 rows (ATNF v2.9.0, 451 KB; pulsars without a distance have `XX`, `YY`, `ZZ` blanked) and `dimuons.csv` the first 60,000 CMS Run2010B events (7.9 MB). The bundle is about 10 MB.
 - `gatekit` fixes found by building E: the last level's crypto gate now gets a verify token in `tools/build.py` (an exercise ending on a crypto gate could never complete); the build wipe tolerates a Finder `.DS_Store` and always restores a stashed `.venv`; `out/` and `.coverage` added to the template `.gitignore`. Unit tests added for the first two.
 - Environment: `dist/explorer/.venv` (Python 3.13.2; numpy 2.3.2, plotly 7.1.0, pytest 9.1.1, pytest-cov 7.1.0). Decisions and deviations from `docs/05` in `docs/DECISIONS.md`.
@@ -62,6 +62,14 @@
 - **Review:** an external panel (Codex gpt-6.1-sol and Claude Opus 5.5, both on high effort) ran four rounds. All findings were verified and fixed; the tables are in `docs/DECISIONS.md`.
 - **Receipts:** gatekit 82 tests on Python 3.14 and 3.9.6; ruff clean; self-tests Explorer 152, TDD Ladder 116, Speed Run 85.
 - **Next:** rebuild each exercise and re-send bundles to leaders with the new quickstart. Any bundle already sent uses the old gate format. Then a live playtest of the new unlock screen and briefs.
+
+- **Streamlined procedures** (facilitator request; decisions and four panel rounds in `docs/DECISIONS.md`):
+  - **`./gate reset`:** one command. It saves records to the hidden, git-ignored `.records/<date-time>/` (state, git log, the group's docs, tool extras, a self-contained `work.bundle` of their code including every stash entry, and `uncommitted.diff`), then restores `start`, cleans, drops branches, tags and the stash, and returns to level 0.
+  - **Exercise `gate_commands`:** Explorer's `./gate dataset pulsars|dimuons` and `./gate install-solution --master` (an encrypted master-only reference solution, now at `exercises/explorer/hidden/solution/`).
+  - **Bundling and build:** `tools/bundle.py <exercise>` checks and writes the bundle; `tools/build.py` defaults to the standard passphrase file and keeps `.venv`.
+  - **Leader checks:** preflight checks the skill and agent files, so the manual Claude Code checks are just `/hooks` and `/model`.
+  - **Panel:** Codex gpt-6.1-sol and Claude Opus 5.5 (high) ran four rounds, ending ACCEPT from both.
+  - **Receipts:** gatekit 102 tests on Python 3.14 and 3.9.6; ruff clean; all three self-tests pass.
 
 ## How to re-run everything
 

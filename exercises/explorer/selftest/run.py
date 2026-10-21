@@ -15,6 +15,7 @@ check passes. Leaves the repo clean at level 0 with its .venv kept.
 """
 
 import argparse
+import filecmp
 import json
 import os
 import re
@@ -32,6 +33,7 @@ from gatekit import ptyhelper, state as st  # noqa: E402
 
 SOLUTION = os.path.join(HERE, "solution")
 SOLUTION_NAN = os.path.join(HERE, "solution_nan")
+REFERENCE = os.path.join(EXERCISE, "hidden", "solution")
 PY = sys.executable
 EXPLORE_LIMIT_S = 5.0
 L1_PROMPTS = {
@@ -321,7 +323,7 @@ def level0(repo, plan_name):
 
 
 def install_solution(repo, nan=False):
-    repo.install(os.path.join(SOLUTION, "explorer"), "explorer")
+    repo.install(os.path.join(REFERENCE, "explorer"), "explorer")
     if nan:
         repo.install(os.path.join(SOLUTION_NAN, "explorer", "__main__.py"),
                      os.path.join("explorer", "__main__.py"))
@@ -425,7 +427,7 @@ def level2(repo):
     repo.install(os.path.join(SOLUTION, "tests_four", "test_explorer.py"),
                  os.path.join("tests", "test_explorer.py"))
     refused(repo, "pytest collected 4 tests; this level needs at least 5", "four tests")
-    repo.install(os.path.join(SOLUTION, "tests"), "tests")
+    repo.install(os.path.join(REFERENCE, "tests"), "tests")
     repo.write("tests/test_zz_fails.py", "def test_fails():\n    assert 1 == 2\n")
     refused(repo, "make test: 1 of 16 tests fail: fix the code, not the tests",
             "a failing test")
@@ -516,8 +518,6 @@ def reset(repo):
     check(code == 0 and repo.level() == 0, "./gate reset back to level 0", flat(out)[-200:])
     for rel in ("BRIEF.md", "TESTS.md", "REVIEW.md", "out"):
         check(not os.path.exists(repo.path(rel)), "reset removed %s" % rel)
-    repo.git("reset", "-q", "--hard", "start")
-    repo.git("clean", "-fdq")
     check(repo.git("status", "--porcelain") == "" and repo.heads() == {},
           "git reset --hard start: clean tree, no commit records")
 
@@ -566,9 +566,10 @@ def finale(repo, passfile):
     check(repo.heads().get("1") == repo.git("rev-parse", "HEAD"),
           "the skip also records HEAD for the commit count")
     code, out = repo.gate("reset", answers=[("level 0?", "y")])
-    check(code == 0 and "Removed unlocked files: BRIEF.md" in out, "reset removes the brief")
-    repo.git("reset", "-q", "--hard", "start")
-    repo.git("clean", "-fdq")
+    check(code == 0 and "Back to level 0 at the start commit" in out
+          and not os.path.exists(repo.path("BRIEF.md")), "reset removes the brief")
+    records = os.path.join(repo.root, ".records")
+    check(os.path.isdir(records) and os.listdir(records), "reset wrote a records folder")
     for rel in ("out", ".coverage", ".pytest_cache"):
         path = repo.path(rel)
         if os.path.isdir(path):
@@ -578,6 +579,65 @@ def finale(repo, passfile):
     check(repo.level() == 0 and repo.git("status", "--porcelain") == ""
           and not os.path.exists(repo.path("explorer", "__main__.py"))
           and os.path.exists(repo.venv), "repo left clean at level 0 with its .venv")
+
+
+def commands(repo, passfile):
+    section("Facilitator commands: dataset and install-solution")
+    with open(passfile) as fh:
+        passphrase = fh.read().strip()
+    reset(repo)
+    code, out = repo.gate("dataset", "moon")
+    check(code == 1 and "usage: ./gate dataset pulsars|dimuons" in out,
+          "gate dataset: an unknown name is refused", flat(out)[-200:])
+    code, out = repo.gate("dataset", "dimuons")
+    print("--- gate dataset dimuons ---\n%s\n---" % out.strip())
+    check(code == 0 and "PLAN.md now says: Dataset: data/dimuons.csv" in out
+          and "Dataset: data/dimuons.csv" in repo.text("PLAN.md")
+          and repo.git("status", "--porcelain") == "M PLAN.md",
+          "gate dataset dimuons rewrites PLAN.md and leaves it uncommitted", flat(out)[-200:])
+    repo.install(os.path.join(SOLUTION, "PLAN.dimuons.md"), "PLAN.md")
+    repo.commit("Plan (dimuons)", "PLAN.md")
+    code, out = repo.gate("dataset", "pulsars")
+    print("--- gate dataset pulsars, after the commit ---\n%s\n---" % out.strip())
+    check(code == 1 and "fixed once the plan is committed" in out
+          and "Dataset: data/dimuons.csv" in repo.text("PLAN.md"),
+          "gate dataset is refused once PLAN.md is committed", flat(out)[-200:])
+    code, out = repo.gate("install-solution", "--master")
+    check(code == 1 and "nothing to install at Level 0" in flat(out),
+          "install-solution is refused at Level 0", flat(out)[-200:])
+    code, out = repo.gate("skip", "--master", answers=[("passphrase:", passphrase),
+                                                       ("Reason", "selftest")])
+    check(code == 0 and repo.level() == 1, "gate skip --master opens level 1", flat(out)[-200:])
+    code, out = repo.gate("install-solution", "--master",
+                          answers=[("passphrase:", "wrong-" + passphrase)])
+    check(code == 1 and "not the master passphrase" in out
+          and not os.path.exists(repo.path("explorer", "__main__.py")),
+          "install-solution: wrong passphrase rejected, nothing installed", flat(out)[-200:])
+    code, out = repo.gate("install-solution", "--master", answers=[("passphrase:", passphrase)])
+    print("--- gate install-solution --master (level 1) ---\n%s\n---" % out.strip())
+    check(code == 0 and "Installed the reference solution and committed it" in out,
+          "install-solution --master at level 1", flat(out)[-300:])
+    check(repo.git("status", "--porcelain") == "?? BRIEF.md",
+          "the install left nothing uncommitted (BRIEF.md is the unlock's own file)")
+    check(not os.path.exists(repo.path("tests", "test_explorer.py")),
+          "no tests installed at level 1")
+    check(filecmp.cmp(repo.path("explorer", "page.py"),
+                      os.path.join(REFERENCE, "explorer", "page.py"), shallow=False),
+          "explorer/page.py is the reference version")
+    check("Facilitator installed the reference solution" in repo.text("LOG.md"),
+          "install logged to LOG.md")
+    passes(repo, "level 1 after install-solution")
+    code, out = repo.gate("skip", "--master", answers=[("passphrase:", passphrase),
+                                                       ("Reason", "selftest")])
+    check(code == 0 and repo.level() == 2, "gate skip --master opens level 2", flat(out)[-200:])
+    repo.write(os.path.join("explorer", "stray.py"), "STRAY = 1\n")
+    code, out = repo.gate("install-solution", "--master", answers=[("passphrase:", passphrase)])
+    check(code == 0 and os.path.isfile(repo.path("tests", "test_explorer.py"))
+          and not os.path.exists(repo.path("explorer", "stray.py")),
+          "install-solution at level 2 replaces explorer/ and adds tests/", flat(out)[-300:])
+    repo.install(os.path.join(SOLUTION, "TESTS.md"), "TESTS.md")
+    repo.commit("TESTS.md filled in", "TESTS.md")
+    passes(repo, "level 2 after install-solution")
 
 
 def main():
@@ -599,6 +659,7 @@ def main():
         level2(repo)
         level3(repo)
         dimuons(repo)
+        commands(repo, args.master_passphrase_file)
         finale(repo, args.master_passphrase_file)
     except Fail as exc:
         print("\nSELF-TEST FAILED: %s" % exc)

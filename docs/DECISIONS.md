@@ -541,3 +541,61 @@ Both returned REVISE, with no gate-code defects. Every finding was independently
   - With no `requirements.txt` there is nothing to set up, which avoids a misleading FAIL in the gatekit fixture.
   - Import-failure messages point to `./preflight --setup`.
   - The bundle comment warns that a reset deletes it too. The command stays as the facilitator asked: no folder assumed.
+
+## Streamlined procedures: one-command reset, saved records, bundle tool (2026-10-21; facilitator request)
+
+A sweep of every facilitator and leader procedure found multi-step sequences and two real gaps. The facilitator chose the changes below.
+
+- **`./gate reset` does the whole reset.** It confirms, saves the records (next bullet), then runs `git checkout -f main`, `git reset --hard start`, `git clean -fdx` (keeping `.venv`, `.workshop` and `.records`), deletes every other local branch, every tag except `start` and the stash (the work is already in `work.bundle`), and rebuilds `.workshop`. If a git step fails after the records are saved, the error names the records folder and says to run `./gate reset` again, which is safe to repeat.
+  - It fails closed before touching anything unless the folder is the top of its own git repo with a `start` tag and a `main` branch.
+  - `reset_workshop` (used by preflight on a fresh clone) never touches git.
+  - Reason: every self-test, walkthrough and quickstart already ran the commands back to back.
+- **Records saved on every reset.** Each reset writes `.records/<date-time>/` in the repo. It is git-ignored, kept by every reset, hidden from the agent (a dot secret directory, so the dot-glob rules apply, plus deny rules), and never in a bundle. It is a hidden folder: `open .records` shows it in Finder. It holds:
+  - `state.json` and `git-log.txt`;
+  - the manifest's `records` files;
+  - the tool's `on_records` extras (TDD: `ladder.txt`; Speed Run: `bench.jsonl`, `board.txt`);
+  - the group's commits as a self-contained `work.bundle` (`git bundle create --all`, so `git clone work.bundle` works);
+  - any uncommitted changes, binary and untracked (non-ignored) files included, as `uncommitted.diff`, built from a temporary index.
+
+  Records are always saved: a skip rule would have dropped Speed Run's Level 0 bench log. A save failure aborts the reset. Reason: reset destroys the originals, and the hand-copy lists were easy to forget.
+- **Exercise gate commands.** A tool may define `gate_commands`, which `./gate` dispatches and lists in `./gate help`. Explorer adds two:
+  - `./gate dataset pulsars|dimuons`: Level 0, before the plan is committed.
+  - `./gate install-solution --master`: installs and commits the reference solution in two commits, plus `tests/` at Level 2 or later. Any uncommitted group work is committed first. At Level 1 or later it first commits the group's work in progress, then replaces `explorer/` (and `tests/` at Level 2 or later) wholesale so no group file can clash. The solution ships encrypted in `.vault/scoring.pack` (Speed Run's mechanism) with the master slot only (manifest key `hidden_master_only`; Speed Run keeps its scoring-secret slot), with its source moved to `exercises/explorer/hidden/solution/`.
+
+  Both commands need a terminal and are on the guard's human-only list, matched only directly after `gate` so a commit message mentioning them is not refused. Reason: leaders had to hand-edit `PLAN.md` after every reset, and the stuck-group fallback needed the builder repo, which leaders don't have.
+- **`tools/bundle.py <exercise> [--out PATH]`.** It checks `dist/<exercise>`: a clean tree, one commit, only `main`, `start` at HEAD, and level 0. Then it creates and verifies the bundle, by default in the current folder. `*.bundle` is now ignored in the builder repo. Reason: it replaces a by-eye check.
+- **Build defaults.** `tools/build.py` defaults `--master-passphrase-file` to `~/.config/workshop/master-passphrase` when that file exists, and keeps `.venv` (`--fresh-venv` drops it; `--keep-venv` is accepted).
+- **Leader set-up checks.** Preflight checks the manifest skills and the shipped agent files. The manual Claude Code checks are now just `/hooks` and `/model`, worded identically in all three walkthroughs and quickstarts. `/status`, the skills listing and `/agents` are dropped because preflight covers them, and `/model` proves the model lock.
+
+### External review panel, round 1 for the streamlined procedures (Codex gpt-6.1-sol high, Claude Opus 5.5 high)
+
+Both returned REVISE. Every finding was independently verified, and all were fixed:
+
+| # | From | Finding | Decision |
+|---|---|---|---|
+| 1 | Claude (serious) | The guard refused any shell command containing the word "records" (commit messages, grep, Explorer's own `records` variable) | Fixed: the folder is now `.records/`, a dot secret dir. That also closes the glob bypass (`cat r*/…`). The cost is that Finder hides it; reset prints the path and the leader docs say `open .records` |
+| 2 | Both (serious/moderate) | `git clone work.bundle` failed, because the bundle needed `start` | Fixed: self-contained `--all` bundle, tested by cloning it |
+| 3 | Codex (serious) | `uncommitted.diff` lost binary content and untracked files | Fixed: binary diff through a temporary index with `git add -A`; the real index is untouched |
+| 4 | Claude | The AGENTS.md Never lists omitted the records folder | Fixed in all three |
+| 5 | Claude | Explorer's solution pack had a pepper-obfuscated scoring slot, so it opened without the passphrase | Fixed: a new manifest key, `hidden_master_only`, packs master-only |
+| 6 | Both | A half-reset after a git failure gave no guidance | Fixed: "The records are safe in <path>. Run ./gate reset again to finish." |
+| 7 | Claude | Tags and stash survived a reset, so `bundle.py` advice could not be followed | Fixed: reset removes the stash and every tag except `start` |
+| 8 | Claude | "dataset" in commit messages tripped the human-only rule | Fixed: the new commands only match directly after `gate` |
+| 9 | Claude | An exception in an `on_records` hook gave a traceback and blocked reset | Fixed: wrapped as the usual records error |
+| 10 | Claude | Unanchored `records` patterns | Fixed: `/.records/` and `-e /.records` |
+| 11 | Both | The README described the removed skip rule | Fixed |
+| 12 | Codex | `install-solution` at Level 2 could clash with retained group files | Fixed: `explorer/` and `tests/` are replaced wholesale after the work-in-progress commit; a Level 2 self-test flow was added |
+
+### Round 2 (Claude ACCEPT; Codex REVISE)
+
+- **Codex (serious):** older stash entries were not in `work.bundle`, and reset deleted them. Fixed: every stash entry gets a temporary `refs/saved-stash/<n>` for the bundle, removed afterwards so it never reaches a later facilitator bundle.
+- **Claude (minor):** a stale undotted `records/` in the README, and a dead condition in `install_solution`. Both fixed.
+- **Claude (minor):** the guard also refuses a `.records` attribute, such as `x.records`. Accepted: no exercise code uses one, and `.git` and `.claude` behave the same.
+
+### Round 3 (Claude ACCEPT; Codex REVISE, moderate)
+
+- **Codex:** a failed cleanup of the temporary stash refs was ignored, so they could outlast a reset and reach a later bundle. Fixed: `_git_reset_to_start` also deletes every `refs/saved-stash/*`. A failure there aborts with the "records are safe, run ./gate reset again" message, and a re-run cleans up.
+
+### Round 4
+
+Both ACCEPT, with no findings.

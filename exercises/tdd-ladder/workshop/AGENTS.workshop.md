@@ -30,7 +30,7 @@ The group includes people who missed the introduction, so keep everyone oriented
 
 ## Never
 
-- Read, list or decode anything in `.vault/`, `.workshop/`, `.gatekit/`, `.tdd/` or `.claude/`.
+- Read, list or decode anything in `.vault/`, `.workshop/`, `.records/`, `.gatekit/`, `.tdd/` or `.claude/`.
 - Run `./gate unlock`, `./gate hint`, `./gate skip`, `./gate reset` or `./gate allow-model`.
 - Run `./tdd red`, `./tdd green`, `./tdd refactor`, `./tdd done`, `./tdd abort`, `./tdd score` or `./tdd new-attempt`.
 - Use `pty`, `script`, `expect` or any trick to fake a terminal.

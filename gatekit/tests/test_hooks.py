@@ -53,6 +53,21 @@ class GuardTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIsNone(decision, "expected allow for %r; stdout=%r" % (payload, proc.stdout))
 
+    def test_records_folder_and_exercise_gate_commands_are_off_limits(self):
+        self.deny(tool("Read", file_path=".records/2026-01-01-000000/state.json"))
+        self.deny(tool("Write", file_path=".records/x.txt", content="x"))
+        self.deny(tool("Bash", command="ls .records"))
+        self.deny(tool("Bash", command="cat ./.records/a/LOG.md"))
+        self.deny(tool("Bash", command="cat .records/x/LOG.md"))
+        self.deny(tool("Bash", command="cat .rec*/*/LOG.md"))
+        self.allow(tool("Bash", command='git commit -m "Count the records"'))
+        self.allow(tool("Bash", command="grep -n records explorer/data.py"))
+        self.allow(tool("Bash", command="python3 -m pytest tests/test_records.py"))
+        self.allow(tool("Bash", command='git commit -m "gate check: dataset fixed"'))
+        self.deny(tool("Bash", command="gate dataset pulsars"), "gate")
+        self.deny(tool("Bash", command="./gate dataset pulsars"), "gate")
+        self.deny(tool("Bash", command="./gate install-solution --master"), "gate")
+
     def test_blocks_vault_read(self):
         self.deny(tool("Read", file_path=".vault/level1.pack"), "vault")
         self.deny(tool("Read", file_path=os.path.join(self.root, ".vault/level1.pack")))

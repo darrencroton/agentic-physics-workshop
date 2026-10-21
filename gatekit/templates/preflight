@@ -123,6 +123,25 @@ def check_instructions():
                "" if present else "rebuild or restore the file")
 
 
+def check_shipped_files():
+    """Each skill and agent file the build shipped is present."""
+    try:
+        with open(os.path.join(ROOT, ".gatekit", "manifest.json"),
+                  encoding="utf-8") as fh:
+            manifest = json.load(fh)
+    except (OSError, ValueError) as exc:
+        report(False, "manifest readable", str(exc))
+        return
+    wanted = [(".claude/skills/%s/SKILL.md" % name, "skill %s" % name)
+              for name in manifest.get("skills", [])]
+    wanted += [(".claude/agents/%s.md" % name, "agent %s" % name)
+               for name in manifest.get("agents", [])]
+    for rel, label in wanted:
+        present = os.path.isfile(os.path.join(ROOT, rel))
+        report(present, "%s present" % label,
+               "" if present else "%s is missing; rebuild or restore it" % rel)
+
+
 def check_hooks():
     hooks_dir = os.path.join(ROOT, ".claude", "hooks")
     for name in sorted(os.listdir(hooks_dir)) if os.path.isdir(hooks_dir) else []:
@@ -236,6 +255,7 @@ def main(argv):
     check_venv()
     check_git()
     check_instructions()
+    check_shipped_files()
     check_hooks()
     check_state()
     check_tty()

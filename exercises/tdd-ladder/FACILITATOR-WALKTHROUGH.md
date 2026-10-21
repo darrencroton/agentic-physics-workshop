@@ -17,30 +17,23 @@ Once per machine, do steps 2 and 3 of "Run the workshop" in the repository [`REA
 
 ```zsh
 cd <this repository>
-python3 tools/build.py tdd-ladder --master-passphrase-file ~/.config/workshop/master-passphrase --keep-venv
+python3 tools/build.py tdd-ladder
 cd dist/tdd-ladder
 ./preflight              # first run sets up .venv (needs the network, about a minute); must end with "Preflight passed"
 ```
 
 Then do the Claude Code checks in section 3, step 3, play the whole exercise through once on Haiku using section 5, and reset (section 7).
 
-- `--keep-venv` preserves an existing `dist/tdd-ladder/.venv` across rebuilds. Everything else in `dist/tdd-ladder` is regenerated, including the git history, so rebuild only between runs.
+- The build reads the passphrase from `~/.config/workshop/master-passphrase` (`--master-passphrase-file` overrides it) and keeps an existing `dist/tdd-ladder/.venv` (`--fresh-venv` drops it). Everything else in `dist/tdd-ladder` is regenerated, including the git history, so rebuild only between runs.
 - The participant `.venv` is made with `/opt/homebrew/bin/python3.13` when that exists, otherwise `python3`. Pass `--setup-python /path/to/python3` to the build to bake in another Python 3.11+.
-- The master passphrase stays in `~/.config/workshop/master-passphrase`, outside every repo. The build reads it; the repo stores only a check value. You type it at the prompt for `./gate skip --master` and `./gate allow-model`.
+- The master passphrase stays outside every repo; the repo stores only a check value. You type it at the prompt for `./gate skip --master` and `./gate allow-model`.
 
 ## 2. Facilitator: give the repo to group leaders
 
 Each leader gets a copy of the built participant repo as a git bundle: one file that clones into a complete repo. Never send them, or point participants at, the builder repository; it holds the sources and the answers.
 
-1. Start from a clean repo. A bundle carries everything in the repo, including rehearsal commits and the `attempt-*` branches that hold your rehearsal solutions, so rebuild (section 1) or reset (section 7, including the branch deletion) first.
-2. Check it and make the bundle:
-
-   ```zsh
-   cd dist/tdd-ladder
-   git status --short && git log --oneline && git branch   # expect no changes, one commit "Workshop start", only main
-   git bundle create tdd-ladder.bundle --all      # written here; copy it out before a reset or rebuild, which delete it (under 100 KB)
-   ```
-
+1. Start from a freshly built or reset repo: a bundle carries everything in the repo.
+2. From this repository's top folder, run `python3 tools/bundle.py tdd-ladder`. It checks that `dist/tdd-ladder` is clean, has one commit, only `main`, `start` at HEAD and level 0, then writes `tdd-ladder.bundle` in the current folder (use `--out PATH` to put it elsewhere) and verifies it.
 3. Send each leader the bundle and this walkthrough file. Ask them to work through section 3 before the leaders' briefing, so problems surface early. A private git remote works too: push `main` and the `start` tag, and send the clone URL instead.
 4. Decide who types the master passphrase. Power-ups and skips ask for it in the group's own gate terminal; a leader's laptop never needs the passphrase file. By default you hold it and type it when a leader calls you over. If a leader will run a group without you in the room, such as a trial, tell them the passphrase. It opens every repo built from the same passphrase file, so if that matters, build their copy from a different passphrase file into another directory (`--out`).
 
@@ -64,11 +57,10 @@ This exercise needs Claude Code: its lessons depend on Claude Code hooks (the pe
    ```
 
 2. `./preflight` creates `.venv` and installs the pinned numpy, matplotlib and pytest, then checks the machine. The first run needs the network and takes about a minute (the only step that needs the network apart from Claude Code). If it says your Python is too old, it prints the command to run with a newer one. It must end with "Preflight passed"; the first run also sets the workshop up at level 0.
-3. Run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Then, in Claude Code (about a minute):
+3. Run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Preflight has already checked the skill and agent files. In Claude Code (about a minute):
    1. `/hooks`: four events must be listed (SessionStart, UserPromptSubmit, PreToolUse, PreModelSwitch). If the list is empty, the trust dialog was not accepted: `/exit` and run `claude` again.
-   2. `/status`: the model line must say Haiku.
-   3. `/model` and pick Sonnet (or Default): it must be refused with "Today's exercise uses haiku. Ask a facilitator for a power-up." Picking Haiku again is allowed and does nothing.
-   4. `/exit`.
+   2. `/model` and pick another model: it must be refused. The session stays on Haiku.
+   3. `/exit`.
 4. Rehearse: play Levels 0 and 1 yourself following section 5, then reset (section 7) so the group starts at level 0.
 
 ## 4. Running the session
@@ -211,19 +203,17 @@ Claude (via a subagent) writes mutants of the group's own `binning.py`; the grou
 
 ## 7. Reset between runs
 
-In the repo (`dist/tdd-ladder` for the facilitator, your clone for a leader):
+In the repo (`dist/tdd-ladder` for the facilitator, your clone for a leader), in the gate terminal:
 
 ```zsh
-./gate reset                       # confirms, wipes .workshop/ and .tdd/, removes BRIEF.md and CLIENT_SPEC.md
-git reset --hard start && git clean -fdx -e .venv -e .workshop   # restores the stub and empty tests; removes ignored results; keeps .venv
-git branch | grep attempt- | xargs -n1 git branch -D   # optional: drop the attempt branches
+./gate reset
 ```
 
-The facilitator can instead rebuild (`tools/build.py … --keep-venv`), which also gives fresh packs and secrets; leaders then need a new bundle.
+It asks first, then saves the group's records to `.records/<date-time>/` (git-ignored, kept by every reset, hidden from the agent), puts the repo back to `start`, removes untracked files and the `attempt-*` branches (keeping `.venv`) and returns to level 0. The facilitator can instead rebuild, which also gives fresh packs and secrets; leaders then need a new bundle.
 
 ## 8. What to record
 
-`.workshop/state.json` holds per-level start and unlock times, hints used, failed attempts, skips, model power-ups and every score. `./tdd ladder` prints the score curve for the show-and-tell. `LOG.md` has the Scribe's notes and the unlock entries; the talk prompts are for conversation and are not recorded. Copy both out before `./gate reset`, and leaders send their copies to the facilitator.
+`./gate reset` saves the group's records to `.records/<date-time>/`, and the leader sends that folder to the facilitator: `state.json` (per-level times, hints, failed attempts, skips, power-ups and every score), `ladder.txt` (the score curve for the show-and-tell), `git-log.txt`, `LOG.md` (the Scribe's notes and unlock entries; the talk prompts are not recorded), `SPEC.md` and the group's code as `work.bundle` (clone it with `git clone work.bundle`). It is never in a bundle.
 
 For the show-and-tell, ask each group:
 

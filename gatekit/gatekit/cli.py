@@ -1,6 +1,7 @@
 """The `gate` command line: status, brief, check, unlock, hint, skip,
-allow-model, reset."""
+allow-model, reset, plus any commands the exercise tool adds."""
 
+import datetime
 import itertools
 import json
 import os
@@ -13,6 +14,7 @@ from . import answers, crypto, exercise, manifest as mf, packs, state as st
 from . import tty
 
 NOT_QUITE = "Not quite. Discuss and try again."
+RECORDS_DIR = ".records"
 USAGE = """usage: ./gate <command>
 
   status               level, persona, time on level, hints, allowed models
@@ -22,7 +24,7 @@ USAGE = """usage: ./gate <command>
   hint                 (humans) show the next hint tier that has unlocked
   skip --master        (humans) facilitator skip with the master passphrase
   allow-model <name>   (humans) facilitator model power-up
-  reset                (humans) wipe progress back to level 0
+  reset                (humans) save records, then back to the start at level 0
 """
 
 
@@ -490,7 +492,10 @@ def cmd_allow_model(root, args):
 # ------------------------------------------------------------------ reset
 
 def reset_workshop(root, manifest=None):
-    """Rebuild .workshop/ at level 0 from .gatekit/levels/0."""
+    """Rebuild .workshop/ at level 0 from .gatekit/levels/0.
+
+    Touches neither git nor .records/; `cmd_reset` does those.
+    """
     manifest = manifest or mf.load_root_manifest(root)
     workshop = os.path.join(root, st.STATE_DIR)
     removed = []
@@ -515,16 +520,183 @@ def reset_workshop(root, manifest=None):
         on_reset(root)
 
 
+def _git(root, *args):
+    """Run git in `root`; return stdout or raise GateError."""
+    try:
+        proc = subprocess.run(["git"] + list(args), cwd=root,
+                              capture_output=True, text=True)
+    except OSError as exc:
+        raise GateError("cannot run git: %s" % exc)
+    if proc.returncode != 0:
+        raise GateError("git %s failed: %s"
+                        % (" ".join(args), proc.stderr.strip()))
+    return proc.stdout
+
+
+def _check_resettable(root):
+    """Raise GateError unless root is its own git repo with a start tag."""
+    try:
+        top = _git(root, "rev-parse", "--show-toplevel").strip()
+    except GateError:
+        raise GateError("this folder is not a git repo, so ./gate reset "
+                        "cannot take it back to the start. Nothing changed.")
+    if os.path.realpath(top) != os.path.realpath(root):
+        raise GateError("this folder is inside another git repo (%s); "
+                        "./gate reset only works on the workshop repo itself. "
+                        "Nothing changed." % top)
+    for ref, what in (("refs/tags/start", "the 'start' tag"),
+                      ("refs/heads/main", "the 'main' branch")):
+        try:
+            _git(root, "rev-parse", "-q", "--verify", ref + "^{commit}")
+        except GateError:
+            raise GateError("%s is missing, so ./gate reset cannot take the "
+                            "repo back to the start. Nothing changed." % what)
+
+
+def _uncommitted_diff(root):
+    """Return a binary diff of HEAD against the working tree, as bytes.
+
+    Includes binary changes and untracked, non-ignored files. A temporary
+    copy of the index is used, so the real index is untouched.
+    """
+    tmp = tempfile.mkdtemp(prefix="gate-index-")
+    try:
+        index = os.path.join(tmp, "index")
+        real = _git(root, "rev-parse", "--git-path", "index").strip()
+        real = os.path.join(root, real)
+        if os.path.exists(real):
+            shutil.copy2(real, index)
+        env = dict(os.environ, GIT_INDEX_FILE=index)
+        for args in (["add", "-A"],
+                     ["diff", "--binary", "--cached", "HEAD"]):
+            proc = subprocess.run(["git"] + args, cwd=root, env=env,
+                                  capture_output=True)
+            if proc.returncode != 0:
+                raise GateError("git %s failed: %s" % (
+                    " ".join(args),
+                    proc.stderr.decode("utf-8", "replace").strip()))
+        return proc.stdout
+    except OSError as exc:
+        raise GateError("cannot run git: %s" % exc)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+SAVED_STASH_PREFIX = "refs/saved-stash/"
+
+
+def _bundle_work(root, path):
+    """Bundle every ref, stash entries included, if there is work past start.
+
+    Each stash entry gets a temporary ref so --all reaches it; the temporary
+    refs are always removed again.
+    """
+    made = []
+    try:
+        for num, sha in enumerate(
+                _git(root, "stash", "list", "--format=%H").split()):
+            ref = "%s%d" % (SAVED_STASH_PREFIX, num)
+            _git(root, "update-ref", ref, sha)
+            made.append(ref)
+        if _git(root, "rev-list", "--all", "^start").strip():
+            _git(root, "bundle", "create", path, "--all")
+    finally:
+        for ref in made:
+            subprocess.run(["git", "update-ref", "-d", ref], cwd=root,
+                           capture_output=True)
+
+
+def save_records(root, manifest):
+    """Write .records/<stamp>/ and return its path.
+
+    Also saves the commits beyond start as work.bundle and tracked changes
+    as uncommitted.diff. Raises GateError on failure.
+    """
+    stamp = datetime.datetime.now().astimezone().strftime("%Y-%m-%d-%H%M%S")
+    base = os.path.join(root, RECORDS_DIR)
+    outdir = os.path.join(base, stamp)
+    for n in itertools.count(2):
+        if not os.path.exists(outdir):
+            break
+        outdir = os.path.join(base, "%s-%d" % (stamp, n))
+    try:
+        os.makedirs(outdir)
+        if os.path.exists(st.state_path(root)):
+            shutil.copy2(st.state_path(root),
+                         os.path.join(outdir, st.STATE_FILE))
+        _bundle_work(root, os.path.join(outdir, "work.bundle"))
+        diff = _uncommitted_diff(root)
+        if diff:
+            with open(os.path.join(outdir, "uncommitted.diff"), "wb") as fh:
+                fh.write(diff)
+        log = _git(root, "log", "--oneline", "--all", "--decorate")
+        with open(os.path.join(outdir, "git-log.txt"), "w",
+                  encoding="utf-8") as fh:
+            fh.write(log)
+        for rel in manifest.get("records", []):
+            src = os.path.join(root, rel)
+            if os.path.isfile(src):
+                dst = os.path.join(outdir, rel)
+                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                shutil.copy2(src, dst)
+        hook = getattr(_tool(manifest), "on_records", None)
+        if hook:
+            hook(root, outdir)
+    except Exception as exc:
+        raise GateError("could not save the records (%s). Nothing was reset."
+                        % exc)
+    return outdir
+
+
+def _git_reset_to_start(root):
+    """Return the repo to the start tag, keeping .venv, .workshop, .records.
+
+    Also removes the stash, any leftover saved-stash refs and every tag
+    except start; the work is already in work.bundle.
+    """
+    _git(root, "checkout", "-q", "-f", "main")
+    _git(root, "reset", "-q", "--hard", "start")
+    _git(root, "clean", "-q", "-fdx", "-e", ".venv", "-e", ".workshop",
+         "-e", "/" + RECORDS_DIR)
+    for line in _git(root, "for-each-ref", "--format=%(refname:short)",
+                     "refs/heads").split():
+        if line != "main":
+            _git(root, "branch", "-q", "-D", line)
+    for tag in _git(root, "tag", "--list").split():
+        if tag != "start":
+            _git(root, "tag", "-d", tag)
+    if _git(root, "for-each-ref", "refs/stash").strip():
+        _git(root, "update-ref", "-d", "refs/stash")
+    for ref in _git(root, "for-each-ref", "--format=%(refname)",
+                    "refs/saved-stash").split():
+        _git(root, "update-ref", "-d", ref)
+
+
+RESET_NOTICE = """\
+Your group's records are saved to .records/<date-time>/, then the repo goes
+back to the start. Commits, changes, untracked files and other branches go;
+.venv is kept."""
+
+
 def cmd_reset(root, args):
+    """(humans) save records, then back to the start at level 0."""
     tty.require_tty()
     manifest = mf.load_root_manifest(root)
-    if "--yes" not in args and not tty.confirm(
-            "Wipe all workshop progress and return to level 0?"):
-        _say("Nothing changed.")
-        return 1
+    _check_resettable(root)
+    if "--yes" not in args:
+        _say(RESET_NOTICE)
+        if not tty.confirm("Go back to level 0?"):
+            _say("Nothing changed.")
+            return 1
+    outdir = save_records(root, manifest)
+    _say("Records saved to %s" % os.path.relpath(outdir, root))
+    try:
+        _git_reset_to_start(root)
+    except GateError as exc:
+        raise GateError("%s\nThe records are safe in %s. Run ./gate reset "
+                        "again to finish." % (exc, outdir))
     reset_workshop(root, manifest)
-    _say("Reset to level 0. Run `git reset --hard start` too if you want a "
-         "clean working tree.")
+    _say("Back to level 0 at the start commit (.venv kept).")
     return 0
 
 
@@ -535,16 +707,33 @@ COMMANDS = {
 }
 
 
+def _tool_commands(root):
+    """The exercise tool's gate_commands, or {} when there is none."""
+    try:
+        tool = _tool(mf.load_root_manifest(root))
+    except (mf.ManifestError, exercise.ExerciseError):
+        return {}
+    return getattr(tool, "gate_commands", None) or {}
+
+
+def _usage(root):
+    lines = [USAGE]
+    for name, fn in sorted(_tool_commands(root).items()):
+        doc = (fn.__doc__ or "").strip().splitlines()
+        lines.append("  %-20s %s\n" % (name, doc[0] if doc else ""))
+    return "".join(lines)
+
+
 def main(root, argv):
     """Entry point used by the `gate` launcher."""
     if not argv or argv[0] in ("-h", "--help", "help"):
-        sys.stdout.write(USAGE)
+        sys.stdout.write(_usage(root))
         return 0
     command, args = argv[0], argv[1:]
-    fn = COMMANDS.get(command)
+    fn = COMMANDS.get(command) or _tool_commands(root).get(command)
     if fn is None:
         sys.stderr.write("unknown command: %s\n" % command)
-        sys.stderr.write(USAGE)
+        sys.stderr.write(_usage(root))
         return 2
     try:
         return fn(root, args)

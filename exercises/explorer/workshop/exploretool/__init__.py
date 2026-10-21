@@ -8,7 +8,7 @@ system python3.
 import os
 import shutil
 
-from exploretool import gates
+from exploretool import commands, gates
 
 BROWSER_QUESTIONS = {
     "data/pulsars.csv": {
@@ -35,6 +35,9 @@ BROWSER_QUESTIONS = {
 }
 
 post_unlock = {"record_head": gates.record_head}
+
+gate_commands = {"dataset": commands.dataset,
+                 "install-solution": commands.install_solution}
 
 
 def browser_question(root, state, question):

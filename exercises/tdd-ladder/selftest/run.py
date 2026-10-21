@@ -85,6 +85,10 @@ class Repo:
     def level(self):
         return self.state()["level"]
 
+    def record_dirs(self):
+        base = os.path.join(self.root, ".records")
+        return sorted(os.listdir(base)) if os.path.isdir(base) else []
+
     def phase(self):
         try:
             with open(os.path.join(self.root, ".tdd", "phase")) as fh:
@@ -430,9 +434,14 @@ def master_skip(repo, passfile):
     section("Master skip and reset")
     passphrase = open(passfile).read().strip()
     code, out = repo.gate("reset", answers=[("level 0?", "y")])
-    check(code == 0 and repo.level() == 0, "./gate reset back to level 0")
-    repo.git("reset", "-q", "--hard", "start")
-    repo.git("clean", "-fdq", "--", "src", "tests")
+    check(code == 0 and repo.level() == 0, "./gate reset back to level 0", out[-300:])
+    print("--- ./gate reset output ---\n%s\n---" % out.strip())
+    dirs = repo.record_dirs()
+    check(len(dirs) == 1 and all(os.path.isfile(os.path.join(repo.root, ".records", dirs[0], n))
+                                 for n in ("state.json", "git-log.txt", "LOG.md", "ladder.txt")),
+          "reset saved .records/<stamp>/ with state, git log, LOG.md and the ladder", str(dirs))
+    check(repo.git("status", "--porcelain") == "" and os.path.exists(repo.venv),
+          "reset alone leaves a clean tree and keeps .venv")
     code, out = repo.gate("skip", "--master", answers=[("passphrase:", "wrong-" + passphrase)])
     check(code == 1 and "not the master" in out, "wrong master passphrase rejected")
     code, out = repo.gate("skip", "--master", answers=[("passphrase:", passphrase), ("Reason", "selftest")])
@@ -441,11 +450,9 @@ def master_skip(repo, passfile):
     check(code == 0 and "sonnet" in repo.state()["allowed_models"], "allow-model power-up")
     # Leave the repo at the start for the facilitator.
     code, out = repo.gate("reset", answers=[("level 0?", "y")])
-    check(code == 0 and "Removed unlocked files: BRIEF.md" in out, "reset removes unlocked briefs")
-    repo.git("reset", "-q", "--hard", "start")
-    repo.git("clean", "-fdq")
-    for branch in repo.git("branch", "--list", "attempt-*").split():
-        repo.git("branch", "-D", branch)
+    check(code == 0 and not os.path.exists(os.path.join(repo.root, "BRIEF.md")), "reset removes unlocked briefs")
+    check(len(repo.record_dirs()) == 2, "a second records folder was written", str(repo.record_dirs()))
+    check(repo.git("branch", "--list", "attempt-*") == "", "reset removed the attempt branches")
     check(repo.level() == 0 and repo.git("status", "--porcelain") == "", "repo left clean at level 0")
 
 

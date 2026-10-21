@@ -1,4 +1,5 @@
 .workshop/
+/.records/
 .tdd/
 .venv/
 results/

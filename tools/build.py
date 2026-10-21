@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Assemble dist/<exercise>/ from gatekit/ and exercises/<exercise>/.
 
-usage: tools/build.py <exercise> --master-passphrase-file <path> [--out DIR]
-                      [--setup-python PATH] [--keep-venv]
+usage: tools/build.py <exercise> [--master-passphrase-file <path>] [--out DIR]
+                      [--setup-python PATH] [--fresh-venv]
+
+The passphrase file defaults to ~/.config/workshop/master-passphrase when it
+exists. An existing .venv in the output is kept unless --fresh-venv is given.
 
 Steps: wipe and recreate the output, copy level0/, templates, tools and the
 skills the manifest lists, write AGENTS.md from workshop/AGENTS.workshop.md,
@@ -36,6 +39,7 @@ MODEL_PLACEHOLDER = "__MODEL_NAME__"
 AGENTS_SOURCE = "AGENTS.workshop.md"
 # Finder metadata that may reappear while the output is being wiped.
 IGNORED_LEFTOVERS = (".DS_Store",)
+DEFAULT_PASSPHRASE = "~/.config/workshop/master-passphrase"
 
 
 def log(text):
@@ -252,13 +256,16 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
 
     hidden = os.path.join(src, "hidden")
     if os.path.isdir(hidden):
-        scoring_secret = secrets.token_hex(32)
-        pack = packs.pack_directory(hidden, [bytes.fromhex(scoring_secret),
-                                             crypto.master_secret(master)],
-                                    exercise, -2)
+        slots = [crypto.master_secret(master)]
+        scoring_secret = None
+        if not manifest.get("hidden_master_only", False):
+            scoring_secret = secrets.token_hex(32)
+            slots.insert(0, bytes.fromhex(scoring_secret))
+        pack = packs.pack_directory(hidden, slots, exercise, -2)
         with open(os.path.join(vault, "scoring.pack"), "wb") as fh:
             fh.write(pack)
-        level_secrets["scoring"] = scoring_secret
+        if scoring_secret:
+            level_secrets["scoring"] = scoring_secret
         log("packed hidden assets")
 
     tool = manifest.get("tool")
@@ -272,9 +279,11 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
             fh.write(packs.seal_json(level_secrets, key))
         log("wrote keys.bin (%d secrets, obfuscated)" % len(level_secrets))
 
+    shipped = shipped_manifest(manifest)
+    shipped["agents"] = shipped_agents(out)
     with open(os.path.join(out, ".gatekit", "manifest.json"), "w",
               encoding="utf-8") as fh:
-        json.dump(shipped_manifest(manifest), fh, indent=2, sort_keys=True)
+        json.dump(shipped, fh, indent=2, sort_keys=True)
         fh.write("\n")
 
     from gatekit import cli
@@ -289,6 +298,17 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
     git(out, "tag", "-f", "start")
     log("git init, commit, tag start")
     return out
+
+
+def shipped_agents(out):
+    """Sorted names of the .claude/agents/*.md files in the output.
+
+    Recorded in the shipped manifest for the preflight file check.
+    """
+    agents = os.path.join(out, ".claude", "agents")
+    if not os.path.isdir(agents):
+        return []
+    return sorted(n[:-3] for n in os.listdir(agents) if n.endswith(".md"))
 
 
 def render(path, replacements):
@@ -347,15 +367,24 @@ def git(cwd, *args):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("exercise")
-    parser.add_argument("--master-passphrase-file", required=True)
+    parser.add_argument("--master-passphrase-file", default=None,
+                        help="default: %s, when it exists" % DEFAULT_PASSPHRASE)
     parser.add_argument("--out")
     parser.add_argument("--setup-python", default="/opt/homebrew/bin/python3.13")
+    parser.add_argument("--fresh-venv", action="store_true",
+                        help="drop an existing dist/<name>/.venv (kept by default)")
     parser.add_argument("--keep-venv", action="store_true",
-                        help="preserve an existing dist/<name>/.venv")
+                        help="accepted and ignored: .venv is kept by default")
     parser.add_argument("--exercises-dir", help="override exercises/ root")
     args = parser.parse_args(argv)
-    out = build(args.exercise, args.master_passphrase_file, args.out,
-                args.setup_python, args.keep_venv, args.exercises_dir)
+    passphrase_file = args.master_passphrase_file
+    if passphrase_file is None:
+        if not os.path.isfile(os.path.expanduser(DEFAULT_PASSPHRASE)):
+            parser.error("pass --master-passphrase-file (the default %s does "
+                         "not exist)" % DEFAULT_PASSPHRASE)
+        passphrase_file = DEFAULT_PASSPHRASE
+    out = build(args.exercise, passphrase_file, args.out,
+                args.setup_python, not args.fresh_venv, args.exercises_dir)
     print("built %s" % out)
 
 

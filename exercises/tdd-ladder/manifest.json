@@ -3,6 +3,7 @@
   "title": "The TDD Ladder",
   "tool": "tddtool",
   "human_only": {"tdd": ["red", "green", "refactor", "done", "abort", "score", "new-attempt"]},
+  "records": ["LOG.md", "SPEC.md"],
   "models": {"default": "haiku", "allowed": ["haiku"]},
   "levels": [
     {

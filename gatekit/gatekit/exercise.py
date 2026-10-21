@@ -17,6 +17,11 @@ that may provide:
 - `status_lines(root, state) -> [str]`
 - `teacher_context_extra(root, state) -> str`
 - `on_reset(root)`
+- `on_records(root, outdir)`: write extra files into the records folder that
+  `./gate reset` saves; an exception aborts the reset
+- `gate_commands`: {name: fn(root, args) -> exit code} extra `./gate`
+  commands; fn may raise `cli.GateError`, does its own `tty.require_tty()` if
+  human-only, and its docstring's first line is shown by `./gate help`
 """
 
 import importlib

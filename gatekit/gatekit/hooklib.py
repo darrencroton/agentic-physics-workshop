@@ -14,7 +14,7 @@ import sys
 
 # Paths the agent may never read, list or write.
 SECRET_DIRS = (".vault", ".workshop", ".tdd", ".claude", ".gatekit",
-               ".tdd-tools", ".git")
+               ".tdd-tools", ".git", ".records")
 # Paths the agent may read but never edit (launchers and build-controlled files).
 FROZEN_FILES = ("gate", "tdd", "race", "preflight", "AGENTS.md", "CLAUDE.md",
                 "OTHER-AGENTS.md", "README.md", "BRIEF.md", "CLIENT_SPEC.md",
@@ -26,7 +26,8 @@ PATH_TOOLS = {"Read": "file_path", "Edit": "file_path", "Write": "file_path",
               "Glob": "path", "Grep": "path"}
 EDIT_TOOLS = ("Edit", "Write", "MultiEdit", "NotebookEdit")
 
-HUMAN_GATE = r"\bgate\b[^|;&\n]*\b(unlock|hint|skip|reset|allow-model)\b"
+HUMAN_GATE = (r"\bgate\b[^|;&\n]*\b(unlock|hint|skip|reset|allow-model)\b|"
+              r"\bgate\s+(dataset|install-solution)\b")
 # Human-only exercise-tool subcommands used when a manifest has no "human_only".
 DEFAULT_HUMAN_ONLY = {"tdd": ["red", "green", "refactor", "done", "abort",
                               "score", "new-attempt"]}
@@ -49,7 +50,7 @@ GIT_READERS = (r"\bgit\b[^|;&\n]*\b(show|cat-file|archive|bundle|fast-export|"
 # git clean with -x or -X deletes ignored files (.workshop, .venv).
 GIT_CLEAN_X = r"\bgit\b[^|;&\n]*\bclean\b[^|;&\n]*\s-[a-zA-Z]*[xX]"
 DOT_GLOBS = (r"(^|[\s/=:,{(])\.[\w-]*[\[\*\?{]", r"\{[^}]*,\s*\.", r"\.\*/")
-SECRET_RE = r"\.(vault|workshop|gatekit|claude|git|tdd(-tools)?)\b"
+SECRET_RE = r"\.(vault|workshop|gatekit|claude|git|records|tdd(-tools)?)\b"
 # Shell commands that can modify files; a redirect is handled separately.
 WRITE_VERBS = (r"\btee\b",
                r"\bsed\b(?:\s+(?:-[a-zA-Z]+|'[^']*'|\"[^\"]*\"))*\s+"

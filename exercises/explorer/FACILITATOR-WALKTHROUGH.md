@@ -21,7 +21,7 @@ Once per machine, do steps 2 and 3 of "Run the workshop" in the repository [`REA
 
 ```zsh
 cd <this repository>
-python3 tools/build.py explorer --master-passphrase-file ~/.config/workshop/master-passphrase --keep-venv
+python3 tools/build.py explorer
 cd dist/explorer
 ./preflight              # first run sets up .venv (needs the network, about a minute); must end with "Preflight passed"; also checks plotly and its bundled plotly.js
 ```
@@ -30,9 +30,9 @@ cd dist/explorer
 
 Then do the Claude Code checks in section 3, step 3, play the whole exercise through once on Sonnet using section 5, and reset (section 7). Open `out/explorer.html` in a browser at least once in the rehearsal: the Level 1 question is meant to send the group there, and you want to have seen the page.
 
-- `--keep-venv` preserves an existing `dist/explorer/.venv` across rebuilds. Everything else in `dist/explorer` is regenerated, including the git history, so rebuild only between runs.
+- The build reads the passphrase from `~/.config/workshop/master-passphrase` (`--master-passphrase-file` overrides it) and keeps an existing `dist/explorer/.venv` (`--fresh-venv` drops it). Everything else in `dist/explorer` is regenerated, including the git history, so rebuild only between runs.
 - The participant `.venv` is made with `/opt/homebrew/bin/python3.13` when that exists, otherwise `python3`; the build machine used Python 3.13.2. Pass `--setup-python /path/to/python3` to the build to bake in another Python 3.11+.
-- The master passphrase stays in `~/.config/workshop/master-passphrase`, outside every repo. The build reads it; the repo stores only a check value. You type it at the prompt for `./gate skip --master`.
+- The master passphrase stays outside every repo; the repo stores only a check value. You type it at the prompt for `./gate skip --master`.
 - `exercises/explorer/selftest/run.py` plays the whole exercise with a reference solution (138 checks, about a minute). It proves the gates, not the timing; the rehearsal is where you learn the timing.
 
 ### Optional: a calibration run
@@ -43,15 +43,8 @@ The self-test cannot say how long Sonnet takes to build the tool with a group di
 
 Each leader gets a copy of the built participant repo as a git bundle: one file that clones into a complete repo. Never send them, or point participants at, the builder repository; it holds the sources and the answers.
 
-1. Start from a clean repo. A bundle carries everything in the repo, including rehearsal commits and branches, so rebuild (section 1) or reset (section 7) first.
-2. Check it and make the bundle:
-
-   ```zsh
-   cd dist/explorer
-   git status --short && git log --oneline && git branch   # expect no changes, one commit "Workshop start", only main
-   git bundle create explorer.bundle --all        # written here; copy it out before a reset or rebuild, which delete it (about 10 MB: the two datasets)
-   ```
-
+1. Start from a freshly built or reset repo: a bundle carries everything in the repo.
+2. From this repository's top folder, run `python3 tools/bundle.py explorer`. It checks that `dist/explorer` is clean, has one commit, only `main`, `start` at HEAD and level 0, then writes `explorer.bundle` in the current folder (use `--out PATH` to put it elsewhere) and verifies it.
 3. Send each leader the bundle and this walkthrough file. Ask them to work through section 3 before the leaders' briefing, so problems surface early. A private git remote works too: push `main` and the `start` tag, and send the clone URL instead.
 4. Decide who types the master passphrase. Skips ask for it in the group's own gate terminal; a leader's laptop never needs the passphrase file. By default you hold it and type it when a leader calls you over. If a leader will run a group without you in the room, such as a trial, tell them the passphrase. It opens every repo built from the same passphrase file, so if that matters, build their copy from a different passphrase file into another directory (`--out`).
 
@@ -74,13 +67,10 @@ Do not install anything else. If preflight asks for something, check with the fa
    ```
 
 2. `./preflight` creates `.venv` and installs the pinned numpy, plotly, pytest and pytest-cov, then checks the machine. The first run needs the network and takes about a minute (the only step that needs the network apart from Claude Code). If it says your Python is too old, it prints the command to run with a newer one. It must end with "Preflight passed"; the first run also sets the workshop up at level 0.
-3. Run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Then, in Claude Code (about a minute):
+3. Run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Preflight has already checked the skill and agent files. In Claude Code (about a minute):
    1. `/hooks`: four events must be listed (SessionStart, UserPromptSubmit, PreToolUse, PreModelSwitch). If the list is empty, the trust dialog was not accepted: `/exit` and run `claude` again.
-   2. `/status`: the model line must say Sonnet.
-   3. `/model` and pick another model (Haiku, say): it must be refused. Picking Sonnet again is allowed.
-   4. Type `/` in Claude Code and confirm `plan-code`, `style-code`, `test-code` and `review-code` are listed. If not, run `/reload-skills`; if they are still missing, see section 6. The playbook prompts name them.
-   5. `/agents` (or the agent list in your version): `reviewer` must be listed, as a project agent. It is only the fallback for Level 3 (the main route is the `review-code` skill). If it is missing, see section 6.
-   6. `/exit`.
+   2. `/model` and pick another model: it must be refused. The session stays on Sonnet.
+   3. `/exit`.
 4. Rehearse: play Level 0 yourself following section 5, and reset (section 7) so the group's log starts empty. Level 0 needs nothing built, so it is a quick way to see the gate, the guard and the plan-mode start.
 
 ### Groups on other agents
@@ -114,13 +104,9 @@ The session starts in plan mode on Sonnet. `Shift+Tab` (in Claude Code) leaves p
 
 ### Choosing the dataset
 
-Before the session, choose the group's dataset: pulsars (`data/pulsars.csv`, for the astro and cosmology end of the room) or dimuons (`data/dimuons.csv`, for the particle end). Edit the `Dataset:` line of `PLAN.md` in the group's clone and leave it **uncommitted** (the agent commits `PLAN.md` at Level 0, which is what the gate wants):
+Before the session, choose the group's dataset: pulsars (`data/pulsars.csv`, for the astro and cosmology end of the room) or dimuons (`data/dimuons.csv`, for the particle end). At Level 0, before the plan is committed, run `./gate dataset pulsars` or `./gate dataset dimuons` in the gate terminal. It sets the `Dataset:` line of `PLAN.md` and leaves it uncommitted (the agent commits `PLAN.md`, which is what the gate wants). It refuses once the plan is committed. A reset puts the line back to pulsars.
 
-```text
-Dataset: data/pulsars.csv
-```
-
-That line is the only place the dataset is named. The Makefile reads it, so `make explore`, `make list` and the Level 1 and Level 3 checks all follow it, and the group never types a path. The value must be exactly one of the two relative paths: the Level 0 gate refuses anything else. Both datasets ship, but once `PLAN.md` is committed the group works only with its own: no gate and no brief points at the other one. A group's own CSV works with `make explore DATA=path/to/file.csv`. The template ships with the pulsars line, so for a particle audience the leader changes it to `data/dimuons.csv` at Level 0. Dimuons has no missing values or text columns; the Level 2 brief suggests a test with a small made-up CSV for README rules a dataset never triggers.
+That line is the only place the dataset is named. The Makefile reads it, so `make explore`, `make list` and the Level 1 and Level 3 checks all follow it, and the group never types a path. The value must be exactly one of the two relative paths: the Level 0 gate refuses anything else. Both datasets ship, but once `PLAN.md` is committed the group works only with its own: no gate and no brief points at the other one. A group's own CSV works with `make explore DATA=path/to/file.csv`. Dimuons has no missing values or text columns; the Level 2 brief suggests a test with a small made-up CSV for README rules a dataset never triggers.
 
 ### Opening (60 seconds, read aloud)
 
@@ -154,7 +140,7 @@ You are the Coach: you ask questions and fix tooling, and you do not drive. Allo
 
 The unlock screen is: `PASS:` line, any `Note:` lines (a relaxed check that did not hold, with a reason to do it next time), the graded question if any, a headed "Level N unlocked" block with new files and a `Next:` line, then "Talk it over" (nothing to type, nothing saved). Useful at any time: `./gate status` (level, time on level, hints, dataset, whether the page is built, commits since the last gate), `./gate brief`, `./gate check`, `./gate hint` (three tiers: at 0, 3 and 6 minutes on the 8-minute levels, and 0, 5 and 10 on Level 1, where a fourth at 13 minutes gives the answer for the group's dataset), and `make list`, `make explore`, `make open`, `make test`, `make coverage`. The repo's `README.md` lists every command.
 
-Need the master passphrase, which the facilitator holds, so call them over: `./gate skip --master` (open the next level for a stuck group, with a reason). It is logged. There are no model power-ups: Sonnet is already the model.
+Need the master passphrase, which the facilitator holds, so call them over: `./gate skip --master` (open the next level for a stuck group, with a reason) and `./gate install-solution --master` (install and commit the reference solution). Both are logged. There are no model power-ups: Sonnet is already the model.
 
 ## 5. Level by level
 
@@ -244,8 +230,8 @@ Honest limit: the check scripts print a fixed line, so each crypto gate's only s
 
 | Symptom | Do |
 |---|---|
-| Group stuck | `./gate hint` (3 tiers; at Level 1 a fourth gives the answer), then a question. A stuck Level 1 is the likeliest. The last resort is `./gate skip --master` (needs the master passphrase), which opens the next level but installs no code. To let the group still test and review a real tool, copy `exercises/explorer/selftest/solution/explorer/` from the builder repo into the group's `explorer/` and have the group ask the agent to commit it (or commit it yourself in the gate terminal). |
-| Build too slow for the time | The same: `./gate skip --master`, then copy and commit the reference solution (above). Say so to the group. |
+| Group stuck | `./gate hint` (3 tiers; at Level 1 a fourth gives the answer), then a question. A stuck Level 1 is the likeliest. The last resort is `./gate skip --master` (needs the master passphrase), which opens the next level but installs no code. To let the group still test and review a real tool, run `./gate install-solution --master`: it installs and commits the reference solution. |
+| Build too slow for the time | The same: `./gate skip --master`, then `./gate install-solution --master`. Say so to the group. |
 | `./gate` says it is "for humans, in the gate terminal" | It was run from the agent's shell, or from a window opened from Claude Code. Use a fresh Terminal window. |
 | `make list` fails at Level 0 ("'explorer' is a package and cannot be directly executed") | Expected: the tool does not exist until Level 1. Ask the agent for the missing counts instead. |
 | `make open` does nothing | Open `out/explorer.html` from Finder, or `open out/explorer.html`. Check `out/` was written (`make explore` first). |
@@ -261,21 +247,20 @@ Honest limit: the check scripts print a fixed line, so each crypto gate's only s
 
 ## 7. Reset between runs
 
-In the repo (`dist/explorer` for the facilitator, your clone for a leader):
+In the repo (`dist/explorer` for the facilitator, your clone for a leader), in the gate terminal:
 
 ```zsh
-./gate reset                       # confirms, wipes .workshop/ (and removes out/)
-git reset --hard start && git clean -fdx -e .venv -e .workshop   # restores PLAN.md, LOG.md and explorer/; removes out/ and other untracked files; keeps .venv
+./gate reset
 ```
 
-This is the canonical reset (`docs/DECISIONS.md`, 2026-10-13). `git reset --hard start` also reverts the `Dataset:` line, so set it again afterwards. The facilitator can instead rebuild (`tools/build.py … --keep-venv`), which also gives fresh packs and secrets; leaders then need a new bundle.
+It asks first, then saves the group's records to `.records/<date-time>/` (git-ignored, kept by every reset, hidden from the agent), puts the repo back to `start`, removes untracked files such as `out/` (keeping `.venv`) and returns to level 0. The `Dataset:` line goes back to pulsars, so set it again with `./gate dataset dimuons` if needed. The facilitator can instead rebuild, which also gives fresh packs and secrets; leaders then need a new bundle.
 
 ## 8. What to record
 
-- `.workshop/state.json`: per-level times, hints, failed attempts and skips.
-- `LOG.md`: the Scribe's notes, with a "Talk it over" heading per level (the talk prompts are not saved by the gate, so anything written there is the Scribe's own).
-- The Level 1 play suggestion: the group's feature.
-- `TESTS.md` (the group's list against the agent's plan) and `REVIEW.md` (guesses, findings, triage). These two comparisons are the show-and-tell material.
-- `git log --oneline`: the commits are the group's path through the plan.
+`./gate reset` saves these to `.records/<date-time>/`, and the leader sends that folder to the facilitator:
 
-Copy them out before `./gate reset`, and leaders send their copies to the facilitator. For the show-and-tell, ask each group: one decision the agent made that they hadn't (and whether they changed it); one thing the tests did not catch; one finding they rejected, and why; and the moment the browser showed something the check could not. Also ask what time Level 1 finished: it is the calibration number for the next run.
+- `state.json`: per-level times, hints, failed attempts and skips.
+- `git-log.txt`: the commits are the group's path through the plan. `work.bundle` holds the group's code (clone it with `git clone work.bundle`).
+- `LOG.md` (the Scribe's notes), `PLAN.md`, `TESTS.md` and `REVIEW.md`. The last two comparisons are the show-and-tell material. The talk prompts are not saved by the gate, so anything written there is the Scribe's own.
+
+Collect the folder before the next group uses the laptop; it is never in a bundle. For the show-and-tell, ask each group: one decision the agent made that they hadn't (and whether they changed it); one thing the tests did not catch; one finding they rejected, and why; and the moment the browser showed something the check could not. Also ask what time Level 1 finished: it is the calibration number for the next run.

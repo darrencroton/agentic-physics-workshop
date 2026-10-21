@@ -8,10 +8,9 @@ You coach one group through a 45-minute exercise: the agent builds a browser too
 
 - [ ] A Mac with Xcode Command Line Tools, Python 3.11+, a browser, and a git identity (`git config --global user.name` and `user.email`).
 - [ ] Claude Code 2.1.295 or newer, signed in, able to use Sonnet.
-- [ ] Clone the bundle, run `./preflight` (first run sets up `.venv`: needs the network, about a minute): it must end with "Preflight passed".
-- [ ] Run `claude` in the repo, accept the trust dialog, and check `/hooks` lists four events and `/status` says Sonnet.
-- [ ] Set the `Dataset:` line of `PLAN.md` (`data/pulsars.csv` or `data/dimuons.csv`) and leave it uncommitted.
-- [ ] Rehearse Level 0, then reset (walkthrough section 7).
+- [ ] Cloned the bundle; `./preflight` (first run sets up `.venv`: needs the network, about a minute) ends with "Preflight passed". It also checks the skill and agent files.
+- [ ] In `claude`, accept the trust dialog; `/hooks` lists four events, and `/model` to another model is refused.
+- [ ] Rehearsed Level 0, then `./gate reset`.
 
 ## On the day
 
@@ -34,7 +33,7 @@ You coach one group through a 45-minute exercise: the agent builds a browser too
 
 Every gate ends with a "Talk it over" prompt: nothing to type. Ask it aloud and let the group answer for 30 seconds. Some checks only print a `Note:` and still pass: read it out, it says what is worth doing next time.
 
-**Level 0, Plan (8 min).** Goal: two steps, four decisions, acceptance criteria, committed. Good looks like: the group, not the agent, chose what happens to zeros on a log axis and what the page opens on. Nudge: "Which decisions did the agent make for you?" Exactly two steps is strict; if there are more, merge them (command line and `data.json`, then the page).
+**Level 0, Plan (8 min).** Set the dataset first: `./gate dataset pulsars` or `./gate dataset dimuons`, before the plan is committed. Goal: two steps, four decisions, acceptance criteria, committed. Good looks like: the group, not the agent, chose what happens to zeros on a log axis and what the page opens on. Nudge: "Which decisions did the agent make for you?" Exactly two steps is strict; if there are more, merge them (command line and `data.json`, then the page).
 
 **Level 1, Build (18 min).** Goal: two cycles of step, run, look, commit. Good looks like: once the page exists, someone opens it in the browser before it is committed. Nudge: "Show me in the browser. Is it committed?" `NaN` in `data.json` is the classic bug: paste the check's sentence to the agent. Unlock question: pulsars, plot `XX`, `YY`, `ZZ` and rotate: answer **sun**. Dimuons, `M` against `pt1` on log axes: answer **jpsi**. (A wrong answer prints a hint.)
 
@@ -45,7 +44,7 @@ Every gate ends with a "Talk it over" prompt: nothing to type. Ask it aloud and 
 ## When stuck
 
 - `./gate hint` in the gate terminal: three tiers over time; Level 1 gets a fourth with the answer.
-- Still stuck: `./gate skip --master` needs the facilitator, who holds the passphrase. Call them over.
+- Still stuck: call the facilitator, who holds the passphrase. `./gate skip --master` opens the next level, and `./gate install-solution --master` installs and commits the reference solution.
 - Agent going in circles after two failed corrections: `/clear` for a fresh session and a better prompt.
 - A command refused by the guard: the agent shouldn't reword it. Let it use a `make` target instead.
 - `./gate` says it is "for humans": use a fresh Terminal window, not one opened from Claude Code.
@@ -54,6 +53,5 @@ Every gate ends with a "Talk it over" prompt: nothing to type. Ask it aloud and 
 
 ## After
 
-- Copy out `LOG.md`, `TESTS.md`, `REVIEW.md` and `git log --oneline` for the show-and-tell. Send the group's one new feature idea along.
 - `PLAYBOOK.md` and the four skills in `.claude/skills/` are the group's to take home.
-- Reset: `./gate reset`, then `git reset --hard start && git clean -fdx -e .venv -e .workshop`, and set the `Dataset:` line again.
+- `./gate reset` saves the group's records (state, git log, `LOG.md`, `PLAN.md`, `TESTS.md`, `REVIEW.md`) and the group's code as `work.bundle` (clone it with `git clone work.bundle`) to `.records/<date-time>/` and returns to level 0. `.records` is a hidden folder: `open .records` shows it in Finder, and reset prints its path. Send that folder to the facilitator, with the group's one new feature idea. The dataset goes back to pulsars: `./gate dataset dimuons` switches it.

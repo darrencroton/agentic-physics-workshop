@@ -4,12 +4,14 @@
 
 gatekit is a stdlib-only toolkit that turns an exercise into a ladder of levels, each unlocked by a human at a terminal. A level's files sit in an encrypted pack until the group passes the level's check and answers its gate question(s); hooks keep Claude Code inside the current level's rules (the hooks are Claude Code only; on other agent harnesses the written rules in `AGENTS.md` are the fallback, by design). It is a learning scaffold, not an exam proctor (see "Honest limits").
 
-`tools/build.py <exercise> --master-passphrase-file <path>` assembles `dist/<exercise>/` from `gatekit/` and `exercises/<exercise>/`. The output is wiped and recreated, then committed as "Workshop start" and tagged `start`.
+`tools/build.py <exercise> [--master-passphrase-file <path>]` assembles `dist/<exercise>/` from `gatekit/` and `exercises/<exercise>/`. The output is wiped and recreated, then committed as "Workshop start" and tagged `start`. The passphrase file defaults to `~/.config/workshop/master-passphrase` when it exists (otherwise the flag is required). An existing `.venv` in the output is kept unless `--fresh-venv` is given (`--keep-venv` is accepted and ignored). The shipped manifest gains an `agents` list (the `.claude/agents/*.md` names) for the preflight file check.
+
+`tools/bundle.py <exercise> [--out PATH]` bundles `dist/<exercise>` with `git bundle create --all` and `git bundle verify`, after refusing a repo that is not exactly as built: the tree must be clean, with one commit, only the `main` branch, the `start` tag at HEAD and the state at level 0 (or absent, as it is not in git). The default output is `<exercise>.bundle` in the current directory.
 
 ```
 dist/<exercise>/
   gate                     # launcher: python3, adds .gatekit/ to sys.path, calls gatekit.cli.main
-  preflight                # machine readiness check; builds .venv when missing or stale, --setup forces a reinstall (rendered with __SETUP_PYTHON__)
+  preflight                # machine readiness check; builds .venv when missing or stale, --setup forces a reinstall (rendered with __SETUP_PYTHON__); also checks every manifest skill's SKILL.md and every shipped .claude/agents file exists
   AGENTS.md                # participant rules (harness-neutral), from workshop/AGENTS.workshop.md
   CLAUDE.md                # rendered from gatekit/agents/CLAUDE.md: imports AGENTS.md, adds the Claude Code section
   OTHER-AGENTS.md          # only when the manifest sets "other_agents": true, from gatekit/agents/OTHER-AGENTS.md
@@ -56,7 +58,12 @@ All commands run as `./gate <command>`. A TTY means both stdin and stdout are te
 | `hint` | Yes | Shows the first unused tier in `hints.json`, provided `unlock_after_minutes` has passed on this level; otherwise says when it unlocks. Records the tier in `hints_used` and appends the text shown to `LOG.md`. A tier may carry `"text_from": "tool.name"`, naming a `hints` function that returns the text to show (for example an answer tailored to the group's data); an exception or an empty return falls back silently to the tier's static `text`, which is still required. |
 | `skip --master` | Yes | Prompts for the master passphrase without echo, checks it against `.vault/master.check`, asks for a reason, records a skip, and unlocks the next level using the master slot (or marks the last level complete). Logs to `LOG.md`. A wrong passphrase is logged as a failed attempt of kind `master`. Without `--master` it errors. |
 | `allow-model <name>` | Yes, plus master passphrase | Verifies the master passphrase, lower-cases the name, appends it to `allowed_models` and logs the power-up. |
-| `reset` | Yes | Asks for confirmation (skipped with `--yes`), deletes the files later levels unlocked into the working tree (each level's `BRIEF.md` and its `files` targets), deletes `.workshop/`, copies `.gatekit/levels/0` to `.workshop/levels/0`, writes a fresh state and calls the tool's `on_reset(root)`. It does not otherwise touch the working tree; the message suggests `git reset --hard start`. |
+| `reset` | Yes | Fails closed, before changing anything, unless the folder is the top of its own git repo with a `start` tag and a `main` branch. Prints what will happen and asks for confirmation (skipped with `--yes`). Then: saves the group's records (below); `git checkout -q -f main`; `git reset -q --hard start`; `git clean -q -fdx -e .venv -e .workshop -e /.records`; removes the stash and every tag except `start`; deletes every local branch except `main`; and runs `reset_workshop` (rebuilds `.workshop/` at level 0 and calls the tool's `on_reset(root)`). Prints "Back to level 0 at the start commit (.venv kept)." |
+| exercise commands | Their own | Any `gate_commands` the tool defines (section 9) are dispatched when the name is not built in, and are listed with their docstring's first line by `gate help`. |
+
+### Records saved by `reset`
+
+`.records/<YYYY-MM-DD-HHMMSS>/` inside the repo (git-ignored, kept across resets, and a secret path for the agent like `.workshop`) gets `state.json`, `work.bundle` (`git bundle create --all`, so it is self-contained; skipped when there are no commits beyond `start`; `git clone work.bundle` restores them), `uncommitted.diff` (`git diff --binary --cached HEAD` against a temporary index after `git add -A`, so it holds binary changes and untracked, non-ignored files; only if non-empty; the real index is untouched), `git-log.txt` (`git log --oneline --all --decorate`), every file named in the manifest's optional `"records": [...]` that exists, and whatever the tool's `on_records(root, outdir)` writes. A failure while saving (any exception, including from `on_records`) aborts the reset before any git step. If a git step fails afterwards, the error says the records are safe and to run `./gate reset` again, which is safe to repeat. `reset_workshop` itself never touches git or `.records/`: preflight and `gate` use it to make missing state on a fresh clone.
 
 `gate help`, `-h` and `--help` print usage.
 
@@ -95,6 +102,8 @@ The manifest lives at `exercises/<name>/manifest.json` and is copied to `.gateki
   "exercise": "tdd-ladder",              // must match state.json; a mismatch tells you to reset
   "title": "The TDD Ladder",
   "tool": "tddtool",                     // optional: package under .gatekit/ (conditions, validators, hooks into status etc.)
+  "records": ["LOG.md"],                 // optional list of file names: copied into .records/<stamp>/ by gate reset
+  "hidden_master_only": true,            // optional bool: seal hidden/ with the master slot only (no scoring secret in keys.bin)
   "other_agents": false,                 // optional boolean, default false: ship OTHER-AGENTS.md (build); other types are rejected
   "human_only": {"tdd": ["red", "green", "refactor", "done", "abort", "score", "new-attempt"]},  // optional and illustrative here: launcher -> subcommands only humans may run (see section 8); each exercise declares its own; absent means this tdd list
   "models": {
@@ -278,7 +287,7 @@ The phase is read from `.tdd/phase` (`none`, `red`, `green` or `refactor`; anyth
 
 Always blocked, whatever the level (`hooklib.py`):
 
-- `SECRET_DIRS` (no read, list or write): `.vault`, `.workshop`, `.tdd`, `.claude`, `.gatekit`, `.tdd-tools`, `.git`.
+- `SECRET_DIRS` (no read, list or write): `.vault`, `.workshop`, `.tdd`, `.claude`, `.gatekit`, `.tdd-tools`, `.git`, `.records`.
 - `FROZEN_FILES` (readable, never editable; the manifest's `human_only` launchers are added at run time): `gate`, `tdd`, `race`, `preflight`, `AGENTS.md`, `CLAUDE.md`, `OTHER-AGENTS.md`, `README.md`, `BRIEF.md`, `CLIENT_SPEC.md`, `Makefile`, `pytest.ini`, `requirements.txt`, `.gitignore`, plus the `data/` directory.
 
 ### Bash matching is best effort
@@ -286,7 +295,7 @@ Always blocked, whatever the level (`hooklib.py`):
 `guard.py` reads the command's quotes, heredocs and redirects (`hooklib.parse_shell`), then applies regexes. It denies a command that:
 
 - mentions a secret directory as a path component (for example `cat .vault/level1.pack`, `ls .workshop`);
-- runs `gate unlock|hint|skip|reset|allow-model` or one of the manifest's `human_only` exercise commands (default `tdd red|green|refactor|done|abort|score|new-attempt`), including the indirect `<launcher> $VAR` form; the guard reads `.gatekit/manifest.json` on each Bash call and denies when it cannot be read or `human_only` is malformed;
+- runs `gate unlock|hint|skip|reset|allow-model|dataset|install-solution` or one of the manifest's `human_only` exercise commands (default `tdd red|green|refactor|done|abort|score|new-attempt`), including the indirect `<launcher> $VAR` form; the guard reads `.gatekit/manifest.json` on each Bash call and denies when it cannot be read or `human_only` is malformed;
 - invokes a package manager (`pip`, `python -m pip`, `uv`, `brew`, `npm`, `conda`, `pipx`, `poetry`, `easy_install`), or pipes code into a bare `sh`, `bash`, `zsh` or `python` (`| sh`, `| bash -e`, `| python3 -`; `| python3 -m json.tool`, `| python3 -c ...` and `||` are fine; the pipe is looked for only outside quotes and heredocs);
 - uses pty tricks (`pty`, `openpty`, `script `, `expect`, `unbuffer`, `socat`, `faketty`);
 - redirects (`>`, `>>`, `>|`, `&>`, `N>`) to a secret path, a build-frozen file or directory, or a path matching the level's `frozen` globs (a relative target is resolved against the hook's `cwd` and against every literal `cd` or `pushd` directory earlier in the command, so `out/README.md` is fine but `cd tests && cat > test_x.py` is not; a computed `cd`, such as `cd "$X"`, `cd -` or a bare `pushd`, makes a relative target refuse with its own message; an absolute target is checked as written; only a target with a `..` component is also matched by name); `>!` counts as a redirect. Only a real shell redirect counts: a `>` inside quotes or a quoted heredoc body is text. Mentions of frozen paths elsewhere in the command are reads;
@@ -318,6 +327,8 @@ An exercise tool is a package (named by `manifest.tool`) shipped in `.gatekit/`.
 | `status_lines` | `fn(root, state) -> [str]` | Extra lines for `gate status`. |
 | `teacher_context_extra` | `fn(root, state) -> str` | Text appended to the `UserPromptSubmit` context. |
 | `on_reset` | `fn(root)` | Called at the end of `gate reset` (and at build time) to clear exercise state such as `.tdd/`. |
+| `on_records` | `fn(root, outdir)` | Called while `gate reset` saves records; writes extra files into `outdir`. An exception aborts the reset before any git step. |
+| `gate_commands` | `{name: fn(root, args) -> exit code}` | Extra `./gate <name>` commands. `fn` may raise `GateError` and does its own `tty.require_tty()` if human-only; the first docstring line is its `gate help` text. Names that are human-only (`dataset`, `install-solution` so far) must be in the guard's `HUMAN_GATE` regex, which matches them only directly after `gate`. |
 
 A dotted name with prefix `gate` refers to a built-in; any other prefix is resolved against the tool's table and fails with a clear error if the tool or the entry is missing.
 
@@ -334,7 +345,9 @@ cd gatekit && python3 -m unittest discover -s . -t . -p 'test_*.py'
 | `test_crypto_packs.py` | Keystream round-trip, slot wrap and unwrap, verify token, deterministic tar, pack round-trip with the master slot, tamper detection via the MAC, `seal_json`, unsafe member paths. |
 | `test_answers_state.py` | Keyword synonyms, Greek and `contains`, manifest `contains` and prompt-ending rules, choice, numeric grid and units, numeric-log, free, crypto slot enumeration; state round-trip, level advance and corrupt state. |
 | `test_build.py` | Builds the fixture exercise: layout and determinism, rendered `human_only` deny rules and the tdd fallback, wrong then right answer through the real `gate`, master skip and model power-up, and that `preflight` runs. |
-| `test_hooks.py` | `guard.py` against synthetic hook JSON (vault read, `gate unlock`, package managers and pty, secret paths, frozen edits, normal work, malformed input, missing state, phase rules); `model_lock.py` allow, deny and power-up; `teacher_context.py` persona per level; `model_check.py` (model line and warning); manifest-driven `human_only` denials and the fail-closed bad-manifest case. |
+| `test_hooks.py` | `guard.py` against synthetic hook JSON (vault read, `gate unlock`, package managers and pty, secret paths, frozen edits, normal work, malformed input, missing state, phase rules); `model_lock.py` allow, deny and power-up; `teacher_context.py` persona per level; `model_check.py` (model line and warning); the `.records/` folder and `gate dataset` and `gate install-solution` denials; manifest-driven `human_only` denials and the fail-closed bad-manifest case. |
+| `test_reset_records.py` | `gate reset` in a temp git repo (commits, untracked files and extra branches go; `.venv` and `.records/` stay; records written; state at level 0; missing `start` tag refuses with nothing changed; an untouched repo still saves records; failing records hook aborts; the bundle clones; the diff holds untracked and binary files and leaves the index alone; stash and extra tags go; a git failure points to the records); exercise `gate_commands` dispatch and help. |
+| `test_bundle.py` | `tools/bundle.py` accepts a clean built repo and refuses a dirty tree. |
 | `test_tty_cli.py` | Human-only commands refuse without a TTY; `hint` and `reset` succeed through a pty; question `text_from` and `wrong_hint` (static, tool-supplied, failing tool); hint tier `text_from`. |
 
 `tests/fakerepo.py` builds a throwaway repo and `tests/fixture_exercise/` is the small exercise the build tests use.

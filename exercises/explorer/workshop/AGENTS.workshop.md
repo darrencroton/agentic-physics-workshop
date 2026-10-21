@@ -41,7 +41,7 @@ The group includes people who missed the introduction, so keep everyone oriented
 
 - Change a test, or the interface in `INTERFACE.md`, just to make something pass. If a test looks wrong, say so and stop.
 - Edit `data/`, `README.md`, `INTERFACE.md`, `PLAYBOOK.md`, `AGENTS.md`, `CLAUDE.md`, `OTHER-AGENTS.md`, the `Makefile` or `requirements.txt`.
-- Read, list or decode anything in `.vault/`, `.workshop/`, `.gatekit/` or `.claude/` (except a shipped skill's `SKILL.md` when a prompt names that skill).
+- Read, list or decode anything in `.vault/`, `.workshop/`, `.records/`, `.gatekit/` or `.claude/` (except a shipped skill's `SKILL.md` when a prompt names that skill).
 - Run `./gate unlock`, `./gate hint`, `./gate skip`, `./gate reset` or `./gate allow-model`.
 - Install packages. The `.venv` has numpy, plotly, pytest and pytest-cov, and that is enough.
 - Use `pty`, `script`, `expect` or any trick to fake a terminal.

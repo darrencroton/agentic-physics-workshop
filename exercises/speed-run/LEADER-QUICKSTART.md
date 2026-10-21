@@ -11,9 +11,9 @@ Before the day (details in section 3 of `FACILITATOR-WALKTHROUGH.md`):
 - [ ] Apple-silicon Mac with Xcode Command Line Tools (`git`, `clang`) and Python 3.11 or newer.
 - [ ] Claude Code 2.1.295 or newer, signed in (Haiku, plus Sonnet for power-ups).
 - [ ] A git identity (`git config --global user.name` and `user.email`).
-- [ ] `git clone` the bundle, `./preflight` (first run sets up `.venv`: needs the network, about a minute) ends with "Preflight passed".
-- [ ] In `claude`: `/hooks` lists four events, `/status` says Haiku, `/model` to Sonnet is refused.
-- [ ] You have played Level 0 once, then reset (section 5 below).
+- [ ] Cloned the bundle; `./preflight` (first run sets up `.venv`: needs the network, about a minute) ends with "Preflight passed". It also checks the skill and agent files.
+- [ ] In `claude`, accept the trust dialog; `/hooks` lists four events, and `/model` to another model is refused.
+- [ ] You have played Level 0 once, then `./gate reset`.
 
 ## 2. On the day
 
@@ -56,6 +56,5 @@ Each gate ends with a "talk it over" prompt: nothing to type, so ask it aloud.
 
 ## 5. After
 
-- Copy out before reset: `.workshop/state.json`, `.workshop/race/bench.jsonl` (`./race log`), `./race board` and `LOG.md`. Send them to the facilitator.
-- Reset: `./gate reset`, then `git reset --hard start && git clean -fdx -e .venv -e .workshop`.
+- `./gate reset` saves the group's records (state, bench log, board, `git-log.txt`, `LOG.md`, `race.toml`) and the group's code as `work.bundle` (clone it with `git clone work.bundle`) to `.records/<date-time>/` and returns to level 0. `.records` is a hidden folder: `open .records` shows it in Finder, and reset prints its path. Send that folder to the facilitator.
 - For show-and-tell: which division and why, and the biggest wrong turn with the evidence that showed it.

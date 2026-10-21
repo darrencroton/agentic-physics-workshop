@@ -48,12 +48,7 @@ def check_files():
     for rel in DATASETS + ("data/pulsars.columns.json", "data/dimuons.columns.json",
                            "data/README.md", "PLAN.md", "PLAYBOOK.md",
                            "OTHER-AGENTS.md",
-                           "explorer/__init__.py", "tests/__init__.py",
-                           ".claude/agents/reviewer.md",
-                           ".claude/skills/plan-code/SKILL.md",
-                           ".claude/skills/review-code/SKILL.md",
-                           ".claude/skills/style-code/SKILL.md",
-                           ".claude/skills/test-code/SKILL.md"):
+                           "explorer/__init__.py", "tests/__init__.py"):
         report(os.path.isfile(os.path.join(ROOT, rel)), "%s present" % rel)
 
 

@@ -33,7 +33,7 @@ The group includes people who missed the introduction, so keep everyone oriented
 
 ## Never
 
-- Read, list or decode anything in `.vault/`, `.workshop/`, `.gatekit/` or `.claude/`.
+- Read, list or decode anything in `.vault/`, `.workshop/`, `.records/`, `.gatekit/` or `.claude/`.
 - Edit `paircount/reference.py`, `paircount/__init__.py`, anything in `bench/` or `data/`, `race.toml`, or the golden counts.
 - Change a correctness check, comparison or tolerance, or switch a check to `np.allclose`. If the group wants a tolerance, they declare it in `race.toml` themselves.
 - Run `./race submit` or `./race install-solution`.

@@ -1,5 +1,7 @@
 """Exercise tool for the TDD Ladder; the interface gatekit expects."""
 
+import contextlib
+import io
 import os
 
 from tddtool import common as C
@@ -64,3 +66,13 @@ def teacher_context_extra(root, state):
 def on_reset(root):
     import shutil
     shutil.rmtree(os.path.join(root, ".tdd"), ignore_errors=True)
+
+
+def on_records(root, outdir):
+    """Write the `./tdd ladder` text into the records folder."""
+    from tddtool import scoring
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        scoring.cmd_ladder(root, [])
+    with open(os.path.join(outdir, "ladder.txt"), "w", encoding="utf-8") as fh:
+        fh.write(buffer.getvalue())

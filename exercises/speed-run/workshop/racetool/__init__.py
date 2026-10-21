@@ -4,7 +4,10 @@ Stdlib only and importable on Python 3.9. Numerical work runs in the .venv
 through bench/harness.py.
 """
 
+import contextlib
+import io
 import os
+import shutil
 
 from racetool import common as C
 from racetool.gates import conditions  # noqa: F401
@@ -47,5 +50,17 @@ def teacher_context_extra(root, state):
 
 
 def on_reset(root):
-    import shutil
     shutil.rmtree(os.path.join(root, ".workshop", "race"), ignore_errors=True)
+
+
+def on_records(root, outdir):
+    """Copy the bench log and write the `./race board` text."""
+    from racetool import records
+    log = C.bench_log_path(root)
+    if os.path.isfile(log):
+        shutil.copy2(log, os.path.join(outdir, "bench.jsonl"))
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        records.cmd_board(root, [])
+    with open(os.path.join(outdir, "board.txt"), "w", encoding="utf-8") as fh:
+        fh.write(buffer.getvalue())

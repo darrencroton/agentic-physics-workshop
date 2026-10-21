@@ -7,6 +7,9 @@ Schema (documented in gatekit/README.md):
   "title": "The TDD Ladder",
   "tool": "tddtool",                      # optional module under .gatekit/
   "other_agents": true,                   # optional bool: ship OTHER-AGENTS.md
+  "records": ["LOG.md"],                  # optional: files `gate reset` saves
+  "hidden_master_only": true,             # optional bool: seal hidden/ with
+                                          # the master slot only
   "models": {"default": "haiku", "allowed": ["haiku"]},
   "levels": [
     {"id": 0, "title": "...", "persona": "literal", "target_minutes": 5,
@@ -159,6 +162,12 @@ def validate(manifest):
                                     % (index, key))
     if not isinstance(manifest.get("other_agents", False), bool):
         raise ManifestError("'other_agents' must be true or false")
+    if not isinstance(manifest.get("hidden_master_only", False), bool):
+        raise ManifestError("'hidden_master_only' must be true or false")
+    records = manifest.get("records", [])
+    if (not isinstance(records, list)
+            or not all(isinstance(r, str) and r for r in records)):
+        raise ManifestError("'records' must be a list of file names")
     models = manifest.get("models", {})
     if "allowed" in models and not isinstance(models["allowed"], list):
         raise ManifestError("models.allowed must be a list")

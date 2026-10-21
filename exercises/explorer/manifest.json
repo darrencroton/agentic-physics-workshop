@@ -2,6 +2,8 @@
   "exercise": "explorer", "title": "Explorer: plan, build, test, review", "tool": "exploretool",
   "human_only": {},
   "other_agents": true,
+  "hidden_master_only": true,
+  "records": ["LOG.md", "TESTS.md", "REVIEW.md", "PLAN.md"],
   "models": {"default": "sonnet", "allowed": ["sonnet"]},
   "skills": ["plan-code", "style-code", "test-code", "review-code"],
   "levels": [
