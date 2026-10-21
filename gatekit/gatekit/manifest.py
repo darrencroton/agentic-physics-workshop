@@ -11,7 +11,7 @@ Schema (documented in gatekit/README.md):
   "levels": [
     {"id": 0, "title": "...", "persona": "literal", "target_minutes": 5,
      "files": {"BRIEF.md": "BRIEF.md"},   # pack path -> repo path on unlock
-     "gate": {"type": "verified" | "crypto" | "crypto-reflection" | "none",
+     "gate": {"type": "verified" | "crypto" | "none",
               "condition": "tool.function",            # verified
               "check": "checks/level0.py",             # crypto
               "questions": [{"id": "...", "prompt": "...",
@@ -23,10 +23,11 @@ Schema (documented in gatekit/README.md):
                              "validator": "tool.function",    # verified
                              "wrong_hint": "...",             # optional
                              "text_from": "tool.function"}],  # optional
-              "reflection": "..." | "reflections": ["...", "..."],
-                                      # prompts end in "?", ":" or ")"
+              "talk": "..." | ["...", "..."],   # each ends in "?"; shown,
+                                                # never asked
               "post_unlock": "tool.function",
-              "pre_reflection_note": "..."}}
+              "note": "..."},                  # printed before the talk
+     "start": "ask for step 1"}                # optional: "Next: ... then <start>."
   ]
 }
 """
@@ -37,7 +38,12 @@ import os
 from .answers import canon_keyword
 
 MANIFEST_FILE = "manifest.json"
-GATE_TYPES = ("verified", "crypto", "crypto-reflection", "none")
+GATE_TYPES = ("verified", "crypto", "none")
+REMOVED_KEYS = {
+    "reflection": "use 'talk' (a prompt ending in '?', shown but never asked)",
+    "reflections": "use 'talk' (a list of prompts ending in '?')",
+    "pre_reflection_note": "use 'note'",
+}
 PERSONAS = ("literal", "coach", "collaborator")
 QUESTION_KINDS = ("keyword", "choice", "numeric", "numeric-log", "free")
 
@@ -71,6 +77,13 @@ def _check_prompt(index, text):
             % (index, text))
 
 
+def _check_talk(index, text):
+    """Raise ManifestError unless a talk prompt is a string ending in '?'."""
+    if not isinstance(text, str) or not text.rstrip().endswith("?"):
+        raise ManifestError("level %d: talk prompt must be a string ending "
+                            "in '?': %r" % (index, text))
+
+
 def _check_contains(index, question, kind):
     """Raise ManifestError unless `contains` is a list of non-empty terms."""
     if "contains" not in question:
@@ -102,6 +115,9 @@ def validate(manifest):
         if level.get("persona", "coach") not in PERSONAS:
             raise ManifestError("level %d: unknown persona" % index)
         gate = level.get("gate", {"type": "none"})
+        if gate.get("type") == "crypto-reflection":
+            raise ManifestError("level %d: gate type 'crypto-reflection' is "
+                                "removed: use 'crypto'" % index)
         if gate.get("type", "none") not in GATE_TYPES:
             raise ManifestError("level %d: unknown gate type" % index)
         for question in gate.get("questions", []):
@@ -125,11 +141,22 @@ def validate(manifest):
                 raise ManifestError(
                     "level %d: question '%s': text_from must look like "
                     "'tool.function'" % (index, question["id"]))
-        reflections = list(gate.get("reflections", []))
-        if "reflection" in gate:
-            reflections.append(gate["reflection"])
-        for text in reflections:
-            _check_prompt(index, text)
+        for key, advice in REMOVED_KEYS.items():
+            if key in gate:
+                raise ManifestError("level %d: gate key '%s' is removed: %s"
+                                    % (index, key, advice))
+        talk = gate.get("talk", [])
+        if isinstance(talk, str):
+            talk = [talk]
+        if not isinstance(talk, list):
+            raise ManifestError("level %d: talk must be a string or a list of "
+                                "strings" % index)
+        for text in talk:
+            _check_talk(index, text)
+        for key, owner in (("note", gate), ("start", level)):
+            if key in owner and not isinstance(owner[key], str):
+                raise ManifestError("level %d: %s must be a string"
+                                    % (index, key))
     if not isinstance(manifest.get("other_agents", False), bool):
         raise ManifestError("'other_agents' must be true or false")
     models = manifest.get("models", {})

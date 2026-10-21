@@ -2,6 +2,8 @@
 
 Private. Contains gate answers and spoilers. Never copy into `dist/`, and keep it away from participants.
 
+Group leaders: a one-to-two page summary is in [`LEADER-QUICKSTART.md`](LEADER-QUICKSTART.md); the facilitator sends it with the bundle.
+
 This is the operating guide to the exercise. It has two readers:
 
 - **The facilitator** (the organiser) builds the participant repo, rehearses it, sends it to the group leaders and holds the master passphrase. Read all of it.
@@ -19,11 +21,10 @@ Once per machine, do steps 2 and 3 of "Run the workshop" in the repository [`REA
 cd <this repository>
 python3 tools/build.py speed-run --master-passphrase-file ~/.config/workshop/master-passphrase --keep-venv
 cd dist/speed-run
-./preflight --setup      # only if .venv is missing; creates .venv and installs the pins (network, once)
-./preflight              # must end with "Preflight passed"; also compiles a tiny C library with clang
+./preflight              # first run sets up .venv (needs the network, about a minute); must end with "Preflight passed"; also compiles a tiny C library with clang
 ```
 
-Then do the Claude Code checks in section 3, step 4, play the whole exercise through once on Haiku using section 5, and reset (section 7). Do at least one `./race submit` in the rehearsal: it re-times the calibration on every submission (about 20 s wall on an M1 Max), and you want to know that time on your machine.
+Then do the Claude Code checks in section 3, step 3, play the whole exercise through once on Haiku using section 5, and reset (section 7). Do at least one `./race submit` in the rehearsal: it re-times the calibration on every submission (about 20 s wall on an M1 Max), and you want to know that time on your machine.
 
 - `--keep-venv` preserves an existing `dist/speed-run/.venv` across rebuilds. Everything else in `dist/speed-run` is regenerated, including the git history, so rebuild only between runs.
 - The participant `.venv` is made with `/opt/homebrew/bin/python3.13` when that exists, otherwise `python3`. Pass `--setup-python /path/to/python3` to the build to bake in another Python 3.11+.
@@ -33,7 +34,7 @@ Then do the Claude Code checks in section 3, step 4, play the whole exercise thr
 
 Before the session, find out what the strongest available model does undirected. Reveal it at the show-and-tell: do the room's directed Haiku entries beat an undirected strong model? Either answer is a good discussion.
 
-1. Build a separate copy, so no group's repo is touched: `python3 tools/build.py speed-run --master-passphrase-file ~/.config/workshop/master-passphrase --out ~/opus-control`, then `cd ~/opus-control && ./preflight --setup && ./preflight`.
+1. Build a separate copy, so no group's repo is touched: `python3 tools/build.py speed-run --master-passphrase-file ~/.config/workshop/master-passphrase --out <new folder>` (any empty folder you choose), then `cd` into it and run `./preflight`.
 2. In a terminal, `./gate skip --master` three times to reach Level 3 (the earlier levels freeze `paircount/`), then `./gate allow-model opus`.
 3. `claude`, `/model` to Opus, leave plan mode, and give the bare instruction "make `count_pairs` as fast as possible". Add nothing.
 4. Commit, then `./race submit` in the terminal. Record the score and whether it passed exact.
@@ -48,7 +49,7 @@ Each leader gets a copy of the built participant repo as a git bundle: one file 
    ```zsh
    cd dist/speed-run
    git status --short && git log --oneline && git branch   # expect no changes, one commit "Workshop start", only main
-   git bundle create ~/Desktop/speed-run.bundle --all       # about 10 MB (the mock catalogues)
+   git bundle create speed-run.bundle --all       # written here; copy it out before a reset or rebuild, which delete it (about 10 MB: the mock catalogues)
    ```
 
 3. Send each leader the bundle and this walkthrough file. Ask them to work through section 3 before the leaders' briefing, so problems surface early. A private git remote works too: push `main` and the `start` tag, and send the clone URL instead.
@@ -67,20 +68,19 @@ Do not install anything else. If preflight asks for something, check with the fa
 
 This exercise needs Claude Code: its lessons depend on Claude Code hooks (the personas, the model lock and the guard), so groups on another agent should do Explorer instead.
 
-1. Clone the bundle the facilitator sent (adjust the path to wherever you saved it):
+1. Clone the bundle the facilitator sent (run this in the folder where you saved it, or give its full path):
 
    ```zsh
-   git clone ~/Downloads/speed-run.bundle speed-run && cd speed-run
+   git clone speed-run.bundle speed-run && cd speed-run
    ```
 
-2. `./preflight --setup` creates `.venv` and installs the pinned numpy, scipy, matplotlib and pytest (a minute or so; the only step that needs the network apart from Claude Code). If it says your Python is too old, it prints the command to run with a newer one.
-3. `./preflight` must end with "Preflight passed". The first run also sets the workshop up at level 0.
-4. Run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Then, in Claude Code (about a minute):
+2. `./preflight` creates `.venv` and installs the pinned numpy, scipy, matplotlib and pytest, then checks the machine. The first run needs the network and takes about a minute (the only step that needs the network apart from Claude Code). If it says your Python is too old, it prints the command to run with a newer one. It must end with "Preflight passed"; the first run also sets the workshop up at level 0.
+3. Run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Then, in Claude Code (about a minute):
    1. `/hooks`: four events must be listed (SessionStart, UserPromptSubmit, PreToolUse, PreModelSwitch). If the list is empty, the trust dialog was not accepted: `/exit` and run `claude` again.
    2. `/status`: the model line must say Haiku.
    3. `/model` and pick Sonnet (or Default): it must be refused with "Today's exercise uses haiku. Ask a facilitator for a power-up." Picking Haiku again is allowed.
    4. `/exit`.
-5. Rehearse: in a normal terminal, `make bench N=500 IMPL=reference` should print the counts check, the time and a "recorded as ... (level 0)" line. Then play Level 0 yourself following section 5, and reset (section 7) so the group's log and board start empty.
+4. Rehearse: in a normal terminal, `make bench N=500 IMPL=reference` should print the counts check, the time and a "recorded as ... (level 0)" line. Then play Level 0 yourself following section 5, and reset (section 7) so the group's log and board start empty.
 
 ## 4. Running the session
 
@@ -139,8 +139,8 @@ Need the master passphrase, which the facilitator holds, so call them over: `./g
 ### Level 0: Measure before you touch anything (7 min, coach)
 
 1. Driver asks Claude for `make bench N=500 IMPL=reference`, then 1000, then 2000, then `make profile`, then `make fit`. A group that types `make bench N=1000` without `IMPL=reference` runs the default `IMPL=fast`; those runs do not count towards the gate, which asks for reference records.
-2. Expected (M1 Max): about 0.22 s at N = 2000, exponent about 2.0 (`make fit` prints it), predicted time at 200,000 about 37 minutes; the briefs say "about an hour". Profile: `math.sqrt` called 499,500 times at N = 1000.
-3. Gate terminal: `./gate unlock`. Answer **499500** (N(N-1)/2). Any number in the typed answer counts (the last six are tried), and "500k" and "N(N-1)/2 = 499,500" both pass; the log grid accepts about 499,400 to 500,090, so N(N+1)/2 = 500,500, N(N-1) and N² are refused. Reflection: the predicted minutes at 200,000 and how it was reached (the fit, or (200000/2000)² × t(2000)).
+2. Expected (M1 Max): about 0.22 s at N = 2000, exponent about 2.0 (`make fit` prints it), predicted time at 200,000 about 37 minutes (laptops differ). Profile: `math.sqrt` called 499,500 times at N = 1000.
+3. Gate terminal: `./gate unlock`. Answer **499500** (N(N-1)/2). Any number in the typed answer counts (the last six are tried), and "500k" and "N(N-1)/2 = 499,500" both pass; the log grid accepts about 499,400 to 500,090, so N(N+1)/2 = 500,500, N(N-1) and N² are refused. After the PASS the gate prints a talk prompt (nothing to type): the predicted runtime at 200,000 and how it was reached (the fit, or (200000/2000)² × t(2000)). The unlock screen shows `Level 1 unlocked`, any new files, `Next:` and `Brief: BRIEF.md (or ./gate brief)`.
 
 Observe: does Haiku offer to optimise before measuring? How many of the group can say why the exponent is 2? Does anyone read the profile superficially?
 
@@ -160,7 +160,7 @@ Try deliberately:
 
 Try deliberately: tell the Driver to say "just run N=20000, no estimate". Claude's persona will still estimate. If someone runs it anyway, watch the harness kill it and print "killed: resident memory passed 2.5 GB; estimate before you run." Also: ask Claude to use `np.histogram` over all distances. It closes the last edge, so the pair planted exactly at r = 10 lands in the last bin and `exact` fails with a diff table.
 
-Observe: the 20k estimate before the run. Is it in the log? Does the reflection quote the harness number?
+Observe: the 20k estimate before the run. Is it in the log? Does the talk-it-over answer quote the harness number?
 
 Ask: "Sceptic, what's the memory estimate? Check the arithmetic."
 
@@ -181,7 +181,7 @@ Ask: "Show me the per-bin differences. *Why* do they differ? Which division are 
 
 1. Humans commit, then `./race submit` in the gate terminal. It runs the entry on a hidden 200k catalogue, then the calibration (a numpy cell list, re-timed every time). Score is calibration time divided by yours, so a numpy cell list scores about 1.0.
 2. The C route (cell list in C, `-O2 -shared -ffp-contract=off`) is the expected winner: several times the calibration; calibrate on your laptop. A C entry built with default flags fails `exact` on the hidden catalogue, scores 0, and is on the board. That is the FMA trap, and a good story.
-3. Gate: at least one submission that passed at this level. No question; reflection only: biggest wrong turn and the evidence.
+3. Gate: at least one submission that passed at this level. No question; talk prompt only: biggest wrong turn and the evidence. The final screen says `Exercise complete. Well done.`
 4. `./race submit` re-times the calibration entry every time (about 20 s wall), so scores stay fair on a busy machine. A failed hidden submission shows only the failing-bin count and the largest absolute difference; the per-bin table is on `make check N=200000`.
 5. Prizes: Fastest Exact, Fastest Toleranced, Best "caught it" story. Read `./race board`.
 
@@ -223,6 +223,6 @@ The facilitator can instead rebuild (`tools/build.py … --keep-venv`), which al
 - `.workshop/state.json`: per-level times, hints, failed attempts, skips, model power-ups, submissions.
 - `.workshop/race/bench.jsonl` (`./race log`): every run, including the killed ones. These are the wrong turns.
 - `./race board` for the final scores, and the divisions entered.
-- `LOG.md`: the Scribe's notes and the reflections.
+- `LOG.md`: the Scribe's notes and the group's notes under each "Talk it over" heading.
 
 Copy all four out before `./gate reset`, and leaders send their copies to the facilitator. For the show-and-tell, ask each group: which division, and why; the biggest wrong turn and the evidence that showed it; and then reveal the Opus control.

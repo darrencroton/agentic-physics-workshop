@@ -7,7 +7,8 @@
   "frozen": [
     "explorer/**",
     "tests/**",
-    "PLAYBOOK.md"
+    "PLAYBOOK.md",
+    "INTERFACE.md"
   ],
-  "message": "Level 0 is planning only: the agent may edit PLAN.md and LOG.md (scratch files go in out/); explorer/ opens at Level 1 and tests/ at Level 2."
+  "message": "Level 0 is planning only: the agent may edit PLAN.md and LOG.md (scratch files go in out/); explorer/ opens at Level 1 and tests/ at Level 2. INTERFACE.md is the fixed tool interface and stays read-only."
 }

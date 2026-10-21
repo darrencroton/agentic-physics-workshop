@@ -2,7 +2,8 @@
 
 The level checks (checks/levelN.py) call `run_check(root, level, out, err)`,
 which calls `evaluate(root, level)` and prints `success_line(level)` and
-nothing else on success; make_answers.py hashes the same text. On failure
+nothing else to stdout on success; make_answers.py hashes the same text.
+Relaxed checks add friendly "Note: " lines to stderr on success. On failure
 the check prints one sentence naming the first problem and its fix.
 
 Stdlib only and importable on Python 3.9. The checks themselves run under the
@@ -80,6 +81,12 @@ class CheckFailed(Exception):
 def success_line(level):
     """The exact stdout of a passing level check."""
     return json.dumps({"level": level, "ok": True}, sort_keys=True) + "\n"
+
+
+def _note(notes, text):
+    """Add a friendly 'Note: ' line; the gate still passes."""
+    if notes is not None:
+        notes.append("Note: " + text)
 
 
 def _plural(count, word, plural=None):
@@ -184,7 +191,10 @@ def git_evidence(root, level, heads=None):
 
 
 def record_head(root, state, manifest, new_level):
-    """post_unlock: remember HEAD so the next gate counts commits from here."""
+    """post_unlock: remember HEAD so the next gate counts commits from here.
+
+    Silent on success; the message only reports a failure.
+    """
     try:
         head = _git(root, "rev-parse", "HEAD").strip()
     except CheckFailed as exc:
@@ -195,8 +205,7 @@ def record_head(root, state, manifest, new_level):
     if not isinstance(heads, dict):
         heads = records["heads"] = {}
     heads[str(new_level)] = head
-    return ("Recorded commit %s: the next gate counts your commits from here."
-            % head[:7])
+    return None
 
 
 # --------------------------------------------------------------- Markdown
@@ -312,7 +321,7 @@ def plan_dataset(root):
     return values[0]
 
 
-def _check_plan(root):
+def _check_plan(root, notes=None):
     text = _read(root, "PLAN.md")
     found = sections(text)
     template = [label + ":" for label, _ in DECISIONS]
@@ -333,18 +342,16 @@ def _check_plan(root):
     for label, keys in DECISIONS:
         answer = _decision_answer(decisions, label, keys)
         if answer is None:
-            raise CheckFailed("PLAN.md Decisions has no \"%s:\" line: keep all four "
-                              "decision lines and write the group's answer after each "
-                              "colon" % label)
-        if not answer:
-            raise CheckFailed("PLAN.md decision \"%s\" is blank: write what the group "
-                              "decided after the colon" % label)
+            _note(notes, "PLAN.md Decisions has no \"%s:\" line; the four decisions "
+                  "are what the agent builds from, so write each one next time." % label)
+        elif not answer:
+            _note(notes, "PLAN.md decision \"%s\" is blank; writing down what the "
+                  "group decided stops the agent guessing." % label)
     criteria = _bullets(find_section(found, "acceptance criteria"))
     if len(criteria) < 3:
-        raise CheckFailed("PLAN.md lists %s; it needs at least 3, each something you "
-                          "can check by eye or by test"
-                          % _plural(len(criteria), "acceptance criterion",
-                                    "acceptance criteria"))
+        _note(notes, "PLAN.md lists %s; aim for 3 or more next time, each checkable by eye "
+              "or by test: they tell you when the tool is done."
+              % _plural(len(criteria), "acceptance criterion", "acceptance criteria"))
     steps = _steps(find_section(found, "steps"))
     if not steps and _meaningful(find_section(found, "steps"), template):
         raise CheckFailed("PLAN.md's Steps section has no list: write the two steps as "
@@ -367,25 +374,21 @@ def plan_complete(root):
     return True, "PLAN.md is complete"
 
 
-def _check_tests_md(root):
+def _check_tests_md(root, notes=None):
     found = sections(_read(root, "TESTS.md", arrived=2))
     ours = find_section(found, "our list")
+    items = [line for line in _bullets(ours or []) if _plain(line)]
     if ours is None:
-        raise CheckFailed("TESTS.md has no \"## Our list\" section: keep the template's "
-                          "headings")
-    items = [line for line in _bullets(ours) if _plain(line)]
-    if len(items) < 3:
-        raise CheckFailed("TESTS.md has %s under \"Our list\": write at least 3 things "
-                          "that must not break, before asking the agent"
-                          % _plural(len(items), "item"))
+        _note(notes, "TESTS.md has no \"Our list\" section; writing what must not "
+              "break before asking shows you what a test plan should cover.")
+    elif len(items) < 3:
+        _note(notes, "TESTS.md has %s under \"Our list\"; next time write 3 things that "
+              "must not break before asking: it shows what the agent's plan misses."
+              % _plural(len(items), "item"))
     plan = find_section(found, "the agent's plan")
-    if plan is None:
-        raise CheckFailed("TESTS.md has no \"## The agent's plan\" section: keep the "
-                          "template's headings")
-    if not _meaningful(plan, ["(the agent writes it here)"]):
-        raise CheckFailed("TESTS.md has nothing under \"The agent's plan\" yet: ask the agent "
-                          "for a plan of five to eight tests (what each checks, the "
-                          "coverage, what it won't cover) and to write it there")
+    if plan is None or not _meaningful(plan, ["(the agent writes it here)"]):
+        _note(notes, "TESTS.md has nothing under \"The agent's plan\"; asking the agent "
+              "for a plan of five to eight tests first lets you compare it with your list.")
 
 
 def _cells(line):
@@ -405,21 +408,18 @@ def _verdict(cell):
     return next((v for v in VERDICTS if raw.startswith(v)), raw[:20])
 
 
-def _check_review_md(root):
+def _check_review_md(root, notes=None):
     found = sections(_read(root, "REVIEW.md", arrived=3))
     guesses = find_section(found, "our guesses")
+    items = [line for line in _bullets(guesses or []) if _plain(line)]
     if guesses is None:
-        raise CheckFailed("REVIEW.md has no \"## Our guesses\" section: keep the "
-                          "template's headings")
-    items = [line for line in _bullets(guesses) if _plain(line)]
-    if len(items) < 2:
-        raise CheckFailed("REVIEW.md has %s under \"Our guesses\": write at least 2 "
-                          "things you think a reviewer will find, before asking"
-                          % _plural(len(items), "guess", "guesses"))
-    findings = find_section(found, "findings")
-    if findings is None:
-        raise CheckFailed("REVIEW.md has no \"## Findings\" section: keep the template's "
-                          "headings")
+        _note(notes, "REVIEW.md has no \"Our guesses\" section; guessing first tells "
+              "you how far to trust a reviewer.")
+    elif len(items) < 2:
+        _note(notes, "REVIEW.md has %s under \"Our guesses\"; guessing at least 2 "
+              "things first tells you how far to trust a reviewer."
+              % _plural(len(items), "guess", "guesses"))
+    findings = find_section(found, "findings") or []
     rows = [c for c in (_cells(line) for line in findings) if c is not None]
     decision_at, reason_at = 3, 4
     if rows and not all(SEPARATOR_RE.match(c) for c in rows[0] if c):
@@ -446,10 +446,10 @@ def _check_review_md(root):
             else:
                 problem = "finding %d has no decision" % number
     if triaged < 3:
-        raise CheckFailed("REVIEW.md has %s; this level needs at least 3, each marked "
-                          "FIX, ACCEPT or REJECT with a one-line reason%s"
-                          % (_plural(triaged, "triaged finding"),
-                             " (%s)" % problem if problem else ""))
+        _note(notes, "REVIEW.md has %s; marking at least 3 as FIX, ACCEPT or REJECT "
+              "with a one-line reason turns a review into decisions%s."
+              % (_plural(triaged, "triaged finding"),
+                 " (%s)" % problem if problem else ""))
 
 
 # ------------------------------------------------------------------ tests
@@ -616,7 +616,7 @@ def _check_data(data, what, header, numeric, max_points):
         fail("is not a JSON object")
     for key in ("source", "n_read", "n_written", "columns", "rows", "labels"):
         if key not in data:
-            fail("has no \"%s\" key (see the interface in README.md)" % key)
+            fail("has no \"%s\" key (see the interface in INTERFACE.md)" % key)
     if not isinstance(data["source"], str):
         fail("\"source\" is not a string")
     for key in ("n_read", "n_written"):
@@ -844,44 +844,51 @@ def _require_tool(root, dataset):
 # ----------------------------------------------------------- level checks
 
 def evaluate(root, level):
-    """(ok, sentence) for the gate that leaves `level`."""
+    """(ok, sentence, notes) for the gate that leaves `level`.
+
+    `notes` are the friendly 'Note: ' lines for relaxed checks; they only matter
+    when the gate passes.
+    """
+    notes = []
     try:
         heads = _heads(root)
         if level == 0:
-            _check_plan(root)
-            summary = "PLAN.md is complete and committed"
+            _check_plan(root, notes)
+            summary = "PLAN.md is filled in and committed"
         elif level == 1:
             dataset = plan_dataset(root)
             _require_tool(root, dataset)
             summary = "the tool runs on %s" % dataset
         elif level == 2:
-            _check_tests_md(root)
+            _check_tests_md(root, notes)
             run_pytest(root)
             _check_imports(root)
-            summary = "TESTS.md is filled in and the tests pass"
+            summary = "the tests pass and your work is committed"
         elif level == 3:
-            _check_review_md(root)
+            _check_review_md(root, notes)
             run_pytest(root)
             dataset = plan_dataset(root)
             _require_tool(root, dataset)
-            summary = "REVIEW.md is triaged, the tests pass and the tool runs on %s" % dataset
+            summary = "the tests pass and the tool runs on %s" % dataset
         else:
-            return False, "there is no check for level %d" % level
+            return False, "there is no check for level %d" % level, []
         git_evidence(root, level, heads)
     except CheckFailed as exc:
-        return False, str(exc)
-    return True, summary
+        return False, str(exc), []
+    return True, summary, notes
 
 
 def run_check(root, level, out, err):
     """Entry point for checks/levelN.py; returns the exit status."""
     try:
-        ok, sentence = evaluate(root, level)
+        ok, sentence, notes = evaluate(root, level)
     except Exception as exc:
         err.write("the check could not run: %s\n" % exc)
         return 1
     if not ok:
         err.write(sentence.rstrip(".") + ".\n")
         return 1
+    for note in notes:
+        err.write(note + "\n")
     out.write(success_line(level))
     return 0

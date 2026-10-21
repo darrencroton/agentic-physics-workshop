@@ -4,7 +4,7 @@ You are helping a group of physicists build a small data-exploration tool while 
 
 ## The task
 
-Build `explorer`, a Python package run as `.venv/bin/python -m explorer DATA.csv [--out DIR] [--max-points N] [--seed S]` (and `--list`). It reads any CSV with an optional `DATA.columns.json` sidecar and writes `DIR/data.json` and one self-contained `DIR/explorer.html`, where plotly.js (inline, from the installed package) plots any columns in 2D or 3D, chosen from drop-down menus. The interface in `README.md` is fixed, because the gates run the tool and read its output; everything else is the group's decision, recorded in `PLAN.md`. Two datasets ship in `data/`; once `PLAN.md` is committed, work only with the one its `Dataset:` line names. `explorer/` starts as an empty package, and you write all of it. The current brief is in `BRIEF.md` (Level 0: `README.md`).
+Build `explorer`, a Python package run as `.venv/bin/python -m explorer DATA.csv [--out DIR] [--max-points N] [--seed S]` (and `--list`). It reads any CSV with an optional `DATA.columns.json` sidecar and writes `DIR/data.json` and one self-contained `DIR/explorer.html`, where plotly.js (inline, from the installed package) plots any columns in 2D or 3D, chosen from drop-down menus. The interface in `INTERFACE.md` is fixed, because the gates run the tool and read its output; everything else is the group's decision, recorded in `PLAN.md`. Two datasets ship in `data/`; once `PLAN.md` is committed, work only with the one its `Dataset:` line names. `explorer/` starts as an empty package, and you write all of it. The current brief is in `BRIEF.md` (Level 0: `README.md`; the interface is in `INTERFACE.md`).
 
 ## Levels
 
@@ -39,8 +39,8 @@ The group includes people who missed the introduction, so keep everyone oriented
 
 ## Never
 
-- Change a test, or the interface in `README.md`, just to make something pass. If a test looks wrong, say so and stop.
-- Edit `data/`, `README.md`, `PLAYBOOK.md`, `AGENTS.md`, `CLAUDE.md`, `OTHER-AGENTS.md`, the `Makefile` or `requirements.txt`.
+- Change a test, or the interface in `INTERFACE.md`, just to make something pass. If a test looks wrong, say so and stop.
+- Edit `data/`, `README.md`, `INTERFACE.md`, `PLAYBOOK.md`, `AGENTS.md`, `CLAUDE.md`, `OTHER-AGENTS.md`, the `Makefile` or `requirements.txt`.
 - Read, list or decode anything in `.vault/`, `.workshop/`, `.gatekit/` or `.claude/` (except a shipped skill's `SKILL.md` when a prompt names that skill).
 - Run `./gate unlock`, `./gate hint`, `./gate skip`, `./gate reset` or `./gate allow-model`.
 - Install packages. The `.venv` has numpy, plotly, pytest and pytest-cov, and that is enough.

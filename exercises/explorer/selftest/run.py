@@ -198,8 +198,21 @@ def brief_ok(repo):
     check("commit, then `./gate unlock`" in text, "BRIEF.md ends with 'commit, then ./gate unlock'")
 
 
-def logged(repo, answer):
-    check("A: %s" % answer in repo.text("LOG.md"), "reflection logged to LOG.md")
+def passes_with_note(repo, expected, label):
+    """gate check passes and prints a 'Note: ' line containing `expected`."""
+    code, out, _ = repo.gate_check()
+    check(code == 0 and "PASS" in out and "Note: " in out and expected in flat(out),
+          "passes with a note: %s" % label, out)
+
+
+def talked(repo, out, prompt, next_text):
+    """The unlock screen shows the Next line and talk prompt; nothing is logged."""
+    text = flat(out)
+    check("Talk it over (30 seconds, nothing to type):" in text and prompt in text,
+          "talk prompt shown: %s" % prompt, text[-300:])
+    check("Next: swap the Driver, then %s." % next_text in text
+          and "Brief: BRIEF.md (or ./gate brief)" in text, "Next and Brief lines shown", text[-400:])
+    check("Reflection" not in repo.text("LOG.md"), "nothing reflective logged to LOG.md")
 
 
 def plan_variant(text, which):
@@ -265,9 +278,7 @@ def level0(repo, plan_name):
     refused(repo, "PLAN.md is still the template", "template PLAN.md")
     sample = read(os.path.join(SOLUTION, plan_name))
     for which, expected in (
-            ("decision", 'decision "Missing values in a selected column" is blank'),
             ("dataset", "it must be exactly data/pulsars.csv or data/dimuons.csv"),
-            ("criteria", "PLAN.md lists 2 acceptance criteria; it needs at least 3"),
             ("steps", "PLAN.md lists 1 step; it needs two, each ending in something you can "
                       "run and look at"),
             ("manysteps", "PLAN.md lists 3 steps; merge them into two, each ending in "
@@ -282,20 +293,31 @@ def level0(repo, plan_name):
     repo.write("PLAN.md", sample)
     refused(repo, "no commit since start", "complete PLAN.md not committed")
     repo.commit("Plan", "PLAN.md")
+    thin = plan_variant(plan_variant(sample, "criteria"), "decision")
+    repo.write("PLAN.md", thin)
+    repo.commit("Plan, thinner", "PLAN.md")
+    passes_with_note(repo, "PLAN.md lists 2 acceptance criteria", "thin PLAN.md")
+    code, out, _ = repo.gate_check()
+    check('decision "Missing values in a selected column" is blank' in flat(out),
+          "blank decision is a note too", out)
+    repo.write("PLAN.md", sample)
+    repo.commit("Plan, restored", "PLAN.md")
     repo.append("PLAN.md", "\nA stray line.\n")
     refused(repo, "PLAN.md has uncommitted changes: ask the agent to commit, then unlock",
             "PLAN.md edited after the commit")
     repo.revert("PLAN.md")
     passes(repo, "level 0")
     head = repo.git("rev-parse", "HEAD")
-    answer = "we made the log-axis rule explicit"
-    code, out = repo.gate("unlock", answers=[("and why:", answer)])
-    check(code == 0 and "Level 1 unlocked" in out and repo.level() == 1,
-          "level 0 unlock opens level 1", flat(out)[-300:])
+    code, out = repo.gate("unlock")
+    check(code == 0 and "Level 1 unlocked: Build the prototype (about 18 minutes)" in out
+          and repo.level() == 1, "level 0 unlock opens level 1", flat(out)[-300:])
+    print("--- level 0 unlock screen ---\n%s\n---" % out.strip())
+    check("Recorded commit" not in out, "record_head is silent on success")
     check(repo.heads().get("1") == head, "records.heads['1'] is the PLAN.md commit")
     check(os.path.isfile(repo.path("BRIEF.md")), "BRIEF.md present at level 1")
     brief_ok(repo)
-    logged(repo, answer)
+    talked(repo, out, "One thing in the agent's plan you changed, and why?",
+           "leave plan mode (Shift+Tab) and ask for step 1 of PLAN.md")
 
 
 def install_solution(repo, nan=False):
@@ -384,26 +406,22 @@ def level1_pulsars(repo):
           "wrong answer 'the moon' is rejected with the pulsar hint", flat(out)[-300:])
     check(repo.state()["levels"]["1"]["failed_attempts"] == 1, "failed attempt counted")
     head = repo.git("rev-parse", "HEAD")
-    answer = "a slider for the colour range"
-    code, out = repo.gate("unlock", answers=[(prompt, "It's the Sun"), ("would add:", answer)])
+    code, out = repo.gate("unlock", answers=[(prompt, "It's the Sun")])
     check(code == 0 and "Level 2 unlocked" in out and repo.level() == 2,
           "'It's the Sun' opens level 2", flat(out)[-300:])
     check("TESTS.md" in out and os.path.isfile(repo.path("TESTS.md")), "TESTS.md arrived")
     check(repo.heads().get("2") == head, "records.heads['2'] recorded")
     brief_ok(repo)
-    logged(repo, answer)
+    talked(repo, out, "What did you see in the browser that the check couldn't?",
+           "write three things that must not break in TESTS.md, before asking the agent")
 
 
 def level2(repo):
     section("Level 2: test")
     guard_probe(repo, denied=("PLAN.md", "PLAYBOOK.md"),
                 allowed=("tests/test_x.py", "TESTS.md", "explorer/data.py"))
-    refused(repo, 'TESTS.md has 0 items under "Our list"', "template TESTS.md")
+    refused(repo, "pytest found no tests", "template TESTS.md and no tests")
     template = repo.text("TESTS.md")
-    repo.write("TESTS.md", template.replace("-\n-\n-\n", "- a\n- b\n- c\n"))
-    refused(repo, "TESTS.md has nothing under \"The agent's plan\" yet",
-            "the agent's plan not written")
-    repo.install(os.path.join(SOLUTION, "TESTS.md"), "TESTS.md")
     repo.install(os.path.join(SOLUTION, "tests_four", "test_explorer.py"),
                  os.path.join("tests", "test_explorer.py"))
     refused(repo, "pytest collected 4 tests; this level needs at least 5", "four tests")
@@ -421,7 +439,14 @@ def level2(repo):
     repo.write("tests/test_explorer.py", full)
     refused(repo, "no commits since the last gate; this level needs at least 1: ask the agent to "
             "commit the tests and TESTS.md", "tests not committed")
+    repo.write("TESTS.md", template.replace("-\n-\n-\n", "- a\n- b\n"))
     repo.commit("Tests", "tests", "TESTS.md")
+    passes_with_note(repo, 'TESTS.md has 2 items under "Our list"', "thin TESTS.md")
+    code, out, _ = repo.gate_check()
+    check("nothing under \"The agent's plan\"" in flat(out),
+          "an empty agent's plan is a note too", out)
+    repo.install(os.path.join(SOLUTION, "TESTS.md"), "TESTS.md")
+    repo.commit("TESTS.md filled in", "TESTS.md")
     code, out, seconds = repo.make("test")
     match = re.search(r"(\d+) passed", out)
     check(code == 0 and match and int(match.group(1)) == 15,
@@ -438,27 +463,29 @@ def level2(repo):
     refused(repo, "tests/ has uncommitted changes", "uncommitted edit to tests/")
     repo.revert("tests/test_explorer.py")
     passes(repo, "level 2")
-    answer = "Claude tested the seed; we had not thought of it"
-    code, out = repo.gate("unlock", answers=[("or the reverse?", answer)])
+    check("Note: " not in repo.gate_check()[1], "a filled-in TESTS.md draws no note")
+    code, out = repo.gate("unlock")
     check(code == 0 and "Level 3 unlocked" in out and os.path.isfile(repo.path("REVIEW.md")),
           "level 2 unlock opens level 3 with REVIEW.md", flat(out)[-300:])
     check("3" in repo.heads(), "records.heads['3'] recorded")
     brief_ok(repo)
-    logged(repo, answer)
+    talked(repo, out, "What did the agent's test plan cover that your list didn't, or the reverse?",
+           "write two guesses in REVIEW.md, before asking for the review")
 
 
 def level3(repo):
     section("Level 3: review")
     guard_probe(repo, denied=("PLAN.md", "TESTS.md", "PLAYBOOK.md"),
                 allowed=("REVIEW.md", "tests/test_x.py", "explorer/page.py"))
-    refused(repo, 'REVIEW.md has 0 guesses under "Our guesses"', "template REVIEW.md")
     sample = read(os.path.join(SOLUTION, "REVIEW.md"))
-    repo.write("REVIEW.md", sample.replace("| ACCEPT |", "| LATER |"))
-    refused(repo, "REVIEW.md has 2 triaged findings; this level needs at least 3",
-            "two findings triaged")
     repo.write("REVIEW.md", sample)
     refused(repo, "no commits since the last gate; this level needs at least 1: ask the agent to "
             "commit each fix and REVIEW.md", "REVIEW.md not committed")
+    thin = sample.replace("| ACCEPT |", "| LATER |")
+    repo.write("REVIEW.md", thin)
+    repo.commit("Review, thinner", "REVIEW.md")
+    passes_with_note(repo, "REVIEW.md has 2 triaged findings", "two findings triaged")
+    repo.write("REVIEW.md", sample)
     repo.commit("Review triaged", "REVIEW.md")
     for sidecar, dataset in (("data/pulsars.columns.json", "data/pulsars.csv"),
                              ("data/dimuons.columns.json", "data/dimuons.csv")):
@@ -475,12 +502,13 @@ def level3(repo):
             repo.revert(sidecar)
     seconds = passes(repo, "level 3 (pytest and the group's dataset)")
     timings.append(("gate check, level 3", "%.1f s" % seconds))
-    answer = "the duplicate header bug"
-    code, out = repo.gate("unlock", answers=[("tests didn't?", answer)])
-    check(code == 0 and "Final level complete" in out and repo.state()["complete"],
+    code, out = repo.gate("unlock")
+    check(code == 0 and "Exercise complete. Well done." in out and repo.state()["complete"],
           "level 3 unlock completes the exercise", flat(out)[-300:])
+    print("--- final unlock screen ---\n%s\n---" % out.strip())
     check("PLAYBOOK.md is yours to take home" in out, "completion note points at PLAYBOOK.md")
-    logged(repo, answer)
+    check("What did the review find that the tests didn't?" in flat(out)
+          and "Next:" not in out, "final level: talk prompt, no Next line")
 
 
 def reset(repo):
@@ -500,7 +528,7 @@ def dimuons(repo):
     repo.install(os.path.join(SOLUTION, "PLAN.dimuons.md"), "PLAN.md")
     repo.commit("Plan (dimuons)", "PLAN.md")
     passes(repo, "level 0 (dimuons)")
-    code, out = repo.gate("unlock", answers=[("and why:", "chose log axes for M and pt1")])
+    code, out = repo.gate("unlock")
     check(code == 0 and repo.level() == 1, "level 0 unlock (dimuons)", flat(out)[-200:])
     install_solution(repo)
     repo.commit("Step 1", "explorer")
@@ -519,7 +547,7 @@ def dimuons(repo):
     code, out = repo.gate("unlock", answers=[(prompt, "the moon")])
     check(code == 1 and "Not quite" in out and hint in flat(out) and repo.level() == 1,
           "dimuons: a wrong answer is rejected with the dimuon hint", flat(out)[-300:])
-    code, out = repo.gate("unlock", answers=[(prompt, "The J/ψ(1S) meson"), ("would add:", "a mass cut")])
+    code, out = repo.gate("unlock", answers=[(prompt, "The J/ψ(1S) meson")])
     check(code == 0 and "Level 2 unlocked" in out and repo.level() == 2,
           "'The J/ψ(1S) meson' opens level 2 (contains)", flat(out)[-300:])
 
@@ -564,7 +592,7 @@ def main():
         if not args.skip_build:
             build(args)
         if not os.path.exists(repo.venv):
-            raise Fail("no .venv in %s; run ./preflight --setup there first" % repo.root)
+            raise Fail("no .venv in %s; run ./preflight there first (it sets up .venv)" % repo.root)
         preflight(repo)
         level0(repo, "PLAN.pulsars.md")
         level1_pulsars(repo)

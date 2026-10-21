@@ -1,29 +1,25 @@
 # Level 5 (stretch): Test the tests
 
-**Target time:** 5 minutes. **Persona in force:** `collaborator`.
+**Target time:** 5 minutes. **Persona:** `collaborator`.
 
 ## Where we are
 
-Your suite now scores well against our 16 hidden mutants. But those mutants are ours, not yours. How do you know your tests would catch a bug nobody has thought of yet? That is the question for this level.
+Your suite beats our 16 hidden mutants, but would it catch a bug nobody has thought of? **Mutation testing** plants small deliberate bugs (**mutants**) in your own code. A mutant your tests catch is **killed**; one they miss **survives**, meaning a gap in your tests or an **equivalent mutant** (no behaviour change, so no test could notice). The agent is a normal collaborator again, still evidence-first: it shows every command and output.
 
-**Mutation testing** means planting small deliberate bugs (**mutants**) in your own implementation and checking that your suite fails on each. A mutant your tests catch is **killed**. One they miss **survives**, which points to a gap in your tests, or to an **equivalent mutant**: a change that does not alter behaviour, so no test could notice it.
+## Do this
 
-The agent is now a normal collaborator, still evidence-first. It must show every command and its output, and you should not accept a claim without them.
-
-## What to do
-
-1. Ask the agent to use a subagent to write about ten small mutants of **your** `binning.py`, for example flipping a comparison, changing an exponent or dropping a term. Each one should be a separate copy under `mutants/` (the agent may write there at this level), not an edit to your real file.
-2. Run your suite against each mutant. Ask for the command and the output.
-3. For each survivor, decide: is it a real gap in your tests, or an equivalent mutant?
+1. Ask the agent to use a subagent to write about ten small mutants of **your** `binning.py` (flip a comparison, change an exponent, drop a term), each a separate copy under `mutants/`, not an edit to your real file.
+2. Run your suite against each mutant, with the command and output shown.
+3. For each survivor, decide: real gap, or equivalent mutant?
 4. Ask which of your tests are redundant.
-5. Scribe: add a `## Mutation report` section to `LOG.md` with the mutants, which survived, and what you decided.
+5. Scribe: add a `## Mutation report` section to the end of `LOG.md`: each mutant, killed or survived, and whether a survivor is a real gap or an equivalent mutant.
 
-## What to watch for
+## Watch for
 
-- The agent reporting "all killed" without showing the runs.
-- Mutants that are so silly any test would catch them.
-- Any change to your real `src/` left behind by the mutation run.
+- "All killed" without the runs shown.
+- Mutants so silly any test catches them.
+- Changes left behind in your real `src/`.
 
-## Opening the gate
+## The gate
 
-In the gate terminal, run `./gate unlock`. It checks `LOG.md` has a `## Mutation report` section, then asks a free-text question: one test you would delete, and why.
+`./gate unlock` needs a `## Mutation report` section in `LOG.md`. A talk prompt follows.

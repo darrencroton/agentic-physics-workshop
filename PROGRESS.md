@@ -50,6 +50,19 @@
   - **Review:** external panel (Codex gpt-6.1-sol, Claude Fable 5.1). Round 1: Codex REVISE (two parsing regressions, both fixed), Claude ACCEPT (four clean-ups applied). Round 2: ACCEPT from both.
   - **Receipts:** gatekit 75 tests on Python 3.14 and 3.9.6; ruff clean; self-tests TDD Ladder 112, Speed Run 82, Explorer 144.
 
+## Done (2026-10-21)
+
+- **Group UX round** (from the facilitator's Explorer playtest; decisions in `docs/DECISIONS.md`). Applies to all three exercises:
+  - **Leader quickstarts:** `exercises/<name>/LEADER-QUICKSTART.md`, sent with the bundle and the walkthrough, not shipped.
+  - **Shorter group docs:** README, briefs and LOG rewritten to one shape: Where we are, Do this, Watch for, The gate. Explorer's tool interface moved to `level0/INTERFACE.md`, frozen at every level.
+  - **Explorer side tasks warn but pass:** acceptance-criteria count, decision lines, "Our list", the agent's test plan, guesses and triage now print `Note:` lines. Version control, two steps, tests and tool output stay strict.
+  - **No typed reflections:** the manifest keys are now `talk`, `note` and `start`, and `crypto-reflection` is gone. The unlock screen shows a header with the target minutes, `Next: swap the Driver, then …`, `Brief: BRIEF.md (or ./gate brief)`, then "Talk it over (30 seconds, nothing to type)".
+  - **Preflight:** `./preflight` sets up or repairs `.venv` itself; `--setup` forces a reinstall.
+  - **No assumed folders:** the docs no longer name `~/Desktop`, `~/Downloads` or `~/opus-control`.
+- **Review:** an external panel (Codex gpt-6.1-sol and Claude Opus 5.5, both on high effort) ran four rounds. All findings were verified and fixed; the tables are in `docs/DECISIONS.md`.
+- **Receipts:** gatekit 82 tests on Python 3.14 and 3.9.6; ruff clean; self-tests Explorer 152, TDD Ladder 116, Speed Run 85.
+- **Next:** rebuild each exercise and re-send bundles to leaders with the new quickstart. Any bundle already sent uses the old gate format. Then a live playtest of the new unlock screen and briefs.
+
 ## How to re-run everything
 
 ```zsh

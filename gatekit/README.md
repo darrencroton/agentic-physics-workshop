@@ -9,7 +9,7 @@ gatekit is a stdlib-only toolkit that turns an exercise into a ladder of levels,
 ```
 dist/<exercise>/
   gate                     # launcher: python3, adds .gatekit/ to sys.path, calls gatekit.cli.main
-  preflight                # machine readiness check; --setup builds .venv (rendered with __SETUP_PYTHON__)
+  preflight                # machine readiness check; builds .venv when missing or stale, --setup forces a reinstall (rendered with __SETUP_PYTHON__)
   AGENTS.md                # participant rules (harness-neutral), from workshop/AGENTS.workshop.md
   CLAUDE.md                # rendered from gatekit/agents/CLAUDE.md: imports AGENTS.md, adds the Claude Code section
   OTHER-AGENTS.md          # only when the manifest sets "other_agents": true, from gatekit/agents/OTHER-AGENTS.md
@@ -34,7 +34,7 @@ dist/<exercise>/
     levels/N/              # unpacked per-level private files: persona.txt, hints.json, guard.json, BRIEF.md
 ```
 
-`LOG.md` is created in the repo root the first time a hint, reflection or skip is logged.
+`LOG.md` is created in the repo root the first time a hint or skip is logged.
 
 ### Instruction files
 
@@ -52,7 +52,7 @@ All commands run as `./gate <command>`. A TTY means both stdin and stdout are te
 | `status` | No | Prints title, level and title (marks "complete"), persona, minutes on level against `target_minutes`, hints used of total, failed gate attempts, allowed models, then any `status_lines` from the exercise tool. |
 | `brief` | No | Prints `.workshop/levels/N/BRIEF.md`; at level 0 with no such file, prints `README.md`. |
 | `check` | No | Runs the level's check and prints `PASS: <reason>` or `FAIL: <reason>`; exit 0 or 1. Never prints the expected answer. |
-| `unlock` | Yes | Runs the check (failure is logged as a failed attempt and stops). Asks each gate question, unlocks the next level by installing its pack, runs `post_unlock`, then prints the `pre_reflection_note`, then (if there are reflections) a "Quick reflection (saved to LOG.md, any answer is fine):" header and the reflection question(s), appending the answers to `LOG.md`. On the last level it sets `complete` instead of unpacking. A wrong answer prints "Not quite. Discuss and try again." and logs the failure (timestamp and kind only, never the answer). |
+| `unlock` | Yes | Runs the check (failure is logged as a failed attempt and stops). Asks each gate question, unlocks the next level by installing its pack, runs `post_unlock`, and prints the unlock screen (below). Nothing is asked after the gate: the `talk` prompts are shown, not answered, and nothing is logged for them. On the last level it sets `complete` instead of unpacking. A wrong answer prints "Not quite. Discuss and try again." and logs the failure (timestamp and kind only, never the answer). |
 | `hint` | Yes | Shows the first unused tier in `hints.json`, provided `unlock_after_minutes` has passed on this level; otherwise says when it unlocks. Records the tier in `hints_used` and appends the text shown to `LOG.md`. A tier may carry `"text_from": "tool.name"`, naming a `hints` function that returns the text to show (for example an answer tailored to the group's data); an exception or an empty return falls back silently to the tier's static `text`, which is still required. |
 | `skip --master` | Yes | Prompts for the master passphrase without echo, checks it against `.vault/master.check`, asks for a reason, records a skip, and unlocks the next level using the master slot (or marks the last level complete). Logs to `LOG.md`. A wrong passphrase is logged as a failed attempt of kind `master`. Without `--master` it errors. |
 | `allow-model <name>` | Yes, plus master passphrase | Verifies the master passphrase, lower-cases the name, appends it to `allowed_models` and logs the power-up. |
@@ -60,9 +60,35 @@ All commands run as `./gate <command>`. A TTY means both stdin and stdout are te
 
 `gate help`, `-h` and `--help` print usage.
 
+### The unlock screen
+
+Plain ASCII, no colour. `./gate check` prints the first two lines only.
+
+```
+PASS: PLAN.md is filled in and committed
+Note: REVIEW.md has no guesses under "Our guesses". ...     (zero or more)
+<graded questions, as typed>
+
+Level 1 unlocked: Build the prototype (about 18 minutes)
+--------------------------------------------------------   (dashes, same length)
+New files: TESTS.md                                         (only if any)
+<post_unlock message, if the hook returns one>
+Next: swap the Driver, then leave plan mode (Shift+Tab) and ask for step 1 of PLAN.md.
+Brief: BRIEF.md (or ./gate brief)
+
+<gate note, if any>
+
+Talk it over (30 seconds, nothing to type):
+  One thing in the agent's plan you changed, and why?
+```
+
+- `Note:` lines are the lines starting `Note:` that a passing crypto check wrote to stderr (stdout stays the hashed success line). They are shown only when the check passes, by both `check` and `unlock`.
+- `Next:` uses the entered level's `start` field: `Next: swap the Driver, then <start>.` Without `start` it reads `Next: swap the Driver and read the brief.`
+- The final level prints `Exercise complete. Well done.` and its dash rule instead of the header, with no `Next:` or `Brief:` lines, then the note and the talk prompts.
+
 ## 3. Manifest schema
 
-The manifest lives at `exercises/<name>/manifest.json` and is copied to `.gatekit/manifest.json`. `manifest.py` requires `exercise`, `title` and a non-empty `levels` list whose ids run 0..n in order; personas must be `literal`, `coach` or `collaborator`; gate types must be one of the four below; each question needs `id` and `prompt`; every question prompt and reflection must end (after trailing spaces) with `?`, `:` or `)`, and not `.)`, because the cursor sits straight after it; `contains` is valid only on `keyword` questions and each term must keep a letter or digit. Keys marked "build" are written or read by `tools/build.py`. JSON has no comments, so the annotations below are illustrative only.
+The manifest lives at `exercises/<name>/manifest.json` and is copied to `.gatekit/manifest.json`. `manifest.py` requires `exercise`, `title` and a non-empty `levels` list whose ids run 0..n in order; personas must be `literal`, `coach` or `collaborator`; gate types must be one of the three below; each question needs `id` and `prompt`; every question prompt must end (after trailing spaces) with `?`, `:` or `)`, and not `.)`, because the cursor sits straight after it; every `talk` prompt must end with `?`; the old `reflection`, `reflections` and `pre_reflection_note` keys and the `crypto-reflection` gate type are rejected with a message naming the replacement (`talk`, `note`, `crypto`); `contains` is valid only on `keyword` questions and each term must keep a letter or digit. Keys marked "build" are written or read by `tools/build.py`. JSON has no comments, so the annotations below are illustrative only.
 
 ```jsonc
 {
@@ -86,7 +112,7 @@ The manifest lives at `exercises/<name>/manifest.json` and is copied to `.gateki
         "CLIENT_SPEC.md": "CLIENT_SPEC.md"
       },
       "gate": {                          // the gate that leaves this level
-        "type": "crypto",                // verified | crypto | crypto-reflection | none
+        "type": "crypto",                // verified | crypto | none
         "condition": "tdd.score_recorded_at_level",   // verified: "tool.name" in tool.conditions
         "check": "checks/level0.py",     // crypto: script run from the repo root
         "python": "venv",                // crypto: "python3" (default), "venv" (.venv/bin/python) or a path
@@ -108,11 +134,12 @@ The manifest lives at `exercises/<name>/manifest.json` and is copied to `.gateki
             "text_from": "tool.name"     // optional: "tool.name" in tool.questions
           }
         ],
-        "reflection": "What surprised you?",           // one logged question, or
-        "reflections": ["Q1?", "Q2?"],                 // several (takes precedence)
-        "pre_reflection_note": "Printed before the reflection questions.",
+        "talk": "What surprised you?",                 // or ["Q1?", "Q2?"]: shown, never asked
+        "note": "Printed before the talk prompts.",    // optional
         "post_unlock": "tdd.after_unlock"              // "tool.name" in tool.post_unlock
-      }
+      },
+      "start": "ask for step 1 of PLAN.md"             // optional, on the level being entered;
+                                                       // lower-case first, no full stop, about 90 characters
     }
   ]
 }
@@ -126,7 +153,7 @@ The manifest lives at `exercises/<name>/manifest.json` and is copied to `.gateki
 
 `wrong_hint` is printed as `Hint: <text>` after "Not quite. Discuss and try again." when the gate rejects an answer. A `verified` gate prints the hint of the question that failed; a `crypto` gate cannot tell which question failed, so it prints the hint of every question asked. `text_from` names a `questions` function that returns `{"prompt": ..., "wrong_hint": ...}` to replace the static fields (for example to tailor the question to the group's own data). Either key may be omitted, and an exception or a bad return falls back silently to the static text, so the static `prompt` is still required. Both must be strings; `text_from` must be `tool.name`.
 
-A level with no `gate` is treated as `{"type": "none"}`. For `verified` gates the only built-in validator is `gate.answer`, which checks the answer locally against the question's `accept`/range (`answers.matches`); anything else must be `tool.<name>`. `crypto` and `crypto-reflection` gates ignore `condition` and `validator`.
+A level with no `gate` is treated as `{"type": "none"}`. For `verified` gates the only built-in validator is `gate.answer`, which checks the answer locally against the question's `accept`/range (`answers.matches`); anything else must be `tool.<name>`. `crypto` gates ignore `condition` and `validator`.
 
 ### Per-level directories and answers
 
@@ -145,7 +172,7 @@ Pack member paths are checked and any that escape the destination are refused.
 {"0": {"token": "<hex sha256 of canonical check output>"}}
 ```
 
-The build needs an entry for every `crypto` and `crypto-reflection` gate, and fails otherwise. A crypto gate on the last level opens no pack, but its token still sets the `verify` value that lets `gate check` and `gate unlock` pass there. Because no pack checks the answer, such a gate may carry only `free` questions; the build refuses a graded one.
+The build needs an entry for every `crypto` gate, and fails otherwise. A crypto gate on the last level opens no pack, but its token still sets the `verify` value that lets `gate check` and `gate unlock` pass there. Because no pack checks the answer, such a gate may carry only `free` questions; the build refuses a graded one.
 
 ## 4. Gate types
 
@@ -154,7 +181,6 @@ T is the SHA-256 digest of the check script's canonical stdout. `verify = SHA-25
 | Type | Key material for the next level's pack | Notes |
 |---|---|---|
 | `crypto` | One slot per accepted answer, secret `T || 0x00 || canon(A)`. With several questions the canonical answers are joined with `\|` and the slots cover every combination of accepted forms (`free` questions contribute nothing). At unlock the typed answer yields one or more candidate forms (section 6) and every combination of them is tried as a secret. Plus the master slot. | The check must exit 0 and print output whose hash gives the `verify` value. Questions are graded by whether the pack opens. |
-| `crypto-reflection` | As `crypto`: secret derived from T and the (usually empty) canonical answer. | Unlock behaves as `crypto`. Use `free` questions and a `reflection` so answers are logged, not graded. |
 | `verified` | A per-level random 32-byte secret (hex from `secrets.token_hex(32)`) generated at build time, stored in `.vault/keys.bin` and released by the exercise tool's `level_secret(root, level)` after its `condition` and `validator`s pass. Plus the master slot. | Needed for group-specific outcomes (for example a score the group just recorded). |
 | `none` | Empty secret `b""` plus the master slot. | Unlock needs no check or answer; `run_check` reports "No check at this level." |
 
@@ -215,7 +241,7 @@ The file is written only by `gate` and the exercise tool, atomically: a temporar
 | `records` | Free dictionary for the exercise tool (for example scores). |
 | `complete` | True once the last level is passed or skipped. |
 
-`LOG.md` in the repo root is a separate human-readable log: hints used, reflections, skips, power-ups, level unlocks and completion.
+`LOG.md` in the repo root is a separate human-readable log: hints used, skips, power-ups, level unlocks and completion.
 
 ## 8. Hooks
 
@@ -299,7 +325,7 @@ A dotted name with prefix `gate` refers to a built-in; any other prefix is resol
 
 Run from the toolkit directory with the standard library only. They work on Python 3.9 and 3.14.
 
-```
+```zsh
 cd gatekit && python3 -m unittest discover -s . -t . -p 'test_*.py'
 ```
 
@@ -321,7 +347,7 @@ This is a learning scaffold, not an exam proctor (docs/00 §5.6). A group that w
 
 ### Hard to bypass
 
-- Crypto gates (Speed Run Levels 0–2 and Explorer Level 1; the Explorer's other gates are reflections with no graded answer, so their slot needs the check token T alone): a slot opens only with the check token T plus the human answer. The answer is a soft secret: it sits in plaintext in the fourth hint tier under `.workshop/levels/N/` once a level is open (Level 0 from the start) and, for the Explorer, in the tool source (`.gatekit/exploretool/__init__.py`), protected only by the guard. The shipped manifest carries no `accept`, `lo` or `hi` for crypto questions (the build strips them), but the hint files and tool source do. It does carry any `contains` terms, because the runtime canonicalisation needs them, so those terms are readable, like the tool source.
+- Crypto gates (Speed Run Levels 0–2 and Explorer Level 1; the Explorer's other gates have no graded answer, so their slot needs the check token T alone): a slot opens only with the check token T plus the human answer. The answer is a soft secret: it sits in plaintext in the fourth hint tier under `.workshop/levels/N/` once a level is open (Level 0 from the start) and, for the Explorer, in the tool source (`.gatekit/exploretool/__init__.py`), protected only by the guard. The shipped manifest carries no `accept`, `lo` or `hi` for crypto questions (the build strips them), but the hint files and tool source do. It does carry any `contains` terms, because the runtime canonicalisation needs them, so those terms are readable, like the tool source.
 - **Fixed success lines.** The Explorer's checks (`exploretool/gates.py`, `success_line`) and the Speed Run's Level 0–2 checks (`racetool/gates.py`, `success_line`) print the fixed line `{"level": N, "ok": true}` on a pass, and T is the SHA-256 of that line. The line is in the tool source under `.gatekit/`, so the crypto gate stops casual reading of the packs, not a determined agent that can read `.gatekit/`. Under Claude Code the guard hides `.gatekit/`; elsewhere only the written rules do. For Explorer the packs hold nothing secret (briefs, personas, hints and file templates; no hidden assets), so that is acceptable. The Speed Run's only remaining secret is the human answer (six values, 23 values, or four letters), which a determined group could guess offline against the pack, and one typed answer can carry up to six numbers, so six guesses per attempt; the Speed Run is Claude Code only.
 - The TDD Ladder and the Speed Run race (Level 3) use verified gates, which are soft barriers (below).
 - Writes outside the repo or to frozen files, and `..`, absolute, `~` and `/tmp/../` paths through Read and Edit.

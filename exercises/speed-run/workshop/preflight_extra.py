@@ -33,12 +33,12 @@ def check_packages():
         import numpy
         report(True, "numpy %s imports in .venv" % numpy.__version__)
     except ImportError as exc:
-        report(False, "numpy imports in .venv", "%s; run ./preflight --setup" % exc)
+        report(False, "numpy imports in .venv", "%s; run ./preflight --setup (it reinstalls .venv packages)" % exc)
     try:
         import scipy
         report(True, "scipy %s imports in .venv" % scipy.__version__)
     except ImportError as exc:
-        report(False, "scipy imports in .venv", "%s; run ./preflight --setup" % exc)
+        report(False, "scipy imports in .venv", "%s; run ./preflight --setup (it reinstalls .venv packages)" % exc)
 
 
 def check_clang():

@@ -30,7 +30,7 @@ def check_packages():
             version = getattr(module, "__version__", "")
             report(True, "%s %s imports in .venv" % (name, version))
         except ImportError as exc:
-            report(False, "%s imports in .venv" % name, "%s; run ./preflight --setup" % exc)
+            report(False, "%s imports in .venv" % name, "%s; run ./preflight --setup (it reinstalls .venv packages)" % exc)
 
 
 def check_plotlyjs():

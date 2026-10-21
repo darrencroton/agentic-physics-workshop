@@ -101,7 +101,7 @@ def shipped_manifest(manifest):
     shipped = copy.deepcopy(manifest)
     for level in shipped["levels"]:
         gate = level.get("gate", {})
-        if gate.get("type") in ("crypto", "crypto-reflection"):
+        if gate.get("type") == "crypto":
             for question in gate.get("questions", []):
                 for key in ("accept", "lo", "hi"):
                     question.pop(key, None)
@@ -218,7 +218,7 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
             level_secrets[str(n - 1)] = secrets.token_hex(32)
             slots = [bytes.fromhex(level_secrets[str(n - 1)]),
                      crypto.master_secret(master)]
-        elif kind in ("crypto", "crypto-reflection"):
+        elif kind == "crypto":
             key = str(n - 1)
             if key not in level_answers:
                 raise SystemExit("answers.json lacks level %s token" % key)
@@ -233,7 +233,7 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
         log("packed level %d (%d slots)" % (n, len(slots)))
 
     last_gate = levels[-1].get("gate", {"type": "none"})
-    if last_gate.get("type", "none") in ("crypto", "crypto-reflection"):
+    if last_gate.get("type", "none") == "crypto":
         key = str(len(levels) - 1)
         if key not in level_answers:
             raise SystemExit("answers.json lacks level %s token" % key)
@@ -242,7 +242,7 @@ def build(exercise, passphrase_file, out, setup_python, keep_venv,
         if graded:
             raise SystemExit("the last level's crypto gate cannot have graded questions "
                              "(there is no pack to check the answer against): use "
-                             "free questions or a reflection")
+                             "free questions only")
         last_gate["verify"] = crypto.verify_token(
             bytes.fromhex(level_answers[key]["token"]))
 

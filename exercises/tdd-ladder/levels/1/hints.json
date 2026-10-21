@@ -10,7 +10,7 @@
     },
     {
       "unlock_after_minutes": 10,
-      "text": "Honest answers: red was probably never seen (n), and the numbers probably came from the agent's head or from running the code (b or c). Hand calculation by a human is (a); an independent reference is (d). Remember: you did not ask the agent to wait for you."
+      "text": "Be honest in the talk prompt: red was probably never seen, and the expected numbers probably came from the agent's head or from running the code, not from a hand calculation or an independent reference. Remember: you did not ask the agent to wait for you."
     }
   ]
 }

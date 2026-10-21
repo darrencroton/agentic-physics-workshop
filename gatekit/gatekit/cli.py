@@ -117,18 +117,24 @@ def cmd_brief(root, args):
 
 # ------------------------------------------------------------------ check
 
+def _notes(stderr):
+    """Return the 'Note: ' lines of a check's stderr."""
+    return [line.strip() for line in (stderr or "").splitlines()
+            if line.startswith("Note: ")]
+
+
 def run_check(root, manifest, state):
-    """Return (ok, reason, token) for the current level's gate."""
+    """Return (ok, reason, token, notes) for the current level's gate."""
     level = state["level"]
     entry = mf.level_by_id(manifest, level)
     gate = entry.get("gate", {"type": "none"})
     kind = gate.get("type", "none")
     if kind == "none":
-        return True, "No check at this level.", None
+        return True, "No check at this level.", None, []
     if kind == "verified":
         fn = exercise.resolve(_tool(manifest), "conditions", gate["condition"])
         ok, reason = fn(root, state, manifest)
-        return ok, reason, None
+        return ok, reason, None, []
     script = os.path.join(root, gate["check"])
     python = gate.get("python", "python3")
     if python == "venv":
@@ -137,22 +143,25 @@ def run_check(root, manifest, state):
         proc = subprocess.run([python, script], cwd=root, capture_output=True,
                               text=True, timeout=gate.get("timeout", 600))
     except (OSError, subprocess.TimeoutExpired) as exc:
-        return False, "check could not run: %s" % exc, None
+        return False, "check could not run: %s" % exc, None, []
     if proc.returncode != 0:
         tail = (proc.stderr or proc.stdout).strip().splitlines()[-3:]
-        return False, " | ".join(tail), None
+        return False, " | ".join(tail), None, []
     token = crypto.canonical_token(proc.stdout)
     if crypto.verify_token(token) != gate.get("verify"):
         return False, gate.get("fail_message",
                                "the check ran but its output is not yet "
-                               "correct"), None
-    return True, gate.get("pass_message", "check passed"), token
+                               "correct"), None, []
+    return (True, gate.get("pass_message", "check passed"), token,
+            _notes(proc.stderr))
 
 
 def cmd_check(root, args):
     manifest, state = _load(root)
-    ok, reason, _ = run_check(root, manifest, state)
+    ok, reason, _, notes = run_check(root, manifest, state)
     _say("%s: %s" % ("PASS" if ok else "FAIL", reason))
+    for note in notes if ok else []:
+        _say(note)
     return 0 if ok else 1
 
 
@@ -219,12 +228,10 @@ def _questions(gate):
     return gate.get("questions", [])
 
 
-def _reflections(gate):
-    if "reflections" in gate:
-        return list(gate["reflections"])
-    if gate.get("reflection"):
-        return [gate["reflection"]]
-    return []
+def _talk_prompts(gate):
+    """Return the gate's talk prompts as a list."""
+    talk = gate.get("talk", [])
+    return [talk] if isinstance(talk, str) else list(talk)
 
 
 def _question_text(root, state, manifest, question):
@@ -333,10 +340,13 @@ def _advance(root, manifest, state, secrets_list, how):
     st.advance_level(state, entry.get("persona", "coach"))
     st.save_state(root, state)
     _say("")
-    _say("Level %d unlocked: %s" % (new_level, entry["title"]))
-    if placed:
-        _say("New files: %s" % ", ".join(placed))
-    _say("Read BRIEF.md (or run ./gate brief).")
+    minutes = entry.get("target_minutes")
+    _header("Level %d unlocked: %s%s" % (
+        new_level, entry["title"],
+        " (about %s minutes)" % minutes if minutes else ""))
+    shown = [name for name in placed if name != "BRIEF.md"]
+    if shown:
+        _say("New files: %s" % ", ".join(shown))
     st.append_log(root, "Level %d unlocked (%s)" % (new_level, how),
                   "Level %d: %s" % (new_level, entry["title"]))
     gate = mf.level_by_id(manifest, level).get("gate", {})
@@ -351,21 +361,30 @@ def _advance(root, manifest, state, secrets_list, how):
         if message:
             _say(message)
         st.save_state(root, state)
+    start = entry.get("start")
+    _say("Next: swap the Driver, then %s." % start if start
+         else "Next: swap the Driver and read the brief.")
+    _say("Brief: BRIEF.md (or ./gate brief)")
 
 
-def _reflect(root, state, gate, level):
-    note = gate.get("pre_reflection_note")
+def _header(text):
+    """Print a header line with a dash rule of the same length."""
+    _say(text)
+    _say("-" * len(text))
+
+
+def _closing(gate):
+    """Print the gate note, then the talk prompts (nothing to type)."""
+    note = gate.get("note")
     if note:
         _say("")
         _say(note)
-    reflections = _reflections(gate)
-    if reflections:
+    prompts = _talk_prompts(gate)
+    if prompts:
         _say("")
-        _say("Quick reflection (saved to LOG.md, any answer is fine):")
-    for prompt in reflections:
-        answer = tty.ask(prompt.rstrip() + " ")
-        st.append_log(root, "Reflection at level %d" % level,
-                      "Q: %s\nA: %s" % (prompt, answer))
+        _say("Talk it over (30 seconds, nothing to type):")
+        for prompt in prompts:
+            _say("  %s" % prompt.strip())
 
 
 def cmd_unlock(root, args):
@@ -377,12 +396,14 @@ def cmd_unlock(root, args):
     level = state["level"]
     entry = mf.level_by_id(manifest, level)
     gate = entry.get("gate", {"type": "none"})
-    ok, reason, token = run_check(root, manifest, state)
+    ok, reason, token, notes = run_check(root, manifest, state)
     _say("%s: %s" % ("PASS" if ok else "FAIL", reason))
     if not ok:
         st.log_failed_attempt(state, "check")
         st.save_state(root, state)
         return 1
+    for note in notes:
+        _say(note)
     kind = gate.get("type", "none")
     last = mf.is_last_level(manifest, level)
     hints = []
@@ -392,7 +413,7 @@ def cmd_unlock(root, args):
         if not last:
             tool = _tool(manifest)
             secrets_list = [tool.level_secret(root, level)]
-    elif kind in ("crypto", "crypto-reflection"):
+    elif kind == "crypto":
         secrets_list, hints = _ask_graded_crypto(root, state, manifest, gate,
                                                  token)
     else:
@@ -402,7 +423,7 @@ def cmd_unlock(root, args):
         st.level_record(state)["unlocked"] = st.now_iso()
         st.save_state(root, state)
         _say("")
-        _say("Final level complete. Well done.")
+        _header("Exercise complete. Well done.")
         st.append_log(root, "Exercise complete", entry["title"])
     else:
         try:
@@ -411,7 +432,7 @@ def cmd_unlock(root, args):
             st.log_failed_attempt(state, kind)
             st.save_state(root, state)
             raise GateError(_with_hints(NOT_QUITE, hints))
-    _reflect(root, state, gate, level)
+    _closing(gate)
     return 0
 
 

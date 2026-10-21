@@ -10,8 +10,10 @@
               "questions": [{"id": "h0", "prompt": "What is H0 to 1 d.p.?",
                              "kind": "numeric", "lo": 69.9, "hi": 70.1, "decimals": 1,
                              "wrong_hint": "Fit the slope of v against d."}],
-              "reflection": "What surprised you?"}},
+              "talk": "What surprised you?",
+              "note": "A gate note."}},
     {"id": 1, "title": "Done", "persona": "collaborator", "target_minutes": 1,
+     "start": "open EXTRA.md",
      "files": {"BRIEF.md": "BRIEF.md", "EXTRA.md": "docs/EXTRA.md"},
      "gate": {"type": "none"}}
   ]

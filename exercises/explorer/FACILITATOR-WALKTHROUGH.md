@@ -2,6 +2,8 @@
 
 Private. Contains gate answers and spoilers. Never copy into `dist/`, and keep it away from participants.
 
+**Group leaders: [`LEADER-QUICKSTART.md`](LEADER-QUICKSTART.md) is the short version (one to two pages). This walkthrough is the full guide.**
+
 This is the operating guide to the exercise. It has two readers:
 
 - **The facilitator** (the organiser) builds the participant repo, rehearses it, sends it to the group leaders and holds the master passphrase. Read all of it.
@@ -21,13 +23,12 @@ Once per machine, do steps 2 and 3 of "Run the workshop" in the repository [`REA
 cd <this repository>
 python3 tools/build.py explorer --master-passphrase-file ~/.config/workshop/master-passphrase --keep-venv
 cd dist/explorer
-./preflight --setup      # only if .venv is missing; creates .venv and installs the pins (network, once)
-./preflight              # must end with "Preflight passed"; also checks plotly and its bundled plotly.js
+./preflight              # first run sets up .venv (needs the network, about a minute); must end with "Preflight passed"; also checks plotly and its bundled plotly.js
 ```
 
-`./preflight --setup` installs numpy 2.3.2, plotly 7.1.0, pytest 9.1.1 and pytest-cov 7.1.0. Nothing needs a compiler, so unlike the Speed Run there is no `clang` requirement.
+`./preflight` installs numpy 2.3.2, plotly 7.1.0, pytest 9.1.1 and pytest-cov 7.1.0. Nothing needs a compiler, so unlike the Speed Run there is no `clang` requirement.
 
-Then do the Claude Code checks in section 3, step 4, play the whole exercise through once on Sonnet using section 5, and reset (section 7). Open `out/explorer.html` in a browser at least once in the rehearsal: the Level 1 question is meant to send the group there, and you want to have seen the page.
+Then do the Claude Code checks in section 3, step 3, play the whole exercise through once on Sonnet using section 5, and reset (section 7). Open `out/explorer.html` in a browser at least once in the rehearsal: the Level 1 question is meant to send the group there, and you want to have seen the page.
 
 - `--keep-venv` preserves an existing `dist/explorer/.venv` across rebuilds. Everything else in `dist/explorer` is regenerated, including the git history, so rebuild only between runs.
 - The participant `.venv` is made with `/opt/homebrew/bin/python3.13` when that exists, otherwise `python3`; the build machine used Python 3.13.2. Pass `--setup-python /path/to/python3` to the build to bake in another Python 3.11+.
@@ -48,7 +49,7 @@ Each leader gets a copy of the built participant repo as a git bundle: one file 
    ```zsh
    cd dist/explorer
    git status --short && git log --oneline && git branch   # expect no changes, one commit "Workshop start", only main
-   git bundle create ~/Desktop/explorer.bundle --all        # about 10 MB (the two datasets)
+   git bundle create explorer.bundle --all        # written here; copy it out before a reset or rebuild, which delete it (about 10 MB: the two datasets)
    ```
 
 3. Send each leader the bundle and this walkthrough file. Ask them to work through section 3 before the leaders' briefing, so problems surface early. A private git remote works too: push `main` and the `start` tag, and send the clone URL instead.
@@ -66,22 +67,21 @@ Do this a few days before the session, with a network connection. You need a Mac
 
 Do not install anything else. If preflight asks for something, check with the facilitator first.
 
-1. Clone the bundle the facilitator sent (adjust the path to wherever you saved it):
+1. Clone the bundle the facilitator sent (run this in the folder where you saved it, or give its full path):
 
    ```zsh
-   git clone ~/Downloads/explorer.bundle explorer && cd explorer
+   git clone explorer.bundle explorer && cd explorer
    ```
 
-2. `./preflight --setup` creates `.venv` and installs the pinned numpy, plotly, pytest and pytest-cov (a minute or so; the only step that needs the network apart from Claude Code). If it says your Python is too old, it prints the command to run with a newer one.
-3. `./preflight` must end with "Preflight passed". The first run also sets the workshop up at level 0.
-4. Run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Then, in Claude Code (about a minute):
+2. `./preflight` creates `.venv` and installs the pinned numpy, plotly, pytest and pytest-cov, then checks the machine. The first run needs the network and takes about a minute (the only step that needs the network apart from Claude Code). If it says your Python is too old, it prints the command to run with a newer one. It must end with "Preflight passed"; the first run also sets the workshop up at level 0.
+3. Run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Then, in Claude Code (about a minute):
    1. `/hooks`: four events must be listed (SessionStart, UserPromptSubmit, PreToolUse, PreModelSwitch). If the list is empty, the trust dialog was not accepted: `/exit` and run `claude` again.
    2. `/status`: the model line must say Sonnet.
    3. `/model` and pick another model (Haiku, say): it must be refused. Picking Sonnet again is allowed.
    4. Type `/` in Claude Code and confirm `plan-code`, `style-code`, `test-code` and `review-code` are listed. If not, run `/reload-skills`; if they are still missing, see section 6. The playbook prompts name them.
    5. `/agents` (or the agent list in your version): `reviewer` must be listed, as a project agent. It is only the fallback for Level 3 (the main route is the `review-code` skill). If it is missing, see section 6.
    6. `/exit`.
-5. Rehearse: play Level 0 yourself following section 5, and reset (section 7) so the group's log starts empty. Level 0 needs nothing built, so it is a quick way to see the gate, the guard and the plan-mode start.
+4. Rehearse: play Level 0 yourself following section 5, and reset (section 7) so the group's log starts empty. Level 0 needs nothing built, so it is a quick way to see the gate, the guard and the plan-mode start.
 
 ### Groups on other agents
 
@@ -152,7 +152,7 @@ You are the Coach: you ask questions and fix tooling, and you do not drive. Allo
 
 ### Commands
 
-Useful at any time: `./gate status` (level, time on level, hints, dataset, whether the page is built, commits since the last gate), `./gate brief`, `./gate check`, `./gate hint` (three tiers: at 0, 3 and 6 minutes on the 8-minute levels, and 0, 5 and 10 on Level 1, where a fourth at 13 minutes gives the answer for the group's dataset), and `make list`, `make explore`, `make open`, `make test`, `make coverage`. The repo's `README.md` lists every command.
+The unlock screen is: `PASS:` line, any `Note:` lines (a relaxed check that did not hold, with a reason to do it next time), the graded question if any, a headed "Level N unlocked" block with new files and a `Next:` line, then "Talk it over" (nothing to type, nothing saved). Useful at any time: `./gate status` (level, time on level, hints, dataset, whether the page is built, commits since the last gate), `./gate brief`, `./gate check`, `./gate hint` (three tiers: at 0, 3 and 6 minutes on the 8-minute levels, and 0, 5 and 10 on Level 1, where a fourth at 13 minutes gives the answer for the group's dataset), and `make list`, `make explore`, `make open`, `make test`, `make coverage`. The repo's `README.md` lists every command.
 
 Need the master passphrase, which the facilitator holds, so call them over: `./gate skip --master` (open the next level for a stuck group, with a reason). It is logged. There are no model power-ups: Sonnet is already the model.
 
@@ -162,9 +162,9 @@ Every gate check prints one sentence on failure naming the first thing that is w
 
 ### Level 0: Plan (8 min, collaborator)
 
-1. The group reads the README, then in plan mode gives the agent one prompt that combines the playbook's *Understand* and *Plan* prompts: summarise the data (including which columns have missing values and how many), then, using the plan-code skill, propose a plan. They argue with it, then have the agent save it as `PLAN.md` and commit it.
-2. `make list` cannot work yet: the tool does not exist until Level 1, so it fails with "No module named explorer.__main__; 'explorer' is a package and cannot be directly executed". That is expected. The README prompt asks the agent for the missing-value counts up front (hint 1 is the fallback if it doesn't say); the commands table says `make list` works once the tool has `--list`. (Pulsars: `P1` misses 1,524 values, `AGE`, `BSURF` and `EDOT` 1,605 each, and 74 pulsars have no distance, so their `XX`, `YY`, `ZZ` are blank. Dimuons has no missing values, but 60,000 rows to sample down.)
-3. Gate (`crypto-reflection`, no graded question). The check requires `PLAN.md` to be complete: `Dataset:` exactly one of the two shipped paths; each of the four decision lines (values at or below zero on a log axis; missing values in a selected column; the initial selection when the page opens; sampling above `--max-points`) answered after the colon; each section filled with something other than the template; at least three acceptance criteria and exactly two steps (top-level list items; sub-bullets do not count). A longer plan is refused: "PLAN.md lists 8 steps; merge them into two, each ending in something you can run and look at: the command line and data.json, then the page". Two steps keeps Level 1 to two stop-run-look-commit cycles; the README, the persona and the hint all suggest the same split (the command line, `--list` and `data.json`; then the page with the decisions and the initial view); the solo run's three-step plan split that way, with a small third step the cap now folds into the second. Steps written as `###` headings or an indented list count too; prose with no list is refused with "write the two steps as a numbered list". Also at least one commit since `start` and `PLAN.md` clean. The reflection (logged): one thing in the agent's plan you changed, and why.
+1. The group reads the README (short now; the fixed tool interface is in `INTERFACE.md`), then in plan mode gives the agent one prompt that combines the playbook's *Understand* and *Plan* prompts: summarise the data (including which columns have missing values and how many), then, using the plan-code skill, propose a plan. They argue with it, then have the agent save it as `PLAN.md` and commit it.
+2. `make list` cannot work yet: the tool does not exist until Level 1, so it fails with "No module named explorer.__main__; 'explorer' is a package and cannot be directly executed". That is expected. The Level 0 prompt (which also names `INTERFACE.md`) asks the agent for the missing-value counts up front (hint 1 is the fallback if it doesn't say); the commands table says `make list` works once the tool has `--list`. (Pulsars: `P1` misses 1,524 values, `AGE`, `BSURF` and `EDOT` 1,605 each, and 74 pulsars have no distance, so their `XX`, `YY`, `ZZ` are blank. Dimuons has no missing values, but 60,000 rows to sample down.)
+3. Gate (`crypto`, no graded question). The check requires `PLAN.md` to be complete: `Dataset:` exactly one of the two shipped paths; each section filled with something other than the template; and exactly two steps (top-level list items; sub-bullets do not count). A longer plan is refused: "PLAN.md lists 8 steps; merge them into two, each ending in something you can run and look at: the command line and data.json, then the page". Two steps keeps Level 1 to two stop-run-look-commit cycles; the README, the persona and the hint all suggest the same split (the command line, `--list` and `data.json`; then the page with the decisions and the initial view); the solo run's three-step plan split that way, with a small third step the cap now folds into the second. Steps written as `###` headings or an indented list count too; prose with no list is refused with "write the two steps as a numbered list". Also at least one commit since `start` and `PLAN.md` clean. Two checks only earn a `Note:` and the gate still passes: fewer than three acceptance criteria (the section must still be non-empty), and a blank or missing decision line (values at or below zero on a log axis; missing values in a selected column; the initial selection when the page opens; sampling above `--max-points`). The unlock screen then shows the talk prompt (nothing to type, nothing logged): "One thing in the agent's plan you changed, and why?" The fixed tool interface lives in `INTERFACE.md` (at the repo root in a leader's clone) (moved out of the README so the Level 0 brief is short); the Level 0 prompt tells the agent to read it, and it is frozen at every level.
 
 Observe: which decisions did the agent make silently (dropping rows, clipping logs, which columns the page opens on)? Does the group notice, or accept the plan unread? Is the plan bigger than the job (class hierarchies, a config system, a build step for the JavaScript)?
 
@@ -173,14 +173,14 @@ Ask: "Which decisions did the agent make for us? Do we agree?" The Sceptic owns 
 Try deliberately:
 
 - Ask the agent to "just write the code". The guard refuses: "Level 0 is planning only: the agent may edit PLAN.md and LOG.md, and explorer/ opens at Level 1 and tests/ at Level 2." Read it aloud: the plan is where the decisions are cheap to change.
-- Unlock with the template `PLAN.md` or without committing: "no commit since start: ask the agent to commit PLAN.md (this level needs at least 1)". Change the `Dataset:` line to anything else and the gate says it must be exactly `data/pulsars.csv` or `data/dimuons.csv`.
+- Unlock with the template `PLAN.md` (still refused) or without committing (still refused): "no commit since start: ask the agent to commit PLAN.md (this level needs at least 1)". Change the `Dataset:` line to anything else and the gate says it must be exactly `data/pulsars.csv` or `data/dimuons.csv`.
 
 ### Level 1: Build the prototype (18 min, collaborator)
 
 1. The unlock opens `explorer/` for editing (and freezes `tests/`). The group leaves plan mode and has the agent implement step 1 of the plan only, following the coding guidelines in the style-code skill, run it, show the command and output, and say what the group can run to check it; then runs that in the gate terminal (once the page exists, `make explore` then `make open`), has the agent commit, and goes to the next step. The plan has two steps, so this is two cycles; the two-commit minimum matches. The generated page embeds plotly.js (about 5 MB), so `out/explorer.html` is a few MB. `make explore` should take well under 5 s.
 2. Gate (`crypto`, one graded question). The check runs the tool four times on the `PLAN.md` dataset: with the defaults; with `--max-points 500` (must write exactly 500 rows and still report the same `n_read`); with `--list` (must name every column of the column file); and on a file that does not exist (non-zero exit and no `Traceback`). It reads `data.json` as strict JSON with the structure in the README, and checks that `explorer.html` has plotly.js inline, no `<script src="http...">`, the five `<select>`s and four checkboxes with the right ids and an option for every numeric column, and the strings `scattergl` and `scatter3d` outside the plotly.js code. It also needs at least **2 commits** since the Level 0 unlock and `explorer/` and `PLAN.md` clean.
 3. The question needs a human who has looked at the page, and `./gate unlock` asks only the one for the group's dataset (it reads the `Dataset:` line; if it cannot, it asks a neutral question and the leader gives the dataset's question aloud). A wrong answer prints "Not quite" and a dataset-specific hint, and the group runs `./gate unlock` again. **Pulsars:** plot `XX`, `YY`, `ZZ` and rotate it; the known pulsars crowd around one point. What is there? Answer **`sun`**. **Dimuons:** plot `M` against `pt1` with log axes; which particle makes the sharp band near 3.1 GeV? Answer **`jpsi`**. Matching ignores case, spaces and punctuation, and maps ψ to `psi`. Accepted for both datasets: any answer that contains `sun`, `solar`, `earth`, `meson`, `psi` or `charmonium` (so "It's the Sun", "Sun (solar system)", "Earth / the Sun", "the solar neighbourhood", "J/ψ", "the J/psi meson" and "charmonium" all pass), plus the exact answers `sol` and `us`. Wrong answers such as "galactic centre", "Sgr A*", "bulge", "black hole" and "Sagittarius" are still refused. Known consequence of the generous `contains` rule: "upsilon", "pion meson", a bare "meson", or "not the Sun" also pass.
-4. The reflection (logged): one feature the group would add. After the check passes, the group plays with the page for a minute (rotate, zoom, hover, switch columns, palettes and log axes) and agrees one feature. The Scribe writes it in `LOG.md`; it is not built now. Typical ones are a slider, a trace-per-label, saved views and a second colour column; a group with time after Level 3 may build it (the Finished early section of the Level 3 brief offers it, or two others).
+4. The talk prompt (nothing to type): "What did you see in the browser that the check couldn't?" The brief also has the group play with the page for a minute (rotate, zoom, hover, switch columns, palettes and log axes) and agree one feature. The Scribe writes it in `LOG.md`; it is not built now. Typical ones are a slider, a trace-per-label, saved views and a second colour column; a group with time after Level 3 may build it (the Finished early section of the Level 3 brief offers it, or two others).
 
 Observe:
 
@@ -203,7 +203,7 @@ Try deliberately:
 ### Level 2: Test (8 min, collaborator)
 
 1. The unlock opens `tests/`, `explorer/` and `TESTS.md` and freezes `PLAN.md`. The Scribe writes three things that must not break under "Our list" before anyone asks the agent anything (two minutes, no agent). Then one prompt asks the agent, using the test-code skill, for a plan of five to eight tests (one line each, the coverage, what it will not cover), written straight into `TESTS.md` under "The agent's plan", without writing any tests yet. The agent should not run unasked experiments (deliberate bugs, coverage write-ups, extra tests). The group compares the two lists and agrees what to write. Then the agent writes and runs the tests, commits, and the group runs `make test` and, if there's time, `make coverage` in the gate terminal.
-2. Gate (`crypto-reflection`). `TESTS.md` has at least three bullets under "Our list" and real text under "The agent's plan"; `make test` finds at least five tests and all pass; at least one test module imports `explorer`; at least 1 commit since the Level 1 unlock; `explorer/`, `tests/` and `TESTS.md` clean. The reflection (logged): what did the agent's plan cover that yours didn't, or the reverse?
+2. Gate (`crypto`). `make test` finds at least five tests and all pass; at least one test module imports `explorer`; at least 1 commit since the Level 1 unlock; `explorer/`, `tests/` and `TESTS.md` clean. Notes only (the gate still passes): fewer than three items under "Our list", or "The agent's plan" missing or empty. Talk prompt: "What did the agent's test plan cover that your list didn't, or the reverse?"
 
 Observe:
 
@@ -215,14 +215,14 @@ Ask: "What won't these tests catch? Does that matter for us?"
 
 Try deliberately:
 
-- Unlock with an empty `TESTS.md`: "TESTS.md has 0 items under "Our list": write at least 3 things that must not break, before asking the agent". With four tests: "pytest collected 4 tests; this level needs at least 5, all passing: ask for the tests you agreed in TESTS.md". A failing test: "make test: 1 of 6 tests fail: fix the code, not the tests, then commit".
+- Unlock with an empty `TESTS.md`: the gate passes with `Note: TESTS.md has 0 items under "Our list"; next time write 3 things that must not break before asking: it shows what the agent's plan misses.` (the notes show on `./gate check` too). With four tests: "pytest collected 4 tests; this level needs at least 5, all passing: ask for the tests you agreed in TESTS.md". A failing test: "make test: 1 of 6 tests fail: fix the code, not the tests, then commit".
 - *Does the alarm ring?* Ask the agent to break one behaviour on purpose (drop the unit from a title, write `NaN` into `data.json`), run the tests, see whether they fail, then revert. A test that never fails proves nothing. This is the hint 3 exercise and the best use of a spare minute.
 - Ask the agent to weaken a test so that it passes. Watch whether the Sceptic notices.
 
 ### Level 3: Review (8 min, collaborator, last level)
 
 1. The unlock opens `REVIEW.md` and freezes `PLAN.md` and `TESTS.md`. The group writes two things they think a reviewer will find (one minute), then asks the agent, in one prompt, to use the review-code skill to review the code since start against PLAN.md, rank the findings by severity and paste them into the table in `REVIEW.md`, most severe first, without fixing anything. The `review-code` skill (`.claude/skills/review-code/SKILL.md`) runs in a forked subagent (`context: fork`): a fresh context that has not seen the conversation. The shipped `reviewer` agent (`.claude/agents/reviewer.md`, on Sonnet, tools `Read`, `Grep`, `Glob`, `Bash`) is the fallback if the skill will not load. The persona has the agent ask the skill for three to five findings (the fork does not see the persona, so the number travels as the skill's arguments); the group compares them with their guesses and triages the top three to five themselves: **FIX**, **ACCEPT** (true, but not worth fixing in a prototype) or **REJECT** (wrong), with one line of reason; the rest can stay undecided. The agent fixes the top FIX item (more if there is time), with a test that fails before the fix, runs the tests and commits. The skill tells the reviewer to read the code, run the tool and the tests once each, and not to write scratch scripts or new tests.
-2. Gate (`crypto-reflection`, the last level: it marks the workshop complete). `REVIEW.md` has at least two guess bullets and at least three table rows each with a decision in {FIX, ACCEPT, REJECT} and a non-empty reason; the tests pass; the Level 1 run checks pass again on the `PLAN.md` dataset; at least 1 commit since the Level 2 unlock; `explorer/`, `tests/` and `REVIEW.md` clean. The reflection (logged): what did the review find that the tests didn't? The gate prints the note that `PLAYBOOK.md` is theirs to take home, with the four skills in `.claude/skills/`.
+2. Gate (`crypto`, the last level: it prints "Exercise complete"). The tests pass; the Level 1 run checks pass again on the `PLAN.md` dataset; at least 1 commit since the Level 2 unlock; `explorer/`, `tests/` and `REVIEW.md` clean. Notes only (the gate still passes): fewer than two guess bullets, or fewer than three table rows each with a decision in {FIX, ACCEPT, REJECT} and a non-empty reason (including no Findings section). Talk prompt: "What did the review find that the tests didn't?" The gate also prints the note that `PLAYBOOK.md` is theirs to take home, with the four skills in `.claude/skills/`.
 
 Observe:
 
@@ -235,7 +235,7 @@ Ask: "Is this worth fixing in a prototype? Why?"
 
 Try deliberately:
 
-- Unlock with an untriaged `REVIEW.md`: "REVIEW.md has 0 triaged findings; this level needs at least 3, each marked FIX, ACCEPT or REJECT with a one-line reason". Triage everything as ACCEPT or REJECT with reasons: the gate passes, since no FIX is required (a clean review is a valid outcome); a cell such as "ACCEPT / REJECT" is refused as undecided.
+- Unlock with an untriaged `REVIEW.md`: the gate passes with a note that fewer than three findings are triaged (and one about the guesses, if there are fewer than two). Triage everything as ACCEPT or REJECT with reasons: the gate passes, since no FIX is required (a clean review is a valid outcome); a cell such as "ACCEPT / REJECT" counts as undecided, so it earns the note.
 - Groups with time left: the Level 3 brief's Finished early section offers, after the unlock, the Level 1 feature or two others, built the same way (one step, run it, look, commit): a day/night button that switches the page between light and dark colours, or mouse selection of points (box or lasso, in the 2D view) that shows how many were picked, with their labels if the dataset has them.
 
 Honest limit: the check scripts print a fixed line, so each crypto gate's only secret is the human answer, and Level 1 accepts both datasets' answers, so a group could give the other dataset's answer. It is harmless here: the question exists to make a human look at the page, and the gates for Levels 0, 2 and 3 have no question at all. The checks are structural and cannot tell whether the page looks right. Two more limits worth knowing: the Level 1 question can be answered without the browser (the pulsar column file says where the Sun is, and a particle physicist knows the J/ψ), so it prompts a look rather than proving one; and a FIX in `REVIEW.md` is a label, not evidence that anything was fixed. Both are the leader's check: ask to see the page, and ask what changed. See `gatekit/README.md` section 11 in the builder repository.
@@ -273,7 +273,7 @@ This is the canonical reset (`docs/DECISIONS.md`, 2026-10-13). `git reset --hard
 ## 8. What to record
 
 - `.workshop/state.json`: per-level times, hints, failed attempts and skips.
-- `LOG.md`: the Scribe's notes and the reflections.
+- `LOG.md`: the Scribe's notes, with a "Talk it over" heading per level (the talk prompts are not saved by the gate, so anything written there is the Scribe's own).
 - The Level 1 play suggestion: the group's feature.
 - `TESTS.md` (the group's list against the agent's plan) and `REVIEW.md` (guesses, findings, triage). These two comparisons are the show-and-tell material.
 - `git log --oneline`: the commits are the group's path through the plan.

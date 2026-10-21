@@ -157,15 +157,28 @@ class BuildAndUnlockTests(unittest.TestCase):
         proc = subprocess.run(gate + ["check"], cwd=self.out, capture_output=True, text=True)
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("PASS", proc.stdout)
+        self.assertIn("Note: the fixture check has a friendly word.", proc.stdout)
         code, out = ptyhelper.run_pty(gate + ["unlock"], [("H0 to 1 d.p.?", "68")], cwd=self.out)
         self.assertEqual(code, 1, out)
         self.assertIn("Not quite", out)
         self.assertIn("Hint: Fit the slope of v against d.", out)
         self.assertEqual(st.load_state(self.out)["levels"]["0"]["failed_attempts"], 1)
-        code, out = ptyhelper.run_pty(gate + ["unlock"], [("H0 to 1 d.p.?", "H0 = 70.04 km/s/Mpc, not 68"),
-                                                          ("surprised you?", "the gate")], cwd=self.out)
+        code, out = ptyhelper.run_pty(gate + ["unlock"], [("H0 to 1 d.p.?", "H0 = 70.04 km/s/Mpc, not 68")],
+                                      cwd=self.out)
         self.assertEqual(code, 0, out)
-        self.assertIn("Level 1 unlocked", out)
+        lines = [line.rstrip() for line in out.replace("\r", "").splitlines()]
+        title = "Level 1 unlocked: Done (about 1 minutes)"
+        self.assertIn("Note: the fixture check has a friendly word.", lines)
+        self.assertLess(lines.index("Note: the fixture check has a friendly word."),
+                        lines.index(title))
+        at = lines.index(title)
+        self.assertEqual(lines[at + 1], "-" * len(title))
+        self.assertEqual(lines[at + 2], "New files: docs/EXTRA.md")
+        self.assertEqual(lines[at + 3:at + 5], ["Next: swap the Driver, then open EXTRA.md.",
+                                                "Brief: BRIEF.md (or ./gate brief)"])
+        self.assertEqual(lines[at + 6:], ["A gate note.", "",
+                                          "Talk it over (30 seconds, nothing to type):",
+                                          "  What surprised you?"])
         state = st.load_state(self.out)
         self.assertEqual(state["level"], 1)
         self.assertEqual(state["persona"], "collaborator")
@@ -173,11 +186,11 @@ class BuildAndUnlockTests(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(self.out, "docs", "EXTRA.md")))
         self.assertTrue(os.path.exists(os.path.join(self.out, ".workshop", "levels", "1", "persona.txt")))
         with open(os.path.join(self.out, "LOG.md")) as fh:
-            log = fh.read()
-        self.assertIn("A: the gate", log)
+            self.assertNotIn("What surprised you?", fh.read())
         code, out = ptyhelper.run_pty(gate + ["unlock"], [], cwd=self.out)
         self.assertEqual(code, 0, out)
-        self.assertIn("Final level complete", out)
+        self.assertIn("Exercise complete. Well done.\r\n" + "-" * 29, out)
+        self.assertNotIn("Next:", out)
         self.assertTrue(st.load_state(self.out)["complete"])
 
 
@@ -207,7 +220,7 @@ class BuildAndUnlockTests(unittest.TestCase):
         path = os.path.join(self.exercises, "fixture", "manifest.json")
         with open(path) as fh:
             manifest = json.load(fh)
-        manifest["levels"][1]["gate"] = {"type": "crypto-reflection",
+        manifest["levels"][1]["gate"] = {"type": "crypto",
                                          "check": "checks/level0.py", "questions": []}
         with open(path, "w") as fh:
             json.dump(manifest, fh)
@@ -223,8 +236,7 @@ class BuildAndUnlockTests(unittest.TestCase):
         self.assertEqual(built["levels"][1]["gate"]["verify"],
                          crypto.verify_token(bytes.fromhex(tokens["1"]["token"])))
         gate = [PY, os.path.join(self.out, "gate")]
-        code, out = ptyhelper.run_pty(gate + ["unlock"], [("H0 to 1 d.p.?", "70.0"),
-                                                          ("surprised you?", "x")],
+        code, out = ptyhelper.run_pty(gate + ["unlock"], [("H0 to 1 d.p.?", "70.0")],
                                       cwd=self.out)
         self.assertEqual(code, 0, out)
         proc = subprocess.run(gate + ["check"], cwd=self.out, capture_output=True, text=True)
@@ -281,6 +293,7 @@ class BuildAndUnlockTests(unittest.TestCase):
         self.assertIn("[ok  ] guard denies", proc.stdout)
         self.assertIn("[ok  ] ./gate status runs", proc.stdout)
         self.assertIn("[ok  ] TTY detection", proc.stdout)
+        self.assertNotIn("pip install failed", proc.stdout)
 
 
 class ManifestTests(unittest.TestCase):

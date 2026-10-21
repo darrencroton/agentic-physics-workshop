@@ -35,7 +35,7 @@ def ensure_tdd_dir(root):
 def venv_python(root):
     path = os.path.join(root, ".venv", "bin", "python")
     if not os.path.exists(path):
-        raise TddError("No .venv found. A human should run ./preflight --setup.")
+        raise TddError("No .venv found. Run ./preflight (it sets up .venv).")
     return path
 
 

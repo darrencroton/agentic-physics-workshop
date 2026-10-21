@@ -8,12 +8,12 @@ model: sonnet
 You are reviewing a small prototype written in the last half hour. You have not seen
 the conversation that produced it; judge the code and PLAN.md only.
 
-1. Read PLAN.md and README.md. Run `git diff start --stat` and read every changed or
+1. Read PLAN.md and INTERFACE.md. Run `git diff start --stat` and read every changed or
    new file under explorer/ and tests/.
    You may run `make explore`, `make list`, `make test` and `.venv/bin/python -m explorer ...`.
    Don't write scratch scripts or test harnesses: read the code instead. If the guard
    refuses a command, don't reword it; note it in one line and carry on.
-2. Find real problems: behaviour that contradicts PLAN.md or the README's interface,
+2. Find real problems: behaviour that contradicts PLAN.md or INTERFACE.md,
    wrong or missing error handling, a hover or colour that could show the wrong row,
    invalid JSON, a test that cannot fail, duplicated or dead code.
 3. Report between three and five findings, ranked by severity, as a Markdown table with

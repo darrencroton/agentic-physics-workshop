@@ -1,3 +1,5 @@
+import contextlib
+import io
 import os
 import shutil
 import subprocess
@@ -54,6 +56,31 @@ class TtyTests(unittest.TestCase):
         self.assertEqual(st.load_state(self.root)["level"], 0)
         code, out = ptyhelper.run_pty([PY, self.gate, "reset"], [("level 0?", "n")], cwd=self.root)
         self.assertEqual(code, 1)
+
+
+class UnlockRenderTests(unittest.TestCase):
+    @staticmethod
+    def render(func, *args):
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            func(*args)
+        return buffer.getvalue()
+
+    def test_header_rule_matches_length(self):
+        self.assertEqual(self.render(cli._header, "Level 1 unlocked: A"),
+                         "Level 1 unlocked: A\n" + "-" * 19 + "\n")
+
+    def test_closing_shows_note_then_talk_prompts(self):
+        gate = {"note": "A note.", "talk": ["One?", "Two?"]}
+        self.assertEqual(
+            self.render(cli._closing, gate),
+            "\nA note.\n\nTalk it over (30 seconds, nothing to type):\n  One?\n  Two?\n")
+        self.assertIn("  Only?", self.render(cli._closing, {"talk": "Only?"}))
+        self.assertEqual(self.render(cli._closing, {}), "")
+
+    def test_check_notes_come_only_from_note_lines(self):
+        self.assertEqual(cli._notes("noise\nNote: be kind.\nNote: again.\n"),
+                         ["Note: be kind.", "Note: again."])
 
 
 class QuestionTextTests(unittest.TestCase):

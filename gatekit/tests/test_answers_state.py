@@ -121,9 +121,29 @@ class ManifestRuleTests(unittest.TestCase):
         for bad in ("Which.", "Pick one (a-d.)", "Pick one (e.g. a.)"):
             with self.assertRaises(mf.ManifestError, msg=bad):
                 mf.validate(self.manifest(prompt=bad))
+
+    def test_talk_prompts_end_in_question_mark(self):
+        for good in ("Why?", ["Why?", "How?"]):
+            ok = self.manifest()
+            ok["levels"][0]["gate"]["talk"] = good
+            mf.validate(ok)
+        for bad in ("Why.", ["Why?", "How"], 3):
+            broken = self.manifest()
+            broken["levels"][0]["gate"]["talk"] = bad
+            with self.assertRaises(mf.ManifestError, msg=repr(bad)):
+                mf.validate(broken)
+
+    def test_old_reflection_keys_are_rejected_with_the_new_names(self):
+        for old, new in (("reflection", "talk"), ("reflections", "talk"),
+                         ("pre_reflection_note", "note")):
+            bad = self.manifest()
+            bad["levels"][0]["gate"][old] = "Why?"
+            with self.assertRaisesRegex(mf.ManifestError, "'%s' is removed.*'%s'"
+                                        % (old, new)):
+                mf.validate(bad)
         bad = self.manifest()
-        bad["levels"][0]["gate"]["reflection"] = "Why."
-        with self.assertRaises(mf.ManifestError):
+        bad["levels"][0]["gate"]["type"] = "crypto-reflection"
+        with self.assertRaisesRegex(mf.ManifestError, "crypto-reflection.*'crypto'"):
             mf.validate(bad)
 
 

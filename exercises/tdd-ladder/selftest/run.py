@@ -140,6 +140,13 @@ def build(args):
     print(proc.stdout.strip())
 
 
+def talked(out, prompt, label):
+    """The unlock screen shows the talk prompt and asks for nothing."""
+    text = " ".join(out.split())
+    check("Talk it over (30 seconds, nothing to type):" in text and prompt in text
+          and "Next: swap the Driver" in text, label, text[-300:])
+
+
 def level0(repo):
     section("Level 0: just build it")
     check(repo.level() == 0, "starts at level 0")
@@ -157,14 +164,13 @@ def level0(repo):
     check(killed <= 6, "L0 kills <= 6", str(killed))
     code, out = repo.gate("unlock", answers=[("acceptance tests passed?", str(acc + 1))])
     check(code == 1 and "Not quite" in out, "wrong acceptance count rejected")
-    code, out = repo.gate("unlock", answers=[("acceptance tests passed?", str(acc)),
-                                             ("nobody asked you about:", "edges; empty bins")])
+    code, out = repo.gate("unlock", answers=[("acceptance tests passed?", str(acc))])
     check(code == 0 and "Level 1 unlocked" in out, "L0 -> L1 unlock", out[-300:])
-    check("Level 1 starts from the stub" in out and "attempt-L1-" in out,
+    check("reset to the stub" in out and "attempt-L1-" in out,
           "unlock says it started a fresh attempt (automatic new-attempt)")
+    talked(out, "Which two decisions did the agent make that nobody asked you about?",
+           "L0 unlock shows the talk prompt")
     check(os.path.exists(os.path.join(repo.root, "BRIEF.md")), "BRIEF.md written")
-    with open(os.path.join(repo.root, "LOG.md")) as fh:
-        check("edges; empty bins" in fh.read(), "reflection logged to LOG.md")
 
 
 def level1(repo):
@@ -196,8 +202,10 @@ def level1(repo):
     acc, killed, fa, _, _ = repo.score()
     check(6 <= acc <= 10, "L1 acceptance in band 6-10", str(acc))
     check(killed <= 8, "L1 kills <= 8", str(killed))
-    code, out = repo.gate("unlock", answers=[("(y/n)", "n"), ("(a-d):", "c")])
+    code, out = repo.gate("unlock")
     check(code == 0 and "Level 2 unlocked" in out, "L1 -> L2 unlock", out[-300:])
+    talked(out, "Did any test fail before the implementation existed?", "L1 unlock shows both talk prompts")
+    check("independent reference?" in " ".join(out.split()), "second L1 talk prompt shown")
 
 
 def level2(repo):
@@ -228,13 +236,15 @@ def level2(repo):
     check(code == 1 and "delete the new file(s): tests/test_stray.py" in out.replace("\r\n", " ").replace("\n", " "),
           "refusal names a stray new file")
     os.unlink(os.path.join(repo.root, "tests", "test_stray.py"))
-    code, out = repo.gate("unlock", answers=[("(0-10)", "6")])
+    code, out = repo.gate("unlock")
     check(code == 0 and "Level 3 unlocked" in out, "L2 -> L3 unlock", out[-400:])
-    check("CLIENT_SPEC.md is now in the repo" in out, "pre-reflection note shown before the question")
+    check("CLIENT_SPEC.md is now in the repo" in out, "gate note shown before the talk prompt")
+    talked(out, "How many of the client's 10 decisions did your SPEC address, whatever you chose?",
+           "L2 unlock shows the talk prompt")
     check(os.path.exists(os.path.join(repo.root, "CLIENT_SPEC.md")), "CLIENT_SPEC.md visible")
     check(repo.is_stub() and sorted(os.listdir(os.path.join(repo.root, "tests"))) == ["__init__.py"],
           "Level 3 starts from the stub (automatic new-attempt)")
-    check("starts from the stub" in out, "unlock says the stub was restored")
+    check("reset to the stub" in out, "unlock says the stub was restored")
 
 
 def run_cycle(repo, n):
@@ -405,8 +415,11 @@ def level5(repo):
     check(code == 1 and "Mutation report" in out, "unlock refused without a mutation report")
     with open(os.path.join(repo.root, "LOG.md"), "a") as fh:
         fh.write("\n## Mutation report\n\nSix mutants, all killed.\n")
-    code, out = repo.gate("unlock", answers=[("and why?", "test_x: duplicates test_y")])
-    check(code == 0 and "Final level complete" in out, "L5 complete", out[-300:])
+    code, out = repo.gate("unlock")
+    check(code == 0 and "Exercise complete. Well done." in out, "L5 complete", out[-300:])
+    print("--- final unlock screen ---\n%s\n---" % out.strip())
+    check("Which test would you delete, and why?" in out and "Next:" not in out,
+          "final level: talk prompt, no Next line")
     check(repo.state()["complete"], "state marked complete")
     code, out = repo.tdd("ladder")
     check(code == 0 and out.count("\n") >= 5, "./tdd ladder lists the scores")
@@ -463,7 +476,7 @@ def main():
         if not args.skip_build:
             build(args)
         if not os.path.exists(repo.venv):
-            raise Fail("no .venv in %s; run ./preflight --setup there first" % repo.root)
+            raise Fail("no .venv in %s; run ./preflight there first (it sets up .venv)" % repo.root)
         preflight(repo)
         if not args.skip_assets:
             verify_assets(repo)

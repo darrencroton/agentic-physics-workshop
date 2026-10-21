@@ -80,7 +80,7 @@ def harness_path(root):
 def venv_python(root):
     path = os.path.join(root, ".venv", "bin", "python")
     if not os.path.exists(path):
-        raise RaceError("no .venv found. A human should run ./preflight --setup.")
+        raise RaceError("no .venv found. Run ./preflight (it sets up .venv).")
     return path
 
 
@@ -287,7 +287,7 @@ def read_division(root):
         import tomllib
     except ImportError:
         raise RaceError("reading race.toml needs Python 3.11+; run this from "
-                        "the .venv (./preflight --setup)") from None
+                        "the .venv (run ./preflight to set it up)") from None
     try:
         with open(toml_path(root), "rb") as fh:
             data = tomllib.load(fh)

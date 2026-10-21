@@ -481,3 +481,63 @@ Probes showed correct answers being refused for their form ("It's the Sun", "N(N
 - **`_grid` alignment fix.** The grid now runs from `lo` rounded to `decimals` to `hi` rounded to `decimals`; before, it started at the unrounded `lo`, so a non-aligned `lo` (log10(499500) = 5.698535) could miss the top form (500000 gives 5.6990). The accepted forms of every existing numeric and numeric-log question (Speed Run matrix, TDD sigma, the test fixture) are unchanged.
 - **TDD Ladder validators.** `spec_id_in_last_survivors` treats an answer with the word none or nil (or just "no" or "0") and no S-prefixed id as "none"; otherwise it collects all S-prefixed ids (falling back to `common.spec_id` for a bare number) and accepts if any is a survivor. `equals_last_acceptance_count` accepts any number in the answer equal to the count. Reason: "none - we killed all 16" was parsed as S16, and "sqrt(0.683*0.317/2500) = 0.0093" and "0.93%" were refused.
 - **Dropped for simplicity.** A `unit` option for byte units, an `options` text mapping for choices, "thousand"/"million" words, superscript and `×10^-3` parsing, a "killed them all" rule and a cap on the number of spec ids. None is needed for the probe answers that matter, and each adds manifest fields and validation. The Speed Run matrix and perbin gates are unchanged.
+
+## Group UX round: leader quickstarts, shorter docs, gentler gates, talk prompts (2026-10-21; facilitator request)
+
+From the facilitator's Explorer playtest. Applies to all three built exercises unless stated. Deviations from `docs/00`–`05` (which still describe typed reflections) and `BUILD-SPEC.md`, which are not edited.
+
+- **Leader quickstart.** Each exercise has `LEADER-QUICKSTART.md` beside its walkthrough: about 850 words covering set-up, the session, each level (goal, what good looks like, one nudge, the gate answer) and what to do when stuck. Like the walkthrough, it is sent with the bundle and never shipped. Reason: the leader material was buried in a 3,000–6,000-word walkthrough.
+- **Shorter group docs.** Every README and brief was rewritten to one shape: Where we are, Do this, Watch for, The gate. Reference material stays where a level needs it. Group-facing words fell by roughly 25–50%. "Persona in force" is dropped from Explorer brief headers. Reason: the reading burden was too heavy for a 45-minute exercise.
+- **Explorer `INTERFACE.md`.** The fixed tool interface moved word for word from the README into `level0/INTERFACE.md`. It is frozen at every level and named in the Level 0 prompt, the personas, `AGENTS.md` and `reviewer.md`. Reason: it is mostly for the agent, and it halved the README. Not called `SPEC.md`, because that is TDD Ladder's group spec.
+- **Explorer side tasks warn but pass.** The following now print a `Note:` line and pass:
+  - Level 0: fewer than three acceptance criteria, or a missing or blank decision line.
+  - Level 2: "Our list" missing or under three items, or the agent's plan missing or empty.
+  - Level 3: "Our guesses" missing or under two, or fewer than three triaged findings.
+  - Still strict: commit counts and clean trees, exactly two plan steps, the `Dataset:` line, plan sections present and non-empty, tests, and tool output.
+  - Notes go to the check's stderr; stdout is still `success_line`, so `answers.json` is unchanged.
+  - Reason: the facilitator's request that a group not be blocked by a skipped side task. Version control stays strict, as a lesson in itself.
+- **TDD Ladder and Speed Run gates unchanged.** `SPEC.md` (Level 2) and the mutation report (Level 5) are those levels' whole output, not side tasks. Speed Run's only human-written check is the `race.toml` justification, which is the correctness declaration itself.
+- **No typed reflections.** The manifest keys `reflection`, `reflections` and `pre_reflection_note`, and the gate type `crypto-reflection`, are replaced by `talk` (printed under "Talk it over (30 seconds, nothing to type):"), `note` and `crypto`; `manifest.validate` rejects the old keys. Each `LOG.md` has a `### Talk it over: <prompt>` heading where the Scribe can note the answer. Reason: typing an answer stalled the group just as they wanted to move on.
+- **Unlock screen.** It now shows, in order:
+  - `PASS` and any notes;
+  - the graded questions;
+  - `Level N unlocked: <title> (about M minutes)` with a dash rule;
+  - new files, other than `BRIEF.md`;
+  - any post-unlock message;
+  - `Next: swap the Driver, then <start>.` (from a new optional level field, `start`);
+  - `Brief: BRIEF.md (or ./gate brief)`;
+  - the gate note, then the talk prompts.
+
+  The final screen is headed `Exercise complete. Well done.`. Dropped: `BRIEF.md` from "New files" (every level has one, and the Brief line names it) and Explorer's "Recorded commit …" line (plumbing). TDD's stub-reset message is shortened. Explorer `pass_message`s are worded so they stay true when notes are shown. Reason: the next action was buried.
+- **A template must not satisfy a gate.** TDD's `LOG.md` template briefly gained a `## Mutation report` heading, which would have opened the Level 5 gate. It was removed, and the Level 5 brief now says to add the section.
+
+### External review panel, round 1 (Codex gpt-6.1-sol high, Claude Opus 5.5 high)
+
+Both returned REVISE, with no gate-code defects. Every finding was independently verified.
+
+| # | From | Finding | Decision |
+|---|---|---|---|
+| 1 | Codex | The Explorer quickstart says to open the browser before the first commit, but step 1 has no page | Fixed: open it once the page exists, before committing it |
+| 2 | Codex | The Explorer L3 brief tells every group to fix a FIX item, even when they marked none | Fixed: "If you marked a FIX:" |
+| 3 | Claude | Briefs over-run the spec's shape limits; repeated closing lines | Fixed: Where we are, Watch for and The gate trimmed, and repeats removed. Load-bearing reference material kept. The 50% cut was a guideline, so exercises with exact numbers or rules keep them |
+| 4 | Claude | `BRIEF.md` *is* copied to the repo root on unlock, so "hidden directory" was a false reason | Fixed: the screen says `Brief: BRIEF.md (or ./gate brief)`, and the reason is corrected above |
+| 5 | Claude | The Explorer README gate line still lists "the four decisions" as required | Fixed: "every section filled in" |
+| 6 | Claude | The Explorer walkthrough misquotes a note and names a source path | Fixed |
+| 7 | Claude | Speed Run `LOG.md` bullets duplicate the talk headings | Fixed: bullets removed |
+| 8 | Claude | The Speed Run README lists extra commands after its table | Fixed: sentence removed |
+| 9 | Claude | Two `start` lines read "then … then" | Fixed |
+| Q | Claude | The decision record says Speed Run has no human-written checks, but the `race.toml` justification is one | Wording corrected; it stays strict as the correctness declaration |
+
+### One `./preflight`, and no assumed folders (2026-10-21; facilitator request)
+
+- **`./preflight` sets itself up.** It checks that `.venv` is current: its python runs and every `==` pin is installed at its pinned version. If not, it prints one set-up line, creates `.venv` if it is missing or broken, and installs `requirements.txt`; then it runs the checks as before. A set-up failure shows as a `FAIL` line, and the checks still run. `--setup` forces the reinstall as a repair. A current `.venv` costs nothing and never touches the network.
+  - Why: there was no case where a human wanted the checks without the set-up.
+  - The agent was already able to run `./preflight --setup`, which installs only the pinned requirements, so this adds no new capability.
+  - `BUILD-SPEC.md` and `docs/00`/`05` still describe the two-step form; they are historical designs.
+- **No assumed folders.** The walkthroughs and quickstarts no longer name `~/Desktop`, `~/Downloads` or `~/opus-control`. The bundle is written in the current folder, and a comment says to copy it out, because a rebuild wipes `dist/<name>`. The clone runs wherever the bundle was saved. The master passphrase path is the project's documented config location and stays.
+- **Panel round 3 on preflight** (Codex REVISE, Claude ACCEPT):
+  - `--setup` now passes `--force-reinstall`, because plain pip skips satisfied pins.
+  - A venv without pip is treated as broken and recreated.
+  - With no `requirements.txt` there is nothing to set up, which avoids a misleading FAIL in the gatekit fixture.
+  - Import-failure messages point to `./preflight --setup`.
+  - The bundle comment warns that a reset deletes it too. The command stays as the facilitator asked: no folder assumed.

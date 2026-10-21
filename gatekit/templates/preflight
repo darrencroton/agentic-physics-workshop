@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Workshop preflight.
 
-./preflight          check the machine is ready (anyone)
-./preflight --setup  create .venv and install requirements.txt (humans, once)
+./preflight          set up .venv if it is missing or out of date (first run
+                     needs the network, about a minute), then check the
+                     machine is ready
+./preflight --setup  also reinstall requirements.txt even if .venv looks
+                     current (a repair), then check
 """
 
 import json
@@ -44,17 +47,8 @@ def pinned_requirements():
     return pins
 
 
-def check_python():
-    report(sys.version_info >= (3, 9), "python3 on PATH is %d.%d (need 3.9+)"
-           % sys.version_info[:2])
-
-
-def check_venv():
-    if not report(os.path.exists(VENV_PY), ".venv present",
-                  "" if os.path.exists(VENV_PY) else
-                  "run ./preflight --setup once"):
-        return
-    pins = pinned_requirements()
+def installed_versions(pins):
+    """Return {name: installed version or None} for each pinned name."""
     code = ("import importlib.metadata as m, sys, json\n"
             "out = {}\n"
             "for n in sys.argv[1:]:\n"
@@ -63,8 +57,47 @@ def check_venv():
             "    except Exception:\n"
             "        out[n] = None\n"
             "print(json.dumps(out))\n")
-    proc = run([VENV_PY, "-c", code] + list(pins))
-    found = json.loads(proc.stdout or "{}") if proc.returncode == 0 else {}
+    try:
+        proc = run([VENV_PY, "-c", code] + list(pins))
+    except OSError:
+        return {}
+    if proc.returncode != 0:
+        return {}
+    try:
+        return json.loads(proc.stdout or "{}")
+    except ValueError:
+        return {}
+
+
+def venv_usable():
+    """True if .venv python runs and can import pip."""
+    try:
+        return run([VENV_PY, "-c", "import pip"]).returncode == 0
+    except OSError:
+        return False
+
+
+def venv_current():
+    """True if .venv python runs and every == pin is installed at its version."""
+    if not venv_usable():
+        return False
+    pins = pinned_requirements()
+    found = installed_versions(pins)
+    return all(found.get(name) == version for name, version in pins.items())
+
+
+def check_python():
+    report(sys.version_info >= (3, 9), "python3 on PATH is %d.%d (need 3.9+)"
+           % sys.version_info[:2])
+
+
+def check_venv():
+    if not report(os.path.exists(VENV_PY), ".venv present",
+                  "" if os.path.exists(VENV_PY) else
+                  "set-up failed; see above"):
+        return
+    pins = pinned_requirements()
+    found = installed_versions(pins)
     for name, version in pins.items():
         have = found.get(name)
         report(have == version, "%s %s" % (name, version),
@@ -156,32 +189,49 @@ def check_exercise():
         report(proc.returncode == 0, "exercise-specific checks")
 
 
-def setup():
-    python = SETUP_PYTHON if os.path.exists(SETUP_PYTHON) else "python3"
-    probe = run([python, "-c", "import sys; print('%d.%d' % sys.version_info[:2])"])
-    version = tuple(int(x) for x in probe.stdout.strip().split(".")) if probe.returncode == 0 else (0, 0)
-    if version < (3, 11):
-        print("Need Python 3.11 or newer to create .venv; %s is %s." % (python, probe.stdout.strip() or "missing"))
-        print("Install Python 3.11+ (for example `brew install python@3.13`) and run:")
-        print("  /path/to/python3.13 -m venv .venv && .venv/bin/pip install -r requirements.txt")
-        return 1
-    print("Creating .venv with %s (%s)" % (python, probe.stdout.strip()))
-    proc = subprocess.run([python, "-m", "venv", os.path.join(ROOT, ".venv")])
+def setup(force=False):
+    """Create/repair .venv. Return None on success or a failure message."""
+    if not os.path.isfile(os.path.join(ROOT, "requirements.txt")):
+        return None
+    if not force and venv_current():
+        return None
+    print("Setting up .venv (first run: needs the network, about a minute)")
+    if not venv_usable():
+        python = SETUP_PYTHON if os.path.exists(SETUP_PYTHON) else "python3"
+        probe = run([python, "-c",
+                     "import sys; print('%d.%d' % sys.version_info[:2])"])
+        text = probe.stdout.strip() if probe.returncode == 0 else ""
+        try:
+            version = tuple(int(x) for x in text.split("."))
+        except ValueError:
+            version = (0, 0)
+        if version < (3, 11):
+            print("Need Python 3.11 or newer to create .venv; %s is %s."
+                  % (python, text or "missing"))
+            print("Install Python 3.11+ (for example `brew install "
+                  "python@3.13`) and run:")
+            print("  /path/to/python3.13 -m venv .venv && "
+                  ".venv/bin/pip install -r requirements.txt")
+            return "Python 3.11+ needed to create .venv"
+        print("Creating .venv with %s (%s)" % (python, text))
+        proc = subprocess.run([python, "-m", "venv", "--clear",
+                               os.path.join(ROOT, ".venv")])
+        if proc.returncode != 0:
+            return "venv creation failed"
+    cmd = [VENV_PY, "-m", "pip", "install", "-q"]
+    if force:
+        cmd.append("--force-reinstall")
+    cmd += ["-r", os.path.join(ROOT, "requirements.txt")]
+    proc = subprocess.run(cmd)
     if proc.returncode != 0:
-        print("venv creation failed")
-        return 1
-    proc = subprocess.run([VENV_PY, "-m", "pip", "install", "-q", "-r",
-                           os.path.join(ROOT, "requirements.txt")])
-    if proc.returncode != 0:
-        print("pip install failed")
-        return 1
-    print("Done. Now run ./preflight")
-    return 0
+        return "pip install failed (is the network up?)"
+    return None
 
 
 def main(argv):
-    if "--setup" in argv:
-        return setup()
+    failure = setup(force="--setup" in argv)
+    if failure:
+        report(False, ".venv set-up", failure)
     check_python()
     check_venv()
     check_git()

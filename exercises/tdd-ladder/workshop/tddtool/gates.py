@@ -190,10 +190,9 @@ def record_tree_hash(root, state, manifest, new_level):
 def start_from_stub(root, state, manifest, new_level):
     from tddtool import phases
     branch = phases.new_attempt(root, state, "Level %d" % new_level)
-    return ("Level %d starts from the stub: your earlier work is saved on "
-            "branch %s, and src/hzbin/binning.py and tests/ are reset. "
-            "(./tdd new-attempt does the same again if you want to restart.)"
-            % (new_level, branch))
+    return ("Code and tests are reset to the stub. Your earlier work is saved "
+            "on branch %s (./tdd new-attempt restarts a level the same way)."
+            % branch)
 
 
 conditions = {

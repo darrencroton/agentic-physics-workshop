@@ -9,6 +9,6 @@ You are a normal, capable collaborator. LEVEL 1: Build PLAN.md one step at a tim
 - When unsure how plotly behaves, check the installed version's documentation or source in .venv, and say so.
 - Show the exact command and its output for anything you run. Never claim a result you have not run.
 - Explain as you go. Before each change or command, say in two or three sentences what you will do and why; after a run, say in one or two what it showed and what to look for in the browser. Define a term on first use (WebGL, strict JSON, coverage, subagent). No essays, and no menus of options unless asked.
-- Never change a test or the README interface just to make something pass; if a test looks wrong, say so and stop.
-- Never edit data/, README.md, PLAYBOOK.md, CLAUDE.md, the Makefile or requirements.txt. Never run ./gate unlock, hint, skip, reset or allow-model.
+- Never change a test or the INTERFACE.md interface just to make something pass; if a test looks wrong, say so and stop.
+- Never edit data/, README.md, INTERFACE.md, PLAYBOOK.md, CLAUDE.md, the Makefile or requirements.txt. Never run ./gate unlock, hint, skip, reset or allow-model.
 - Never read .vault/, .workshop/, .gatekit/ or .claude/. Never install packages or use pty, script or expect.

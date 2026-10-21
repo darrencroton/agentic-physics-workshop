@@ -9,7 +9,7 @@ Hands-on exercises for a workshop of about 70 minutes (a 15-minute lecture, then
 | You are | Start here |
 |---|---|
 | Organising the workshop (the facilitator) | [Run the workshop](#run-the-workshop) |
-| Leading one group on the day | Your exercise's facilitator walkthrough (linked in the table below), from its section "Group leaders: set up your laptop" onwards. The facilitator sends it to you with your copy of the repo, so you do not need this repository. |
+| Leading one group on the day | Your exercise's `LEADER-QUICKSTART.md` (one or two pages: set-up, the session, each level, when stuck), then its facilitator walkthrough for the detail, from "Group leaders: set up your laptop" onwards. The facilitator sends both with your copy of the repo, so you do not need this repository. |
 | Adapting or writing an exercise | [Build and extend](#build-and-extend) |
 
 ## The exercises
@@ -27,10 +27,10 @@ Each exercise's **facilitator walkthrough** is its operating guide, for the faci
 ## How a session works
 
 - **Two windows.** Claude Code in a large window, driven by the group. A small **gate terminal** that only humans type in.
-- **Gates.** Each level ends with a gate: a check that the work is done, then a question only someone who did the work can answer, or a short reflection that is logged. `./gate unlock` runs the check, asks, and decrypts the next level from the encrypted **vault** shipped with the repo. Claude's shell has no terminal, so it cannot type there.
+- **Gates.** Each level ends with a gate: a check that the work is done, then, at some gates, a question only someone who did the work can answer. `./gate unlock` runs the check, asks, decrypts the next level from the encrypted **vault** shipped with the repo, and ends with a short prompt for the group to talk over (nothing to type). Claude's shell has no terminal, so it cannot type there.
 - **A teacher, not an oracle.** A short **persona** is injected into every prompt and tells Claude how to behave at that level: for example, literal at first, so the group sees what happens without discipline, then a coach that runs the group's experiments but does not hand over answers. Every persona also asks Claude to explain briefly what it is about to do and what each result means, so people who missed the introduction can keep up.
 - **Guard rails.** A hook blocks Claude from the vault, the gate, package installs and the files a level has frozen. Every block carries a teaching message, and Claude is told to report a block rather than work round it; the block itself often starts the best discussion of the hour.
-- **Hints, logs, a master key.** Three timed hints per level, and a fourth that gives the answer at levels with a graded question; every unlock, hint and reflection logged for the show-and-tell; a facilitator passphrase to skip a stuck group or grant a **power-up** to a stronger model.
+- **Hints, logs, a master key.** Three timed hints per level, and a fourth that gives the answer at levels with a graded question; every unlock and hint logged, and a Scribe's `LOG.md` for the show-and-tell; a facilitator passphrase to skip a stuck group or grant a **power-up** to a stronger model.
 
 This is a learning scaffold, not an exam proctor. A group can cheat; they would be cheating themselves out of their hour of practice. The limits are written down in [`gatekit/README.md`](gatekit/README.md#11-honest-limits) and are worth saying aloud in the lecture.
 
@@ -50,7 +50,7 @@ You build one participant repo per exercise from this repository, rehearse it, a
    ```
 
 4. **Build, check and rehearse each exercise you will run:** follow "Facilitator: build and rehearse" in its walkthrough. Play it through once yourself, on the exercise's model, before the day; [Building and Calibrating the Exercises](docs/00-facilitator-guide.md#6-building-and-calibrating-the-exercises) in the facilitator guide has the fuller calibration matrix.
-5. **Give each leader their repo:** follow "Facilitator: give the repo to group leaders" in the walkthrough. You send a bundle made from a freshly built or reset repo, together with the walkthrough, and decide who types the master passphrase on the day. Leaders set up their own laptops with "Group leaders: set up your laptop". Groups bringing their own agent harness can do Explorer (they read `OTHER-AGENTS.md` in the repo); the other exercises need Claude Code.
+5. **Give each leader their repo:** follow "Facilitator: give the repo to group leaders" in the walkthrough. You send a bundle made from a freshly built or reset repo, together with the walkthrough and the leader quickstart, and decide who types the master passphrase on the day. Leaders set up their own laptops with "Group leaders: set up your laptop". Groups bringing their own agent harness can do Explorer (they read `OTHER-AGENTS.md` in the repo); the other exercises need Claude Code.
 6. **Brief the leaders, then run the day:** the facilitator guide has the leaders' briefing ([Pre-Event Setup](docs/00-facilitator-guide.md#7-pre-event-setup)), the [lecture](docs/00-facilitator-guide.md#3-the-pre-session-lecture-15-min) and the run-sheet and stuck protocol ([Running the Day](docs/00-facilitator-guide.md#8-running-the-day)).
 7. **Afterwards:** each walkthrough says what to copy out for the record ("What to record") and how to reset between runs. For a trial run, [Trial With Your Research Group](docs/00-facilitator-guide.md#9-trial-with-your-research-group) says what to measure.
 

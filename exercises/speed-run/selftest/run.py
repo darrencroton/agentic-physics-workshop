@@ -195,6 +195,13 @@ def verify_assets(repo):
         check(same, "samples/%s is a current copy of hidden/solutions/%s" % (sample, solution))
 
 
+def talked(out, prompt, label):
+    """The unlock screen shows the talk prompt and asks for nothing."""
+    text = " ".join(out.split())
+    check("Talk it over (30 seconds, nothing to type):" in text and prompt in text
+          and "Next: swap the Driver" in text, label, text[-300:])
+
+
 def level0(repo):
     section("3. Level 0: measure before you touch anything")
     check(repo.level() == 0, "starts at level 0")
@@ -235,12 +242,11 @@ def level0(repo):
     print("    " + "\n    ".join(line for line in out.splitlines() if "predicted" in line))
     code, out = repo.gate("unlock", answers=[("N = 1000?", "N(N+1)/2 = 500500")])
     check(code == 1 and "Not quite" in out, "wrong pair count (N(N+1)/2 = 500500) rejected")
-    code, out = repo.gate("unlock", answers=[("N = 1000?", "N(N-1)/2 = 499,500"),
-                                             ("how you got it:", "about 40 minutes from alpha 2")])
+    code, out = repo.gate("unlock", answers=[("N = 1000?", "N(N-1)/2 = 499,500")])
     check(code == 0 and "Level 1 unlocked" in out, "N(N-1)/2 = 499,500 unlocks level 1", flat(out)[-300:])
     check(os.path.exists(repo.path("BRIEF.md")), "BRIEF.md appears")
-    with open(repo.path("LOG.md")) as fh:
-        check("about 40 minutes from alpha 2" in fh.read(), "reflection logged to LOG.md")
+    talked(out, "From your fit, what runtime does the reference predict at N = 200,000, and how did you get it?",
+           "level 0 unlock shows the talk prompt")
 
 
 def level1(repo):
@@ -287,9 +293,10 @@ def level1(repo):
     repo.install("l1_chunked")
     code, out = repo.gate("unlock", answers=[("float64 matrix?", "500")])
     check(code == 1 and "Not quite" in out, "wrong matrix size (500 GB) rejected")
-    code, out = repo.gate("unlock", answers=[("float64 matrix?", "200000^2 * 8 / 1e9 = 320"),
-                                             ("what the harness measured:", "3.2 GB; killed")])
+    code, out = repo.gate("unlock", answers=[("float64 matrix?", "200000^2 * 8 / 1e9 = 320")])
     check(code == 0 and "Level 2 unlocked" in out, "'200000^2 * 8 / 1e9 = 320' unlocks level 2", flat(out)[-300:])
+    talked(out, "What was your memory estimate before the 20k run, and what did the harness measure?",
+           "level 1 unlock shows the talk prompt")
 
 
 def tool_only_runs(repo):
@@ -380,9 +387,10 @@ def level2(repo):
                     % (rec["seconds"], rec["repeats"], rec["peak_rss_bytes"] / GB)))
     code, out = repo.gate("unlock", answers=[("(a-d):", "a")])
     check(code == 1 and "Not quite" in out, "wrong letter (a) rejected")
-    code, out = repo.gate("unlock", answers=[("(a-d):", "c - the second only"),
-                                             ("decided it?", "exact; the diff table")])
+    code, out = repo.gate("unlock", answers=[("(a-d):", "c - the second only")])
     check(code == 0 and "Level 3 unlocked" in out, "'c - the second only' unlocks level 3", flat(out)[-300:])
+    talked(out, "Which division did you enter, and what evidence decided it?",
+           "level 2 unlock shows the talk prompt")
 
 
 def submit(repo, label):
@@ -451,9 +459,11 @@ def level3(repo):
           and "score %5s" % ("%.2f" % sub["score"]) in board[1],
           "./race board lists all three submissions")
     print("\n".join("    " + line for line in board))
-    code, out = repo.gate("unlock", answers=[("showed it:", "trusting the default compiler flags")])
-    check(code == 0 and "Final level complete" in out and repo.state()["complete"],
+    code, out = repo.gate("unlock")
+    check(code == 0 and "Exercise complete. Well done." in out and repo.state()["complete"],
           "level 3 unlock completes the exercise", flat(out)[-300:])
+    check("What was your biggest wrong turn, and what evidence showed it?" in flat(out)
+          and "Next:" not in out, "final level: talk prompt, no Next line")
 
 
 def finale(repo, passfile):
@@ -503,7 +513,7 @@ def main():
         if not args.skip_build:
             build(args)
         if not os.path.exists(repo.venv):
-            raise Fail("no .venv in %s; run ./preflight --setup there first" % repo.root)
+            raise Fail("no .venv in %s; run ./preflight there first (it sets up .venv)" % repo.root)
         preflight(repo)
         if not args.skip_assets:
             verify_assets(repo)

@@ -7,6 +7,8 @@ This is the operating guide to the exercise. It has two readers:
 - **The facilitator** (the organiser) builds the participant repo, rehearses it, sends it to the group leaders and holds the master passphrase. Read all of it.
 - **Group leaders** set up their own laptop from the bundle the facilitator sends, and coach one group. Start at [section 3](#3-group-leaders-set-up-your-laptop); sections 1 and 2 are the facilitator's.
 
+Group leaders also get the one-page [`LEADER-QUICKSTART.md`](LEADER-QUICKSTART.md): send it with the bundle.
+
 The lecture, roles by group size, the run-sheet and the trial are in `docs/00-facilitator-guide.md` in the builder repository.
 
 ## 1. Facilitator: build and rehearse
@@ -17,11 +19,10 @@ Once per machine, do steps 2 and 3 of "Run the workshop" in the repository [`REA
 cd <this repository>
 python3 tools/build.py tdd-ladder --master-passphrase-file ~/.config/workshop/master-passphrase --keep-venv
 cd dist/tdd-ladder
-./preflight --setup      # only if .venv is missing; creates .venv and installs the pins (network, once)
-./preflight              # must end with "Preflight passed"
+./preflight              # first run sets up .venv (needs the network, about a minute); must end with "Preflight passed"
 ```
 
-Then do the Claude Code checks in section 3, step 4, play the whole exercise through once on Haiku using section 5, and reset (section 7).
+Then do the Claude Code checks in section 3, step 3, play the whole exercise through once on Haiku using section 5, and reset (section 7).
 
 - `--keep-venv` preserves an existing `dist/tdd-ladder/.venv` across rebuilds. Everything else in `dist/tdd-ladder` is regenerated, including the git history, so rebuild only between runs.
 - The participant `.venv` is made with `/opt/homebrew/bin/python3.13` when that exists, otherwise `python3`. Pass `--setup-python /path/to/python3` to the build to bake in another Python 3.11+.
@@ -37,7 +38,7 @@ Each leader gets a copy of the built participant repo as a git bundle: one file 
    ```zsh
    cd dist/tdd-ladder
    git status --short && git log --oneline && git branch   # expect no changes, one commit "Workshop start", only main
-   git bundle create ~/Desktop/tdd-ladder.bundle --all      # under 100 KB
+   git bundle create tdd-ladder.bundle --all      # written here; copy it out before a reset or rebuild, which delete it (under 100 KB)
    ```
 
 3. Send each leader the bundle and this walkthrough file. Ask them to work through section 3 before the leaders' briefing, so problems surface early. A private git remote works too: push `main` and the `start` tag, and send the clone URL instead.
@@ -56,20 +57,19 @@ Do not install anything else. If preflight asks for something, check with the fa
 
 This exercise needs Claude Code: its lessons depend on Claude Code hooks (the personas, the model lock and the guard), so groups on another agent should do Explorer instead.
 
-1. Clone the bundle the facilitator sent (adjust the path to wherever you saved it):
+1. Clone the bundle the facilitator sent (run this in the folder where you saved it, or give its full path):
 
    ```zsh
-   git clone ~/Downloads/tdd-ladder.bundle tdd-ladder && cd tdd-ladder
+   git clone tdd-ladder.bundle tdd-ladder && cd tdd-ladder
    ```
 
-2. `./preflight --setup` creates `.venv` and installs the pinned numpy, matplotlib and pytest (a minute or so; the only step that needs the network apart from Claude Code). If it says your Python is too old, it prints the command to run with a newer one.
-3. `./preflight` must end with "Preflight passed". The first run also sets the workshop up at level 0.
-4. Run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Then, in Claude Code (about a minute):
+2. `./preflight` creates `.venv` and installs the pinned numpy, matplotlib and pytest, then checks the machine. The first run needs the network and takes about a minute (the only step that needs the network apart from Claude Code). If it says your Python is too old, it prints the command to run with a newer one. It must end with "Preflight passed"; the first run also sets the workshop up at level 0.
+3. Run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Then, in Claude Code (about a minute):
    1. `/hooks`: four events must be listed (SessionStart, UserPromptSubmit, PreToolUse, PreModelSwitch). If the list is empty, the trust dialog was not accepted: `/exit` and run `claude` again.
    2. `/status`: the model line must say Haiku.
    3. `/model` and pick Sonnet (or Default): it must be refused with "Today's exercise uses haiku. Ask a facilitator for a power-up." Picking Haiku again is allowed and does nothing.
    4. `/exit`.
-5. Rehearse: play Levels 0 and 1 yourself following section 5, then reset (section 7) so the group starts at level 0.
+4. Rehearse: play Levels 0 and 1 yourself following section 5, then reset (section 7) so the group starts at level 0.
 
 ## 4. Running the session
 
@@ -127,13 +127,13 @@ Need the master passphrase, which the facilitator holds, so call them over: `./g
 
 1. Driver pastes the client's request from `README.md` into Claude exactly as written. Accept what it gives you. If it asks a question, answer "whatever you think best".
 2. In Claude: `make plot`. Look at `results/hz_binned.png`; a copy is kept as `results/hz_binned_L0.png`.
-3. Gate terminal: `./tdd score` (about 2 s). Then `./gate unlock`. The unlock saves the Level 0 work on branch `attempt-L1-<timestamp>` and restores the stub and an empty `tests/` automatically, and says so.
+3. Gate terminal: `./tdd score` (about 2 s). Then `./gate unlock`. The unlock saves the Level 0 work on branch `attempt-L1-<timestamp>` and restores the stub and an empty `tests/` automatically, and says so. The unlock screen ends with `Next:` and `Brief:` lines, then a talk prompt.
 
 Observe: does Haiku ask any questions, or just decide? Does it write tests? Typical score with the sample naive code: acceptance 4/12, 1/16 killed, 2 false alarms. Anything in the band acceptance 4–9 and kills ≤ 6 is the expected experience.
 
 Ask: "What did the score say? Which decisions did Claude make for us?"
 
-Gate answer: the acceptance number printed by `./tdd score`. Reflection (logged, not graded): two silent decisions.
+Gate answer: the acceptance number printed by `./tdd score`. Talk prompt (nothing to type): which two decisions the agent made that nobody asked about.
 
 ### Level 1: "Use TDD, please" (6 min, persona literal)
 
@@ -146,13 +146,13 @@ The unlock commits the Level 1 work as "Level 2 start", so the Level 2 refusal c
 
 Ask: "Scribe, did any test fail before code existed? Where did that expected value come from?"
 
-Gate: no graded question. Reflections: red seen (y/n); oracle source (a–d). Expected band: acceptance 6–10, kills ≤ 8.
+Gate: no graded question. Two talk prompts, nothing typed: was red seen, and where did the expected values come from (hand calculation, the agent's arithmetic, running the code, an independent reference). Expected band: acceptance 6–10, kills ≤ 8.
 
 ### Level 2: Decide before you test (10 min, persona coach)
 
 1. Driver uses the interview prompt from `BRIEF.md`. Claude should ask one question at a time and never suggest answers. Cap the interview at 8 minutes.
 2. Claude writes `SPEC.md` with numbered decisions (`1.`, `2.`, … at least 6). No code, no tests: the guard allows only `SPEC.md` and `LOG.md`, and the gate checks that `src/` and `tests/` are byte-identical to when the level began.
-3. `./gate unlock`. If `src/` or `tests/` changed, the refusal names the files and the `git checkout` or delete needed. The unlock writes `CLIENT_SPEC.md`, resets `src/hzbin/binning.py` and `tests/` to the stub (your work is on `attempt-L3-<timestamp>`), and only then asks the reflection "how many of the client's 10 decisions did your SPEC address?".
+3. `./gate unlock`. If `src/` or `tests/` changed, the refusal names the files and the `git checkout` or delete needed. The unlock writes `CLIENT_SPEC.md`, resets `src/hzbin/binning.py` and `tests/` to the stub (your work is on `attempt-L3-<timestamp>`), and prints the note that `CLIENT_SPEC.md` is now in the repo. The talk prompt follows: how many of the client's 10 decisions did your SPEC address, whatever you chose?
 
 Observe: whether the group argues about what the error bar means and where the point sits (S4, S5). Most groups anticipate 5–8 of 10. Watch for one person deciding everything, and for Claude steering the answers.
 
@@ -193,7 +193,7 @@ Gate answer: √(0.683 × 0.317 / 2500) ≈ 0.0093. Accepted: 0.0090 to 0.0096, 
 
 ### Level 5: Stretch, test the tests (5 min, persona collaborator)
 
-Claude (via a subagent) writes mutants of the group's own `binning.py`; the group runs its suite against each. The gate needs a `## Mutation report` section in `LOG.md`. Reflection: one test you'd delete.
+Claude (via a subagent) writes mutants of the group's own `binning.py`; the group runs its suite against each. The gate needs a `## Mutation report` section in `LOG.md`. Talk prompt: which test would you delete, and why?
 
 ## 6. When something goes wrong
 
@@ -223,7 +223,7 @@ The facilitator can instead rebuild (`tools/build.py … --keep-venv`), which al
 
 ## 8. What to record
 
-`.workshop/state.json` holds per-level start and unlock times, hints used, failed attempts, skips, model power-ups and every score. `./tdd ladder` prints the score curve for the show-and-tell. `LOG.md` has the reflections and the Scribe's notes. Copy both out before `./gate reset`, and leaders send their copies to the facilitator.
+`.workshop/state.json` holds per-level start and unlock times, hints used, failed attempts, skips, model power-ups and every score. `./tdd ladder` prints the score curve for the show-and-tell. `LOG.md` has the Scribe's notes and the unlock entries; the talk prompts are for conversation and are not recorded. Copy both out before `./gate reset`, and leaders send their copies to the facilitator.
 
 For the show-and-tell, ask each group:
 

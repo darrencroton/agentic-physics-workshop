@@ -7,7 +7,8 @@
   ],
   "frozen": [
     "tests/**",
-    "PLAYBOOK.md"
+    "PLAYBOOK.md",
+    "INTERFACE.md"
   ],
-  "message": "At this level the agent may edit explorer/, PLAN.md and LOG.md (scratch files go in out/); tests/ is frozen until Level 2, so build first and test next."
+  "message": "At this level the agent may edit explorer/, PLAN.md and LOG.md (scratch files go in out/); tests/ is frozen until Level 2, so build first and test next. INTERFACE.md is the fixed tool interface and stays read-only."
 }

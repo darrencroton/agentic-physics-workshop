@@ -1,36 +1,28 @@
 # Level 2: Decide before you test
 
-**Target time:** 10 minutes. **Persona in force:** `coach`.
+**Target time:** 10 minutes. **Persona:** `coach`.
 
 ## Where we are
 
-At Level 1 you asked for TDD, and probably saw tests and code arrive together, all green, with expected numbers that came from the agent. A test that never failed, with numbers nobody checked, proves little. The deeper problem comes earlier: nobody had decided what the function should do, so every awkward case was settled by default.
+At Level 1 nobody decided what the function should do, so every awkward case was settled by default. Now you write the decisions down first. The agent becomes a coach: it interviews you and never suggests answers.
 
-This level is about **specification**: writing the decisions down *before* any test or code. The agent switches to `coach` mode and interviews you. It asks questions but never suggests answers, because the decisions have to be yours.
+**No code, no tests.** The agent may write only `SPEC.md` and `LOG.md`. The gate checks that `src/` and `tests/` are unchanged.
 
-**No code, no tests.** The agent may only write `SPEC.md` (and `LOG.md`). Please do not touch `src/` or `tests/` during this level, because the gate checks that they are unchanged.
+## Do this
 
-## What to do
-
-1. In the agent window, ask the agent to interview you. A good prompt:
+1. Ask the agent to interview you:
 
    > We need to implement binned_weighted_mean(x, y, sigma, edges). Interview us about every behavioural decision: inputs, edge cases, conventions, errors, outputs. Ask about the hard parts we may not have considered. Don't suggest answers. Then write SPEC.md with numbered decisions.
 
-2. Answer as a group, not as one person. Argue it out.
-3. Scribe: record each decision and who disagreed.
-4. Check that `SPEC.md` has numbered decisions (at least six, each on its own line as `1.`, `2.`, ...) and says what you actually decided.
+2. Answer as a group and argue it out. Scribe: log each decision and who disagreed.
+3. Check `SPEC.md` has at least six numbered decisions (`1.`, `2.`, ...), one per line, saying what you actually decided.
 
-## What to watch for
+## Watch for
 
-- One person deciding everything.
-- The agent steering your answers instead of asking.
-- Questions you did not think of until the agent asked.
-- Do you all agree on what the error bar means? What does the person reading the plot assume?
+- One person deciding everything, or the agent steering your answers.
+- Questions you hadn't thought of until the agent asked.
+- Do you all agree what the error bar means? What does the person reading the plot assume?
 
-## Opening the gate
+## The gate
 
-In the gate terminal, run `./gate unlock`. It checks `SPEC.md` has at least six numbered decisions and that `src/` and `tests/` are unchanged. If they changed, it names the files and how to put them back.
-
-Once it unlocks, `CLIENT_SPEC.md` appears. Read it, then answer the reflection question: how many of the client's 10 decisions did your SPEC address (0 to 10)? Whatever you chose counts.
-
-Then reconcile: adopt the client's spec where it differs. If you think the client got something wrong, that is a conversation with the client, not something to override quietly in code.
+`./gate unlock` needs six numbered decisions and `src/` and `tests/` unchanged; if not, it names the files and how to restore them. It then reveals `CLIENT_SPEC.md`: read it together, and adopt the client's choice where you differ. If you think the client is wrong, that is a conversation with the client, not a quiet override in code. A talk prompt follows.
