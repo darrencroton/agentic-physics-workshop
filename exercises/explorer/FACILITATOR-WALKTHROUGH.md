@@ -230,20 +230,20 @@ Honest limit: the check scripts print a fixed line, so each crypto gate's only s
 
 | Symptom | Do |
 |---|---|
-| Group stuck | `./gate hint` (3 tiers; at Level 1 a fourth gives the answer), then a question. A stuck Level 1 is the likeliest. The last resort is `./gate skip --master` (needs the master passphrase), which opens the next level but installs no code. To let the group still test and review a real tool, run `./gate install-solution --master`: it installs and commits the reference solution. |
-| Build too slow for the time | The same: `./gate skip --master`, then `./gate install-solution --master`. Say so to the group. |
-| `./gate` says it is "for humans, in the gate terminal" | It was run from the agent's shell, or from a window opened from Claude Code. Use a fresh Terminal window. |
+| A command says it is for humans | Use a fresh Terminal window, not Claude Code's shell. |
+| Hooks don't fire, or the agent edits what should be frozen | The trust dialog was missed (`/hooks` is empty): `/exit`, run `claude` again, accept trust. |
+| The agent names the wrong model | Trust `/status`, not what it says: the session is locked to Sonnet. |
+| The agent is going in circles after two failed corrections | `/clear` and a better prompt that includes what you learned. |
+| A guard or gate refusal | Read it aloud; it is usually the lesson and it names the fix. |
+| A stuck group | Hints first, then call the facilitator, who holds the master passphrase for `./gate skip --master` (plus `./gate install-solution --master`). |
+| Hint ladder | `./gate hint` gives three tiers over time; Level 1 gets a fourth with the answer. A stuck Level 1 is the likeliest. `./gate skip --master` installs no code, so if the group still needs a real tool to test and review (or the build ran out of time), follow it with `./gate install-solution --master`, which installs and commits the reference solution. Tell the group. |
 | `make list` fails at Level 0 ("'explorer' is a package and cannot be directly executed") | Expected: the tool does not exist until Level 1. Ask the agent for the missing counts instead. |
-| `make open` does nothing | Open `out/explorer.html` from Finder, or `open out/explorer.html`. Check `out/` was written (`make explore` first). |
-| Page blank in the browser, or a JavaScript error | plotly.js not embedded, or a script error: open the browser console (Safari: Develop, Show JavaScript Console) and paste the message to the agent. `./gate check` names the embedding case. |
-| `data.json` check fails | Almost always `NaN` in a column of missing values. Paste the sentence to the agent: `allow_nan=False`, and write missing values as `null`. |
-| The agent's Bash command is refused and the agent says it won't reword it | The guard reads quotes, heredocs and redirects, so reading `data/`, regexes, and the agent's usual heredoc commit message are allowed; it still refuses writes to frozen or secret paths, and a few odd spellings fall back to the strict rules. A command that both writes (`cp`, `mv`, `rm`, `tee`, `sed -i`, `python script.py`, a write call in `python -c`) and names `data/` is still refused, for example `cp data/pulsars.csv /tmp/x.csv`; a plain redirect such as `head -5 data/pulsars.csv > out/small.csv` is allowed. Every refusal tells the agent not to reword the command but to say so and use a `make` target or the tests. If the command really was harmless, note it for the facilitator and carry on another way. |
-| `./gate unlock` says "no commit since start" or "N commits ... needs at least ..." | The agent has not committed. Ask it to commit, then `./gate status` shows commits since the last gate. |
-| Hooks not loaded | `/hooks`; if empty, exit, re-open `claude` in the repo and accept trust. |
-| A skill is not listed, or the agent says "unknown skill" | `/reload-skills`; if it is still missing, `/exit`, re-open `claude` in the repo and accept trust. For Level 3 the `reviewer` agent in `.claude/agents/` still works as a fallback, with the old prompt: "Use the reviewer agent to review the code since start against PLAN.md. Rank the findings by severity and paste them into the table in REVIEW.md, most severe first. Don't fix anything." |
-| `reviewer` agent not found (only matters if the `review-code` skill is also unavailable) | `/agents`: it should be listed as a project agent. If not, the workspace trust dialog was not accepted: `/exit`, re-open `claude`, accept. If it is still missing, the group can ask the agent to review in a fresh subagent with the same prompt (the file is `.claude/agents/reviewer.md`). Record whether the guard fires on the subagent's own tool calls. |
-| The agent names the wrong model | Not an override. Check `/status`. |
-| Page opens very slowly | The dimuon file has 60,000 rows, sampled to 20,000 by default; `--max-points 5000` makes it quicker. |
+| `make open` does nothing | Open `out/explorer.html` from Finder. Check `out/` exists (`make explore` first). |
+| Page blank in the browser, or a JavaScript error | plotly.js was not embedded, or a script error. Open the browser console (Safari: Develop, Show JavaScript Console) and paste the message to the agent. `./gate check` names the embedding case. |
+| `data.json` check fails | Almost always `NaN` in a column of missing values. Tell the agent to use `allow_nan=False` and write missing values as `null`. |
+| The agent's command is refused and it won't reword it | Expected: it refuses writes to frozen or secret paths, and any command that both writes (`cp`, `mv`, `rm`, `tee`, `sed -i`, `python script.py`) and names `data/`. Reading `data/` and plain redirects such as `head -5 data/pulsars.csv > out/small.csv` are allowed. The agent should use a `make` target or the tests. If the command was harmless, note it for the facilitator and carry on another way. |
+| A skill is not listed, or the agent says "unknown skill" | `/reload-skills`; if it is still missing, `/exit`, run `claude` again, accept trust. At Level 3 the `reviewer` agent in `.claude/agents/` is the fallback (check `/agents`): "Use the reviewer agent to review the code since start against PLAN.md. Rank the findings by severity and paste them into the table in REVIEW.md, most severe first. Don't fix anything." Record whether the guard fires on the subagent's own tool calls. |
+| Page opens very slowly | The dimuon file has 60,000 rows, sampled to 20,000 by default. `make explore ARGS='--max-points 5000'` is quicker. |
 
 ## 7. Reset between runs
 

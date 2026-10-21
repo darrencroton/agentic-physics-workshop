@@ -47,12 +47,14 @@ After each gate a "talk it over" prompt appears with nothing to type: use it for
 
 ## When stuck
 
-- `./gate hint` (three tiers, at 0, 5 and 10 minutes on the level; Levels 0, 3 and 4 add the answer at 13).
-- Then a question from you. A power-up (`./gate allow-model sonnet`) or a skip (`./gate skip --master`) needs the facilitator and the master passphrase: call them over.
-- Hooks not firing (Claude edits tests in green): `/hooks` empty means the trust dialog was missed; exit and re-open `claude`.
-- Claude refuses or the guard blocks it: read the refusal aloud; it is usually the lesson.
-- Group is lost or tangled: `./tdd new-attempt` restarts the level from the stub (then score again). A fresh Claude session (`/exit`, `claude`) clears a confused agent.
-- `./gate` says "for humans, in the gate terminal": use a fresh Terminal window.
+- A command says it is for humans: use a fresh Terminal window, not Claude Code's shell.
+- Hooks don't fire, or the agent edits what should be frozen: the trust dialog was missed (`/hooks` is empty). `/exit`, run `claude` again, accept trust.
+- The agent names the wrong model: trust `/status`, not what it says. The session is locked to Haiku unless the facilitator grants a power-up.
+- The agent is going in circles after two failed corrections: `/clear` and a better prompt that includes what you learned.
+- A guard or gate refusal: read it aloud. It is usually the lesson and it names the fix.
+- A stuck group: hints first (`./gate hint`), then call the facilitator, who holds the master passphrase for `./gate skip --master`.
+- Hints: three tiers at 0, 5 and 10 minutes on the level; Levels 0, 3 and 4 add the answer at 13. A power-up (`./gate allow-model sonnet`) also needs the master passphrase.
+- Group is tangled: `./tdd new-attempt` restarts the level from the stub (then score again).
 
 ## After
 

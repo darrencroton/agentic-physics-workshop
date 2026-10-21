@@ -43,13 +43,15 @@ Every gate ends with a "Talk it over" prompt: nothing to type. Ask it aloud and 
 
 ## When stuck
 
-- `./gate hint` in the gate terminal: three tiers over time; Level 1 gets a fourth with the answer.
-- Still stuck: call the facilitator, who holds the passphrase. `./gate skip --master` opens the next level, and `./gate install-solution --master` installs and commits the reference solution.
-- Agent going in circles after two failed corrections: `/clear` for a fresh session and a better prompt.
-- A command refused by the guard: the agent shouldn't reword it. Let it use a `make` target instead.
-- `./gate` says it is "for humans": use a fresh Terminal window, not one opened from Claude Code.
+- A command says it is for humans: use a fresh Terminal window, not Claude Code's shell.
+- Hooks don't fire, or the agent edits what should be frozen: the trust dialog was missed (`/hooks` is empty). `/exit`, run `claude` again, accept trust.
+- The agent names the wrong model: trust `/status`, not what it says. The session is locked to Sonnet.
+- The agent is going in circles after two failed corrections: `/clear` and a better prompt that includes what you learned.
+- A guard or gate refusal: read it aloud. It is usually the lesson and it names the fix.
+- A stuck group: hints first (`./gate hint`), then call the facilitator, who holds the master passphrase for `./gate skip --master` (plus `./gate install-solution --master`).
+- Hints: three tiers over time; Level 1 gets a fourth with the answer.
 - Page blank: open the browser console and paste the error to the agent.
-- A skill or `reviewer` not listed: `/reload-skills`; else exit, reopen `claude`, accept trust.
+- A skill or `reviewer` not listed: `/reload-skills`; else `/exit`, run `claude` again, accept trust.
 
 ## After
 

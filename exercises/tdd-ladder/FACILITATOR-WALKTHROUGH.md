@@ -191,15 +191,17 @@ Claude (via a subagent) writes mutants of the group's own `binning.py`; the grou
 
 | Symptom | Do |
 |---|---|
-| Group stuck | `./gate hint` (3 tiers; at Levels 0, 3 and 4 a fourth at 13 minutes gives the answer), then a question, then `./gate allow-model sonnet`, then `./gate skip --master` as the last resort. The last two need the master passphrase. All are logged in `LOG.md` and `.workshop/state.json`. |
-| `./gate` or `./tdd` says it is "for humans, in the gate terminal" | It was run from Claude's shell, or from a window opened from Claude Code. Use a fresh Terminal window. |
-| Hooks not firing (Claude edits tests in GREEN) | In Claude run `/hooks`; if empty, exit, re-open `claude` in the repo and accept trust. `./tdd` transitions still catch Bash edits via git diff. |
-| `./tdd green` refuses | Read the reason aloud. It is usually "tests not committed" or "red for the wrong reason". That is the lesson. |
-| `./tdd red` refuses because the suite is red or skipped | Claude cannot edit with no cycle open. The message gives the way out: restore the last good commit of `src tests` (or `git rm` the bad test file) in the gate terminal and commit. |
-| A group forgot a step | Every gate refusal names the step: score missing, cycle open, SPEC.md missing or short, files changed. The Level 1 and Level 3 restarts are automatic at the unlock. |
-| `./tdd score` slow or fails | It runs 18 pytest processes in parallel, normally 1–2 s. A group test that hangs is killed after 120 s. Large statistical tests are the usual cause: reduce N, and recompute the bound. |
-| Someone launched `claude --model opus` | The SessionStart hook warns in Claude's context only when Claude Code reports the model. Ask the group to restart with plain `claude`, then check `/status`. |
-| Claude names the wrong model when asked | Not an override. Check `/status`. See "Which model is it, really?" in section 4. |
+| A command says it is for humans | Use a fresh Terminal window, not Claude Code's shell. |
+| Hooks don't fire, or the agent edits what should be frozen | The trust dialog was missed (`/hooks` is empty): `/exit`, run `claude` again, accept trust. |
+| The agent names the wrong model | Trust `/status`, not what it says: the session is locked to Haiku unless the facilitator grants a power-up. |
+| The agent is going in circles after two failed corrections | `/clear` and a better prompt that includes what you learned. |
+| A guard or gate refusal | Read it aloud; it is usually the lesson and it names the fix. |
+| A stuck group | Hints first, then call the facilitator, who holds the master passphrase for `./gate skip --master`. |
+| Hint ladder | `./gate hint` gives three tiers; at Levels 0, 3 and 4 a fourth at 13 minutes gives the answer. Next a question from you, then `./gate allow-model sonnet`, then `./gate skip --master` as the last resort. The last two need the master passphrase. All are logged in `LOG.md` and `.workshop/state.json`. |
+| `./tdd green` refuses | Usually "tests not committed" or "red for the wrong reason". That is the lesson. |
+| `./tdd red` refuses because the suite is red or skipped | The agent cannot edit with no cycle open. In the gate terminal, restore the last good commit of `src tests` (or `git rm` the bad test file) and commit. |
+| `./tdd score` slow or fails | It runs the scoring jobs in parallel, normally 1 to 2 s; a hung group test is killed after 120 s. Large statistical tests are the usual cause: reduce N and recompute the bound. |
+| Someone launched `claude --model opus` | The start-up hook warns only when Claude Code reports the model. Restart with plain `claude`, then check `/status`. |
 
 ## 7. Reset between runs
 

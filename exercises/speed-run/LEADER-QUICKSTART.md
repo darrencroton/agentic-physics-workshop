@@ -46,13 +46,15 @@ Each gate ends with a "talk it over" prompt: nothing to type, so ask it aloud.
 
 ## 4. When stuck
 
-- **Hints:** `./gate hint` (tiers at 0, 5 and 10 minutes; Levels 0 to 2 give the gate answer at 13). Then a question from you.
-- **Power-ups and solutions:** `./gate allow-model sonnet` and `./race install-solution <level>` need the master passphrase. Call the facilitator. Re-run the bench afterwards so the gate sees current evidence. `./gate skip --master` is the last resort.
-- **A fresh session:** if the agent is confused, `/exit` and re-open `claude` in the repo. Nothing is lost: state is on disk.
-- **Refusals** (guard, harness, `./race submit`): read them aloud. They are the lesson. `./gate` says it is "for humans"? Use a fresh Terminal window.
-- **Gate says the run is stale:** `fast.py` or `race.toml` changed; re-run `make bench`.
-- **Laptop freezing at Level 1:** close other apps; kill the Python process in Activity Monitor.
-- **Claude names the wrong model:** check `/status`, not what Claude says.
+- A command says it is for humans: use a fresh Terminal window, not Claude Code's shell.
+- Hooks don't fire, or the agent edits what should be frozen: the trust dialog was missed (`/hooks` is empty). `/exit`, run `claude` again, accept trust.
+- The agent names the wrong model: trust `/status`, not what it says. The session is locked to Haiku unless the facilitator grants a power-up.
+- The agent is going in circles after two failed corrections: `/clear` and a better prompt that includes what you learned.
+- A guard or gate refusal: read it aloud. It is usually the lesson and it names the fix.
+- A stuck group: hints first (`./gate hint`), then call the facilitator, who holds the master passphrase for `./gate skip --master` (plus `./race install-solution <level>`).
+- Hints: tiers at 0, 5 and 10 minutes; Levels 0 to 2 give the gate answer at 13. A power-up (`./gate allow-model sonnet`) or a level's solution (Levels 1 to 3) needs the facilitator; after a solution, re-run `make bench`. `./gate skip --master` is the last resort.
+- Gate says the run is stale: `paircount/` or `race.toml` changed, so re-run `make bench`.
+- Laptop freezing at Level 1: close other apps and kill the Python process in Activity Monitor.
 
 ## 5. After
 

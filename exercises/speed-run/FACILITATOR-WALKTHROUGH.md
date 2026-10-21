@@ -189,15 +189,18 @@ Honest limit: the Speed Run's crypto gates reduce to the human answer, because t
 
 | Symptom | Do |
 |---|---|
-| Group stuck | `./gate hint` (3 tiers, then the gate answer at 13 minutes), then a question, then `./gate allow-model sonnet`, then `./race install-solution <level>` (gate terminal; copies the reference solution for that level over `paircount/` and logs it). Re-run the bench for that level so the gate sees current evidence, then `./gate unlock` as normal. `./gate skip --master` is the last resort. The last three need the master passphrase. |
-| `./gate` or `./race` says it is "for humans, in the gate terminal" | It was run from Claude's shell, or from a window opened from Claude Code. Use a fresh Terminal window. |
-| Laptop freezing at Level 1 | Close other apps. Kill the Python process in Activity Monitor; the harness should do it at 2.5 GB. The harness polls every 0.1 s, so a very large single allocation can outrun it on a small-memory laptop. If that happens it is the lesson, but do not let it cost the group the hour. |
-| Hooks not firing | `/hooks`; if empty, exit, re-open `claude` in the repo and accept trust. |
-| Different speeds on different laptops | The score is normalised by the calibration run on the same machine. Say so. |
-| `./race submit` refuses | Read the reason aloud. Usually uncommitted `paircount/` or `race.toml`, or an invalid `race.toml` (sigma above 0.2, justification under 80 characters). |
-| Gate says the run is stale | `fast.py` or `race.toml` changed since the run. Re-run `make bench`. |
+| A command says it is for humans | Use a fresh Terminal window, not Claude Code's shell. |
+| Hooks don't fire, or the agent edits what should be frozen | The trust dialog was missed (`/hooks` is empty): `/exit`, run `claude` again, accept trust. |
+| The agent names the wrong model | Trust `/status`, not what it says: the session is locked to Haiku unless the facilitator grants a power-up. |
+| The agent is going in circles after two failed corrections | `/clear` and a better prompt that includes what you learned. |
+| A guard or gate refusal | Read it aloud; it is usually the lesson and it names the fix. |
+| A stuck group | Hints first, then call the facilitator, who holds the master passphrase for `./gate skip --master` (plus `./race install-solution <level>`). |
+| Hint ladder | `./gate hint` gives three tiers; at Levels 0 to 2 a fourth at 13 minutes gives the answer. Next a question from you, then `./gate allow-model sonnet`, then `./race install-solution <level>` (Levels 1 to 3; copies that level's reference solution over `paircount/` and logs it), then `./gate skip --master` as the last resort. The last three need the master passphrase. Re-run the bench after a solution so the gate sees current evidence, then `./gate unlock` as normal. |
+| `./race submit` refuses | Usually uncommitted `paircount/` or `race.toml`, or an invalid `race.toml` (sigma above 0.2, justification under 80 characters). |
+| Gate says the run is stale | `paircount/` or `race.toml` changed since the run. Re-run `make bench`. |
 | Bench record "bad signature" | Someone edited `.workshop/race/bench.jsonl`. `./race log` flags it; those records are ignored. |
-| Claude names the wrong model | Not an override. Check `/status`. See "Which model is it, really?" in section 4. |
+| Laptop freezing at Level 1 | Close other apps and kill the Python process in Activity Monitor. The harness kills it at 2.5 GB but polls every 0.1 s, so one very large allocation can outrun it on a small-memory laptop. That is the lesson, but do not let it cost the group the hour. |
+| Different speeds on different laptops | The score is normalised by the calibration run on the same machine. Say so. |
 
 ## 7. Reset between runs
 
