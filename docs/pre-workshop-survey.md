@@ -36,31 +36,39 @@ A leader needs:
 
 ## 2. The email
 
-> **Subject:** {{WORKSHOP_NAME}}: AI agents for physics research. A 2-minute survey, and group leaders wanted
->
-> Hi all,
->
-> At {{WORKSHOP_NAME}} on {{SESSION_DATE}} I'm running a 60-minute hands-on session on using AI coding agents in physics research. In small groups, you'll direct an agent to build a small, real tool from a public dataset, and practise the habits that keep its work trustworthy: plan, build in checked steps, test and review. All levels of experience are welcome, sceptics included.
->
-> **Two quick asks:**
->
-> **1. A 2-minute survey** so I can pitch the session to the room: {{SURVEY_LINK}}
-> Please fill it in by **{{SURVEY_DEADLINE}}**, even if you've never used these tools. Those answers matter just as much.
->
-> **2. Group leaders wanted: please reply to this email.**
-> I need about {{N_LEADERS}} people to each run the exercise for a small group on their own laptop. The exercise guides the group step by step, so leading mostly means keeping the laptop running and the group moving. You'll need:
->
-> - your own laptop to bring on the day (Mac or Linux preferred);
-> - some experience with an AI coding agent in whatever tool you like (Claude, Codex, Cursor, Copilot, a command-line agent and so on), or a willingness to get some before the day;
-> - enough terminal experience to set up the exercise from instructions;
-> - about an hour beforehand: setting up from instructions I'll email you, and a short set-up session with me.
->
-> If you don't already have a paid AI subscription, I'll provide a Claude Pro subscription for the month.
->
-> Interested? **Just reply by {{LEADER_DEADLINE}}** and tell me which agent tool you use, if any, and whether your laptop is a Mac, Linux or Windows. "Maybe, tell me more" is a fine reply.
->
-> Thanks, and see you there,
-> {{YOUR_NAME}}
+Subject:
+
+```text
+{{WORKSHOP_NAME}}: AI agents for physics research. A 2-minute survey, and group leaders wanted
+```
+
+Body:
+
+```text
+Hi all,
+
+At {{WORKSHOP_NAME}} on {{SESSION_DATE}} I'm running a 60-minute hands-on session on using AI coding agents in physics research. In small groups, you'll direct an agent to build a small, real tool from a public dataset, and practise the habits that keep its work trustworthy: plan, build in checked steps, test and review. All levels of experience are welcome, sceptics included.
+
+Two quick asks:
+
+1. A 2-minute survey so I can pitch the session to the room: {{SURVEY_LINK}}
+Please fill it in by {{SURVEY_DEADLINE}}, even if you've never used these tools. Those answers matter just as much.
+
+2. Group leaders wanted: please reply to this email.
+I need about {{N_LEADERS}} people to each run the exercise for a small group on their own laptop. The exercise guides the group step by step, so leading mostly means keeping the laptop running and the group moving. You'll need:
+
+- your own laptop to bring on the day (Mac or Linux preferred);
+- some experience with an AI coding agent in whatever tool you like (Claude, Codex, Cursor, Copilot, a command-line agent and so on), or a willingness to get some before the day;
+- enough terminal experience to set up the exercise from instructions;
+- about an hour beforehand: setting up from instructions I'll email you, and a short set-up session with me.
+
+If you don't already have a paid AI subscription, I'll provide a Claude Pro subscription for the month.
+
+Interested? Just reply by {{LEADER_DEADLINE}} and tell me which agent tool you use, if any, and whether your laptop is a Mac, Linux or Windows. "Maybe, tell me more" is a fine reply.
+
+Thanks, and see you there,
+{{YOUR_NAME}}
+```
 
 ---
 
