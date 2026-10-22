@@ -599,3 +599,18 @@ Both returned REVISE. Every finding was independently verified, and all were fix
 ### Round 4
 
 Both ACCEPT, with no findings.
+
+## Lighter group-leader role for Explorer (2026-10-22; facilitator request)
+
+The facilitator now recruits 30–40 Explorer leaders per workshop with a deliberately low bar (`docs/pre-workshop-survey.md` §1). The leader docs were brought into line.
+
+| Area | Decision | Reason |
+|---|---|---|
+| Leader role | The leader runs the exercise on their own laptop, keeps it running and the group to time, reads out talk prompts and notes, and calls the facilitator. The Coach role and "Coach, not Driver" are gone from Explorer's quickstart, walkthrough, participant README and `docs/00` §4; the leader takes one of the four roles and the Driver rotates through everyone. | The exercise directs itself; a coaching role raised the bar for recruiting 30–40 leaders. |
+| Agent tool | Leaders use the agentic coding tool they already know. Claude Code is preferred; Codex, Cursor, VS Code with Copilot or a command-line agent go through `OTHER-AGENTS.md`. The Claude Code checks (`/hooks`, `/model`) and the minimum version 2.1.295 are now under a "Claude Code" sub-step; other tools get the "What may you not do in this repo?" check. | Matches the survey's leader ask. Explorer already sets `other_agents`. |
+| Platform | Explorer leaders need macOS or Linux with a terminal, git, `make`, Python 3.11+ and a browser. Native Windows is not supported; WSL2 is not documented. | Static review: Linux needs only the `make open` fix below; native Windows breaks on `make`, `.venv/bin`, `python3` in hooks and shebang launchers. WSL2 is untested. |
+| `make open` | The Makefile uses `OPEN ?= open` on macOS and `xdg-open` elsewhere; `make open OPEN=…` overrides it. Preflight's missing-`make` message names Linux as well as Xcode. | `open` is macOS-only, and `make open` is used at every Level 1 cycle. |
+| Leaders' briefing | The 45-minute briefing in `docs/00` §7 becomes a short set-up session: confirm set-up, show the gate commands, roles. | Leaders set up from the emailed bundle; the survey asks for about an hour in total. |
+| Subscriptions | `docs/00` §7: leaders without a paid AI subscription get Claude Pro. | Survey §1. |
+| Scope | The Speed Run and TDD Ladder docs keep the Coach role, macOS and Claude Code only; `docs/00` §4 says so. `gatekit/agents/OTHER-AGENTS.md` is unchanged (shared, participant-facing, and already tool-neutral). | Task limited to Explorer; those exercises' lessons arrive by Claude Code hook. |
+| Feedback form | `docs/00` §9 Q4 now asks "…on your own research code right now?", the same wording as the pre-workshop survey's Q8. | So pre- and post-session confidence can be compared. |

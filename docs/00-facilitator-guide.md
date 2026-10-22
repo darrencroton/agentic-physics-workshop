@@ -1,6 +1,6 @@
 # Agentic AI for Physics Research — Facilitator Guide
 
-*For the session organiser (the facilitator). Covers the pre-session lecture, group roles, the shared "gate kit" in outline, calibration, the leaders' briefing, running the day, and the trial with your research group. How to build, distribute and operate a built exercise is in the repository `README.md` ("Run the workshop") and in that exercise's facilitator walkthrough, which is also the group leaders' guide.*
+*For the session organiser (the facilitator). Covers the pre-session lecture, group roles, the shared "gate kit" in outline, calibration, the leaders' set-up session, running the day, and the trial with your research group. How to build, distribute and operate a built exercise is in the repository `README.md` ("Run the workshop") and in that exercise's facilitator walkthrough, which is also the group leaders' guide.*
 
 ---
 
@@ -40,7 +40,7 @@ Only B, D and E are built so far; A and C are designs (see the `README.md` exerc
    - The group reaches the end-point because they recognise it, not because Claude says "done".
 3. **Productive failure.** The agent is allowed, sometimes encouraged, to fail visibly. Catching that failure is the lesson.
 4. **Evidence over assertion.** Nothing counts until someone has seen the command and its output.
-5. **Everyone types.** The keyboard rotates. The leader coaches rather than drives.
+5. **Everyone types.** The keyboard rotates at each gate, through everyone.
 
 ---
 
@@ -122,22 +122,23 @@ Roles are responsibilities, not seats. Combine them in small groups and split th
 
 | Role | Responsibility |
 |---|---|
-| **Driver** | Types prompts into Claude Code. **Rotates every ~12 minutes** (or at each gate). |
+| **Driver** | Types prompts into the agent. **Rotates every ~12 minutes** (or at each gate). |
 | **Navigator** | Owns the plan and scope; says "stop, that's out of scope"; watches the clock. |
 | **Sceptic** | Owns the check. Nothing is committed and no gate is attempted until the Sceptic has seen the evidence. |
 | **Scribe** | Keeps `LOG.md`: prompts that worked, prompts that failed, the "caught it" moment. |
-| **Coach** | Always the leader. Asks questions rather than giving answers; steps in on tooling problems. |
+
+**The group leader** runs the exercise on their own laptop: keeps it running, keeps the group to time, reads out the talk prompts and gate notes, and calls the facilitator when the group is stuck. The exercise directs the group step by step, so the leader takes one of the roles above like everyone else. Recruit leaders for that: their own laptop, some experience with an agentic coding tool, enough terminal experience to set up from instructions, and about an hour beforehand (`docs/pre-workshop-survey.md` §1). This is the role as built for Explorer; the Speed Run and TDD Ladder walkthroughs still describe the older Coach role and are Claude Code only.
 
 | Group size | Allocation |
 |---|---|
-| **2** | Leader: Coach + Navigator. Other: Driver + Sceptic + Scribe. Swap Driver at each gate (the leader drives the gate attempts). |
-| **3** | Driver (rotating), Sceptic, Coach + Navigator + Scribe |
-| **4** | Driver (rotating), Navigator, Sceptic, Coach + Scribe |
-| **5** | Driver (rotating), Navigator, Sceptic, Scribe, Coach. Optional: split Sceptic into **Physics Sceptic** and **Code Sceptic**. |
+| **2** | Driver; Navigator + Sceptic + Scribe. Swap at each gate. |
+| **3** | Driver (rotating), Sceptic, Navigator + Scribe |
+| **4** | Driver (rotating), Navigator, Sceptic, Scribe |
+| **5** | Driver (rotating), Navigator, Scribe, and the Sceptic split in two: **Physics Sceptic** and **Code Sceptic** (Explorer: Browser and Evidence Sceptic) |
 
-**Rotation rule:** the Driver role rotates through everyone except the leader, so every non-leader types at least once. The leader drives only if the group has two people or a technical problem needs fixing.
+**Rotation rule:** the Driver role rotates at each gate, so everyone types at least once.
 
-**The "hands off the code" rule:** humans read, think, discuss and type *prompts*. All code changes go through Claude. Physicists who would rather fix it themselves are exactly who most needs this rule.
+**The "hands off the code" rule:** humans read, think, discuss and type *prompts*. All code changes go through the agent. Physicists who would rather fix it themselves are exactly who most needs this rule.
 
 ---
 
@@ -261,32 +262,33 @@ Run each exercise in four ways before the trial (Explorer runs on Sonnet, so its
 
 ### Accounts and Models
 
-- Confirm each leader's **Claude Pro** account can run Claude Code with **Haiku** and **Sonnet**.
+- Each leader uses the agentic coding tool they already know. Explorer accepts any (Claude Code preferred; Codex, Cursor, VS Code with Copilot or a command-line agent through `OTHER-AGENTS.md`). The Speed Run and TDD Ladder need Claude Code, because their lessons arrive by hook.
+- Give **Claude Pro** to any leader without a paid AI subscription (the survey's last question says who). Confirm that each Claude account can run Claude Code with **Sonnet**, and **Haiku** for the Claude Code-only exercises.
 - Measure **usage consumed** per exercise in the trial. Haiku should stretch the allowance further, but confirm it.
 - Hold **one or two spare accounts** on a facilitator laptop for groups whose leader hits a usage limit.
 
-### Repos and Leader Machines (macOS)
+### Repos and Leader Machines
 
 - [ ] Each exercise built, checked and rehearsed by you on the exercise's model (Haiku; Sonnet for Explorer): walkthrough section 1.
-- [ ] Each leader sent a git bundle of the built repo and the walkthrough, at least a week before: walkthrough section 2. Never send this repository.
-- [ ] Each leader's laptop set up by the leader from the walkthrough's "Group leaders: set up your laptop" section, before the briefing, on the Claude Code version you calibrated against. Packages must be in place by then: agents can't install them during the session.
+- [ ] Each leader sent a git bundle of the built repo, the walkthrough and the leader quickstart, at least a week before: walkthrough section 2. Never send this repository.
+- [ ] Each leader's laptop set up by the leader from the walkthrough's "Group leaders: set up your laptop" section, before the set-up session. Explorer needs macOS or Linux with a terminal, git, `make` and Python 3.11+; the Claude Code-only exercises are calibrated on macOS and the Claude Code version you rehearsed. Packages must be in place by then: agents can't install them during the session.
 - [ ] Exercise C only (when built): `gfortran` (e.g. via Homebrew `gcc`), compile-tested in preflight.
-- [ ] Two terminal windows arranged: **Claude** (large) and **Gate** (small)
+- [ ] Two windows arranged: the **agent** (large) and the **gate** terminal (small)
 - [ ] An external screen or TV per group if the room allows. Otherwise the group gathers behind the leader's laptop.
 
-### Leaders' Briefing (45 min, a few days before)
+### Leaders' Set-up Session (short, a few days before)
 
-1. **(10 min)** Goals and principles (Section 2). Their role is *Coach*, not Driver.
-2. **(10 min)** The leader walks through their exercise's Levels 0–1 themselves.
-3. **(10 min)** The gate kit: gate terminal, hints, `./gate status`, what to do when something breaks (walkthrough section 6), and how to call you for a power-up or skip, since you hold the master passphrase.
-4. **(10 min)** Group management: roles by size, rotation, the "hands off the code" rule, handling the expert who wants to take over.
-5. **(5 min)** Confirm each leader's set-up passed (walkthrough section 3: preflight and the Claude Code checks); resolve any failures on the spot.
+Leaders have already set up from the emailed bundle and instructions. The session is for what they can't get from the page:
+
+1. Confirm each leader's set-up passed (walkthrough section 3: preflight, then the check for their agent); resolve failures on the spot.
+2. Show the gate terminal, `./gate status`, `./gate hint` and the talk prompts, and how to call you for a skip, since you hold the master passphrase.
+3. Roles by group size, rotation and the "hands off the code" rule, from the leader quickstart.
 
 ### Day Before
 
 - Leaders re-run `./preflight`, then reset any rehearsal as in walkthrough section 7, so the group starts at level 0 with an empty log.
 - Charge laptops; confirm power at tables.
-- Confirm nothing needs the network except Claude Code itself.
+- Confirm nothing needs the network except the agent itself.
 
 ---
 
@@ -348,7 +350,7 @@ Capture the answers on a whiteboard. That list is the session's summary slide.
 1. What was the most useful thing you practised? (free text)
 2. Which level was most frustrating, and why? (free text)
 3. Did you feel *you* solved it, or that Claude did? (1–5 scale)
-4. How confident are you to use this workflow on your own code next week? (1–5 scale)
+4. How confident are you that you could use an AI agent productively on your own research code right now? (1–5 scale; the same wording as Q8 of the pre-workshop survey, `docs/pre-workshop-survey.md`, so the two can be compared)
 5. What would you cut? (free text)
 
 ### Decision Criteria for the Final Session
@@ -364,12 +366,12 @@ Capture the answers on a whiteboard. That list is the session's summary slide.
 | Risk | Likelihood | Mitigation |
 |---|---|---|
 | Leader hits a usage limit mid-session | Medium | Haiku by default; spare accounts; measure in the trial |
-| Environment failure (Python, compiler, hooks) | Medium | Leaders set up and run preflight before the briefing; pinned versions; spare configured laptop |
+| Environment failure (Python, compiler, hooks) | Medium | Leaders set up and run preflight before the set-up session; pinned versions; spare configured laptop |
 | Haiku leaks answers despite teacher mode | Medium | Per-turn persona injection; calibration Run 1; answers are useless without the human gate answer anyway |
 | Haiku too weak for a level | Medium | Facilitator Sonnet power-up; calibration Run 2 |
 | Group finishes too early | Low–Medium | A stretch level (D) or the open race (B) |
 | Group stalls on Level 0–1 | Medium | Time calls; tiered hints; master skip |
-| Leader dominates | Medium | Coach role; rotation rule; facilitator roaming |
+| Leader dominates | Medium | The leader takes a role like everyone else; rotation rule; facilitator roaming |
 | Group bypasses gates or switches model | Low | Name it in the lecture; encrypted packs; treat it as a teaching moment |
 | Wi-Fi is poor | Low–Medium | Packages installed by `./preflight --setup` before the day; on the day only Claude Code needs the network |
 

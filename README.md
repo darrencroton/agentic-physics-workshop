@@ -38,7 +38,7 @@ This is a learning scaffold, not an exam proctor. A group can cheat; they would 
 
 You build one participant repo per exercise from this repository, rehearse it, and send each group leader a copy as a git bundle. Leaders and participants never need this repository.
 
-1. **Plan.** Choose the exercises and the group leaders, and check everyone's Claude accounts: see [At a Glance](docs/00-facilitator-guide.md#1-at-a-glance), [Pre-Event Setup](docs/00-facilitator-guide.md#7-pre-event-setup) and [Open Decisions](docs/00-facilitator-guide.md#11-open-decisions-for-you) in the facilitator guide.
+1. **Plan.** Survey attendees and recruit group leaders with the reusable email and survey in [`docs/pre-workshop-survey.md`](docs/pre-workshop-survey.md). Choose the exercises and the group leaders, and check everyone's Claude accounts: see [At a Glance](docs/00-facilitator-guide.md#1-at-a-glance), [Pre-Event Setup](docs/00-facilitator-guide.md#7-pre-event-setup) and [Open Decisions](docs/00-facilitator-guide.md#11-open-decisions-for-you) in the facilitator guide.
 2. **Install the requirements** on your Mac: the Xcode Command Line Tools (`xcode-select --install`; they provide `git` and `clang`, which only the Speed Run needs), Python 3.11 or newer (for example `brew install python@3.13`), Claude Code **2.1.295 or newer** (`claude --version`), a Claude account that can run Claude Code on Haiku (and Sonnet, for Explorer), and a git identity (`git config --global user.name` and `user.email`).
 3. **Clone this repository and create the master passphrase.** You type it to skip a stuck group or grant a power-up; it is kept outside every repo.
 

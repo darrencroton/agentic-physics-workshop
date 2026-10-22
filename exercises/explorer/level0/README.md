@@ -21,13 +21,13 @@ The tool's interface is fixed, because the gates run it and read its output: a c
 - **Navigator:** owns the plan and the scope, and watches the clock. Asks "is it in the plan?"
 - **Sceptic:** owns the acceptance criteria and the evidence. Nothing is committed until they've seen the command and its output, and, once the page exists, someone has looked at it.
 - **Scribe:** keeps `LOG.md`: prompts that worked and failed, the "caught it" moment, the decisions the agent made for you.
-- **Coach:** your leader. Asks questions, and steps in on tooling problems.
+Your leader takes a role too, and looks after the laptop and the gate terminal.
 
 Hands off the code: humans read, look and decide. All code changes and commits go through the agent.
 
 ## Two windows and a browser
 
-1. **Agent window (large):** Claude Code. Only the Driver types here.
+1. **Agent window (large):** your agent (Claude Code, or another tool). Only the Driver types here.
 2. **Gate terminal:** a separate terminal for the humans: `./gate`, `make open`, `make test`. The agent never types here.
 3. **Browser:** `make open` shows the page. The agent can't see it; you can.
 

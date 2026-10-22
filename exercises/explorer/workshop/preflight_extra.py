@@ -55,8 +55,8 @@ def check_files():
 def check_make():
     make = shutil.which("make")
     if not make:
-        report(False, "make present", "install the Xcode command line tools "
-               "(xcode-select --install)")
+        report(False, "make present", "install make (macOS: xcode-select --install; "
+               "Linux: your package manager, for example apt install make)")
         return
     proc = subprocess.run([make, "-n", "explore"], cwd=ROOT, capture_output=True,
                           text=True, stdin=subprocess.DEVNULL)

@@ -71,6 +71,11 @@
   - **Panel:** Codex gpt-6.1-sol and Claude Opus 5.5 (high) ran four rounds, ending ACCEPT from both.
   - **Receipts:** gatekit 102 tests on Python 3.14 and 3.9.6; ruff clean; all three self-tests pass.
 
+## Done (2026-10-22)
+
+- **Lighter Explorer leader role** (to match the leader ask in `docs/pre-workshop-survey.md`): `LEADER-QUICKSTART.md`, the walkthrough from section 3, the participant README and `docs/00` §4 and §7 now describe a leader who uses their own macOS or Linux laptop and any agentic tool (Claude Code preferred), takes a role like everyone else, and comes to a short set-up session instead of a 45-minute briefing. Claude Code checks and version are Claude-specific. `make open` uses `xdg-open` off macOS. Decisions in `docs/DECISIONS.md`.
+- **Pre-workshop email and survey** (`docs/pre-workshop-survey.md`): a reusable invitation email with a direct call for group leaders, a ten-question anonymous survey, and `tools/survey/pre-workshop-survey.gs`, a Google Apps Script that builds the form with its leader branch and a response Sheet. The script passes a JavaScript syntax check but has not yet been run in Google.
+
 ## How to re-run everything
 
 ```zsh
@@ -92,6 +97,7 @@ Each self-test rebuilds its `dist/<name>` (keeping `.venv`) and leaves it clean 
    - Copilot CLI first: do the imported `.claude/settings.json` hooks work, block every call, or do nothing? Does the Claude Code section of `CLAUDE.md` (which Copilot also reads) confuse it about reading skills?
    - Then one full Codex path.
    - Record the results in `docs/DECISIONS.md`, and adjust the opt-out line in `OTHER-AGENTS.md` if needed.
+6. Linux and WSL2 rehearsal for Explorer: clone the bundle, preflight, `make open`, one gate, on Ubuntu 24.04 (Docker or a VM) and under WSL2. Linux is supported in the docs on static review only; WSL2 is undocumented.
 
 ## Open questions
 

@@ -7,7 +7,7 @@ Private. Contains gate answers and spoilers. Never copy into `dist/`, and keep i
 This is the operating guide to the exercise. It has two readers:
 
 - **The facilitator** (the organiser) builds the participant repo, rehearses it, sends it to the group leaders and holds the master passphrase. Read all of it.
-- **Group leaders** set up their own laptop from the bundle the facilitator sends, and coach one group. Start at [section 3](#3-group-leaders-set-up-your-laptop); sections 1 and 2 are the facilitator's.
+- **Group leaders** set up their own laptop from the bundle the facilitator sends, and run the exercise for one group. Start at [section 3](#3-group-leaders-set-up-your-laptop); sections 1 and 2 are the facilitator's.
 
 The lecture, roles by group size, the run-sheet and the trial are in `docs/00-facilitator-guide.md` in the builder repository. The design this exercise was built from is `docs/05-data-explorer.md`; where the two differ, this walkthrough and `docs/DECISIONS.md` win.
 
@@ -45,20 +45,20 @@ Each leader gets a copy of the built participant repo as a git bundle: one file 
 
 1. Start from a freshly built or reset repo: a bundle carries everything in the repo.
 2. From this repository's top folder, run `python3 tools/bundle.py explorer`. It checks that `dist/explorer` is clean, has one commit, only `main`, `start` at HEAD and level 0, then writes `explorer.bundle` in the current folder (use `--out PATH` to put it elsewhere) and verifies it.
-3. Send each leader the bundle and this walkthrough file. Ask them to work through section 3 before the leaders' briefing, so problems surface early. A private git remote works too: push `main` and the `start` tag, and send the clone URL instead.
+3. Send each leader the bundle and this walkthrough file. Ask them to work through section 3 before the set-up session, so problems surface early. A private git remote works too: push `main` and the `start` tag, and send the clone URL instead.
 4. Decide who types the master passphrase. Skips ask for it in the group's own gate terminal; a leader's laptop never needs the passphrase file. By default you hold it and type it when a leader calls you over. If a leader will run a group without you in the room, such as a trial, tell them the passphrase. It opens every repo built from the same passphrase file, so if that matters, build their copy from a different passphrase file into another directory (`--out`).
 
 ## 3. Group leaders: set up your laptop
 
-Do this a few days before the session, with a network connection. You need a Mac with:
+You run the exercise for one group on your own laptop. The repo directs the group step by step; you keep the laptop running and the group moving. Set up a few days before the session, with a network connection, then come to the facilitator's short set-up session. You need:
 
-- The Xcode Command Line Tools (`xcode-select --install`): they provide `git` and `make`. No compiler is used.
-- Python 3.11 or newer, for example `brew install python@3.13`.
-- Claude Code 2.1.295 or newer (`claude --version`), signed in to a Claude account that can use Sonnet. The session starts on Sonnet and stays on it.
+- A laptop running macOS or Linux, with a terminal, `git` and `make` (on a Mac, `xcode-select --install` provides both; no compiler is used).
+- Python 3.11 or newer (for example `brew install python@3.13` on a Mac, or your Linux package manager; on Debian and Ubuntu also `python3-venv`).
+- An agentic coding tool you already know, signed in. Claude Code is preferred; Codex, Cursor, VS Code with Copilot or any command-line agent works too (see [Groups on other agents](#groups-on-other-agents)). If you don't already pay for an AI subscription, the facilitator provides Claude Pro.
 - A git identity, because the exercise commits: `git config --global user.name "Your Name"` and `git config --global user.email you@example.org`.
 - A web browser. The group looks at the page it builds.
 
-Do not install anything else. If preflight asks for something, check with the facilitator first.
+Install nothing else for the exercise. If preflight asks for something, check with the facilitator first.
 
 1. Clone the bundle the facilitator sent (run this in the folder where you saved it, or give its full path):
 
@@ -66,16 +66,18 @@ Do not install anything else. If preflight asks for something, check with the fa
    git clone explorer.bundle explorer && cd explorer
    ```
 
-2. `./preflight` creates `.venv` and installs the pinned numpy, plotly, pytest and pytest-cov, then checks the machine. The first run needs the network and takes about a minute (the only step that needs the network apart from Claude Code). If it says your Python is too old, it prints the command to run with a newer one. It must end with "Preflight passed"; the first run also sets the workshop up at level 0.
-3. Run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Preflight has already checked the skill and agent files. In Claude Code (about a minute):
-   1. `/hooks`: four events must be listed (SessionStart, UserPromptSubmit, PreToolUse, PreModelSwitch). If the list is empty, the trust dialog was not accepted: `/exit` and run `claude` again.
-   2. `/model` and pick another model: it must be refused. The session stays on Sonnet.
-   3. `/exit`.
+2. `./preflight` creates `.venv` and installs the pinned numpy, plotly, pytest and pytest-cov, then checks the machine. The first run needs the network and takes about a minute (the only step that needs the network apart from your agent). If it says your Python is too old, it prints the command to run with a newer one. It must end with "Preflight passed"; the first run also sets the workshop up at level 0. It also checks the skill and agent files.
+3. Check your agent (about a minute).
+   - **Claude Code** (version 2.1.295 or newer, `claude --version`, on an account that can use Sonnet): run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Then:
+     1. `/hooks`: four events must be listed (SessionStart, UserPromptSubmit, PreToolUse, PreModelSwitch). If the list is empty, the trust dialog was not accepted: `/exit` and run `claude` again.
+     2. `/model` and pick another model: it must be refused. The session stays on Sonnet.
+     3. `/exit`.
+   - **Any other tool:** read `OTHER-AGENTS.md`, open the repo in your agent and ask it "What may you not do in this repo?" It should list the Never items from `AGENTS.md`. Pick a fast, capable mid-tier model.
 4. Rehearse: play Level 0 yourself following section 5, and reset (section 7) so the group's log starts empty. Level 0 needs nothing built, so it is a quick way to see the gate, the guard and the plan-mode start.
 
 ### Groups on other agents
 
-Explorer can be done on another agent harness (Codex, Cursor, Copilot, Antigravity, OpenCode). The group reads `OTHER-AGENTS.md` in the repo, which covers the participant side. The rules are in `AGENTS.md`, which these harnesses read; `CLAUDE.md` imports it for Claude Code.
+Explorer can be done on another agent harness (Codex, Cursor, Copilot, Antigravity, OpenCode or another command-line agent). The group reads `OTHER-AGENTS.md` in the repo, which covers the participant side. The rules are in `AGENTS.md`, which these harnesses read; `CLAUDE.md` imports it for Claude Code.
 
 Without Claude Code the group loses:
 
@@ -84,7 +86,7 @@ Without Claude Code the group loses:
 - the model lock, and the plan-mode start (they use the agent's own plan or ask mode);
 - the forked review: they open a fresh session in the same folder instead.
 
-The timings are calibrated on Claude Code with Sonnet only, and no other harness has been rehearsed yet. Cursor and Copilot may run the Claude Code hooks from `.claude/settings.json`; if every command is refused, `OTHER-AGENTS.md` says how to turn that off. Claude Code stays the recommended setup.
+The timings are calibrated on Claude Code with Sonnet only, and no other harness has been rehearsed yet. Cursor and Copilot may run the Claude Code hooks from `.claude/settings.json`; if every command is refused, `OTHER-AGENTS.md` says how to turn that off. Claude Code stays the preferred setup.
 
 ## 4. Running the session
 
@@ -92,15 +94,13 @@ The timings are calibrated on Claude Code with Sonnet only, and no other harness
 
 | Window | Command | Who types |
 |---|---|---|
-| The agent (large) | `claude`, in the repo | the Driver |
-| Gate (small) | a fresh Terminal window in the repo, then `./gate …`, `make open`, `make list`, `make test` | the humans |
+| The agent (large) | your agent in the repo (`claude` for Claude Code) | the Driver |
+| Gate (small) | a fresh terminal window in the repo, then `./gate …`, `make open`, `make list`, `make test` | the humans |
 | Browser | `make open` shows `out/explorer.html` | everyone looks |
 
-Open the gate terminal from Terminal itself, not from inside Claude Code: the gate refuses to run from the agent's shell and says so. The agent cannot see the browser; that is the point of Level 1.
+Open the gate terminal from your terminal app, not from inside the agent: in Claude Code the gate refuses to run from the agent's shell and says so. The agent cannot see the browser; that is the point of Level 1.
 
-The session starts in plan mode on Sonnet. `Shift+Tab` (in Claude Code) leaves plan mode once the group has agreed a plan. `/model` to anything but Sonnet is refused.
-
-**Which model is it, really?** Trust `/status`, not what the agent says about itself.
+In Claude Code the session starts in plan mode on Sonnet. `Shift+Tab` leaves plan mode once the group has agreed a plan. `/model` to anything but Sonnet is refused. **Which model is it, really?** Trust `/status`, not what the agent says about itself. Other tools use their own plan or ask mode (`OTHER-AGENTS.md`).
 
 ### Choosing the dataset
 
@@ -112,14 +112,14 @@ That line is the only place the dataset is named. The Makefile reads it, so `mak
 
 > "Today we build a real tool, a 3D explorer for our data, and we build it the way you'd want a careful student to: plan, build in two checked steps, test, review, and commit as we go. The agent is a normal, helpful collaborator today; the gates just make sure we do each step. The gate terminal is ours: the agent can't type there, and that's where we run the tests ourselves. Roles: [assign]. The keyboard rotates at each gate. All code goes through the agent; we read, look, decide. At the end, `PLAYBOOK.md` is yours to take home, and the four skills in `.claude/skills/` with it."
 
-You are the Coach: you ask questions and fix tooling, and you do not drive. Allocate the roles (described in the repo's `README.md`) by group size, as below. The Driver rotates at each gate through everyone except you, so every other member types; you drive only with two people or to fix a technical problem.
+The README, the briefs and the gate direct the group. Your job is to keep the laptop running, keep an eye on the clock, read out the talk prompts and notes, and call the facilitator when a group is stuck. Allocate the roles (described in the repo's `README.md`) by group size, as below. Everyone takes a role, you included, and the Driver rotates at each gate so that everyone types.
 
 | Group size | Roles |
 |---|---|
-| 2 | You: Coach and Navigator. The other person: Driver, Sceptic and Scribe. |
-| 3 | Driver (rotating), Sceptic. You: Coach, Navigator and Scribe. |
-| 4 | Driver (rotating), Navigator, Sceptic. You: Coach and Scribe. |
-| 5 | Driver (rotating), Navigator, Browser Sceptic (looks at every result), Evidence Sceptic (wants every command and output). You: Coach and Scribe. |
+| 2 | Driver; Navigator, Sceptic and Scribe. Swap at each gate. |
+| 3 | Driver (rotating), Sceptic, Navigator and Scribe. |
+| 4 | Driver (rotating), Navigator, Sceptic, Scribe. |
+| 5 | Driver (rotating), Navigator, Browser Sceptic (looks at every result), Evidence Sceptic (wants every command and output), Scribe. |
 
 - **The expert who wants to write it by hand:** "You'd be faster today. The point is the habit for when the code is ten times bigger. Can you get the agent to do it the way you would?"
 - **Plotting rabbit holes** (styling, extra controls): the Navigator owns scope. "Is it in the plan?" Suggestions go in the log for later.
@@ -230,19 +230,20 @@ Honest limit: the check scripts print a fixed line, so each crypto gate's only s
 
 | Symptom | Do |
 |---|---|
-| A command says it is for humans | Use a fresh Terminal window, not Claude Code's shell. |
-| Hooks don't fire, or the agent edits what should be frozen | The trust dialog was missed (`/hooks` is empty): `/exit`, run `claude` again, accept trust. |
-| The agent names the wrong model | Trust `/status`, not what it says: the session is locked to Sonnet. |
-| The agent is going in circles after two failed corrections | `/clear` and a better prompt that includes what you learned. |
+| A command says it is for humans | Use a fresh terminal window, not the agent's shell. |
+| Claude Code: hooks don't fire, or the agent edits what should be frozen | The trust dialog was missed (`/hooks` is empty): `/exit`, run `claude` again, accept trust. |
+| Claude Code: the agent names the wrong model | Trust `/status`, not what it says: the session is locked to Sonnet. |
+| The agent is going in circles after two failed corrections | A fresh session (`/clear` in Claude Code) and a better prompt that includes what you learned. |
 | A guard or gate refusal | Read it aloud; it is usually the lesson and it names the fix. |
 | A stuck group | Hints first, then call the facilitator, who holds the master passphrase for `./gate skip --master` (plus `./gate install-solution --master`). |
 | Hint ladder | `./gate hint` gives three tiers over time; Level 1 gets a fourth with the answer. A stuck Level 1 is the likeliest. `./gate skip --master` installs no code, so if the group still needs a real tool to test and review (or the build ran out of time), follow it with `./gate install-solution --master`, which installs and commits the reference solution. Tell the group. |
 | `make list` fails at Level 0 ("'explorer' is a package and cannot be directly executed") | Expected: the tool does not exist until Level 1. Ask the agent for the missing counts instead. |
-| `make open` does nothing | Open `out/explorer.html` from Finder. Check `out/` exists (`make explore` first). |
-| Page blank in the browser, or a JavaScript error | plotly.js was not embedded, or a script error. Open the browser console (Safari: Develop, Show JavaScript Console) and paste the message to the agent. `./gate check` names the embedding case. |
+| `make open` does nothing | Open `out/explorer.html` from your file manager or browser. Check `out/` exists (`make explore` first). On Linux `make open` uses `xdg-open`; `make open OPEN=firefox` names another opener. |
+| Page blank in the browser, or a JavaScript error | plotly.js was not embedded, or a script error. Open the browser console (Safari: Develop, Show JavaScript Console; Chrome and Firefox: F12) and paste the message to the agent. `./gate check` names the embedding case. |
 | `data.json` check fails | Almost always `NaN` in a column of missing values. Tell the agent to use `allow_nan=False` and write missing values as `null`. |
-| The agent's command is refused and it won't reword it | Expected: it refuses writes to frozen or secret paths, and any command that both writes (`cp`, `mv`, `rm`, `tee`, `sed -i`, `python script.py`) and names `data/`. Reading `data/` and plain redirects such as `head -5 data/pulsars.csv > out/small.csv` are allowed. The agent should use a `make` target or the tests. If the command was harmless, note it for the facilitator and carry on another way. |
-| A skill is not listed, or the agent says "unknown skill" | `/reload-skills`; if it is still missing, `/exit`, run `claude` again, accept trust. At Level 3 the `reviewer` agent in `.claude/agents/` is the fallback (check `/agents`): "Use the reviewer agent to review the code since start against PLAN.md. Rank the findings by severity and paste them into the table in REVIEW.md, most severe first. Don't fix anything." Record whether the guard fires on the subagent's own tool calls. |
+| The agent's command is refused and it won't reword it | Expected (Claude Code's guard): it refuses writes to frozen or secret paths, and any command that both writes (`cp`, `mv`, `rm`, `tee`, `sed -i`, `python script.py`) and names `data/`. Reading `data/` and plain redirects such as `head -5 data/pulsars.csv > out/small.csv` are allowed. The agent should use a `make` target or the tests. If the command was harmless, note it for the facilitator and carry on another way. |
+| A skill is not listed, or the agent says "unknown skill" | Other tools: see `OTHER-AGENTS.md`. Claude Code: `/reload-skills`; if it is still missing, `/exit`, run `claude` again, accept trust. At Level 3 the `reviewer` agent in `.claude/agents/` is the fallback (check `/agents`): "Use the reviewer agent to review the code since start against PLAN.md. Rank the findings by severity and paste them into the table in REVIEW.md, most severe first. Don't fix anything." Record whether the guard fires on the subagent's own tool calls. |
+| Another tool: every command refused with a hook error | The tool is running Claude Code's hooks: `OTHER-AGENTS.md` says how to turn that off. |
 | Page opens very slowly | The dimuon file has 60,000 rows, sampled to 20,000 by default. `make explore ARGS='--max-points 5000'` is quicker. |
 
 ## 7. Reset between runs

@@ -2,13 +2,14 @@ PY ?= .venv/bin/python
 DATA ?= $(shell sed -n 's/^Dataset:[[:space:]]*//p' PLAN.md)
 OUT ?= out
 ARGS ?=
+OPEN ?= $(if $(filter Darwin,$(shell uname -s)),open,xdg-open)
 
 .PHONY: explore open list test coverage status
 
 explore:
 	$(PY) -m explorer $(DATA) --out $(OUT) $(ARGS)
 open:
-	open $(OUT)/explorer.html
+	$(OPEN) $(OUT)/explorer.html
 list:
 	$(PY) -m explorer $(DATA) --list
 test:
