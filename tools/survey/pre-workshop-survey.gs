@@ -53,7 +53,7 @@ function buildSurvey() {
   form.addMultipleChoiceItem()
     .setTitle('Career stage')
     .setChoiceValues([
-      'Student', 'PhD student', 'Postdoc / fellow', 'Permanent staff',
+      'Undergraduate / Masters student', 'PhD student', 'Postdoc / fellow', 'Permanent staff',
       'Technical / RSE'])
     .showOtherOption(true);
 
@@ -62,9 +62,9 @@ function buildSurvey() {
     .setHelpText('Tick all that apply.')
     .setChoiceValues([
       'None yet',
-      'Chat: paste code in, copy answers back (ChatGPT, Claude, Gemini and the like)',
+      'Chat in a browser or app: paste code in, copy answers back (ChatGPT, Claude, Gemini and the like)',
       'Suggestions in my editor: autocomplete or inline edits (Copilot, Cursor and the like)',
-      'A desktop AI app that works on my files and runs code (Claude or Codex app and the like)',
+      'A desktop AI app that edits my files and runs code itself (Claude or Codex app and the like)',
       'An agent in my editor that edits files and runs commands (Cursor or Copilot agent mode and the like)',
       'An agent in the terminal (Claude Code, Codex CLI, Gemini CLI and the like)'])
     .setRequired(true);
@@ -74,8 +74,8 @@ function buildSurvey() {
     .setChoiceValues(['Never', 'Tried it', 'Monthly', 'Weekly', 'Daily']);
 
   form.addMultipleChoiceItem()
-    .setTitle('How comfortable are you in a terminal, with git?')
-    .setChoiceValues(['Never used them', 'Get by', 'Comfortable']);
+    .setTitle('How comfortable are you using a terminal (the command line)?')
+    .setChoiceValues(['Never used one', 'Get by', 'Comfortable']);
 
   form.addScaleItem()
     .setTitle('Overall, how do you feel about AI tools in research?')

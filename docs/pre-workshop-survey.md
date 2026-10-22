@@ -68,19 +68,19 @@ A leader needs:
 
 **Ten questions, about two minutes.** It's anonymous: there's no sign-in, and emails are collected only from people who volunteer to lead. Every question is there because its answers change something about the session; the note in italics says what. Only questions 2 and 10 are required, to keep drop-off low.
 
-1. **Career stage.** Student · PhD student · Postdoc / fellow · Permanent staff · Technical / RSE · Other.
+1. **Career stage.** Undergraduate / Masters student · PhD student · Postdoc / fellow · Permanent staff · Technical / RSE · Other.
    *Pitch: supervisors and students need different emphasis, for example on supervising students who use AI.*
 2. **Which have you used for coding? (tick all that apply)** *(required)*
    - None yet
-   - Chat: paste code in, copy answers back (ChatGPT, Claude, Gemini and the like)
+   - Chat in a browser or app: paste code in, copy answers back (ChatGPT, Claude, Gemini and the like)
    - Suggestions in my editor: autocomplete or inline edits (Copilot, Cursor and the like)
-   - A desktop AI app that works on my files and runs code (Claude or Codex app and the like)
+   - A desktop AI app that edits my files and runs code itself (Claude or Codex app and the like)
    - An agent in my editor that edits files and runs commands (Cursor or Copilot agent mode and the like)
    - An agent in the terminal (Claude Code, Codex CLI, Gemini CLI and the like)
    *Shows how much of the room has used an agent, and where they use it. Apps, editor agents and terminal agents do much the same job, so they aren't ranked against each other.*
 3. **How often do you use AI for coding?** Never · Tried it · Monthly · Weekly · Daily.
    *Depth of experience: pitch the lecture, and spread experienced people across groups.*
-4. **How comfortable are you in a terminal, with git?** Never used them · Get by · Comfortable.
+4. **How comfortable are you using a terminal (the command line)?** Never used one · Get by · Comfortable.
    *Pitch the set-up steps, and spot potential leaders who didn't volunteer.*
 5. **Overall, how do you feel about AI tools in research?** 1–5, from *very sceptical* to *very enthusiastic*.
    *The lecture's tone.*
