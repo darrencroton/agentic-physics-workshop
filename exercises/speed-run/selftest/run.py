@@ -67,6 +67,15 @@ def check(ok, label, detail=""):
         raise Fail(label)
 
 
+def brief_is(repo, level):
+    """True when the root BRIEF.md is the given level's brief."""
+    try:
+        with open(os.path.join(repo.root, "BRIEF.md"), encoding="utf-8") as fh:
+            return fh.read().startswith("# Level %d" % level)
+    except OSError:
+        return False
+
+
 def section(title):
     print("\n=== %s" % title)
 
@@ -211,6 +220,7 @@ def level0(repo):
     check(repo.level() == 0, "starts at level 0")
     check(repo.git("tag", "-l", "start") == "start", "tag start exists")
     check(repo.git("status", "--porcelain") == "", "clean working tree")
+    check(brief_is(repo, 0), "BRIEF.md is the Level 0 brief")
     check(repo.records() == [], "bench log is empty")
     code, out = repo.gate("unlock")
     check(code == 1 and "no bench runs" in out, "unlock refused before any run", flat(out)[-300:])
@@ -248,7 +258,7 @@ def level0(repo):
     check(code == 1 and "Not quite" in out, "wrong pair count (N(N+1)/2 = 500500) rejected")
     code, out = repo.gate("unlock", answers=[("N = 1000?", "N(N-1)/2 = 499,500")])
     check(code == 0 and "Level 1 unlocked" in out, "N(N-1)/2 = 499,500 unlocks level 1", flat(out)[-300:])
-    check(os.path.exists(repo.path("BRIEF.md")), "BRIEF.md appears")
+    check(brief_is(repo, 1), "BRIEF.md is now the Level 1 brief")
     talked(out, "From your fit, what runtime does the reference predict at N = 200,000, and how did you get it?",
            "level 0 unlock shows the talk prompt")
 
@@ -485,8 +495,8 @@ def finale(repo, passfile):
     with open(repo.path("LOG.md")) as fh:
         check("installed the level 2 solution" in fh.read(), "install logged to LOG.md")
     code, out = repo.gate("reset", answers=[("level 0?", "y")])
-    check(code == 0 and repo.level() == 0 and not os.path.exists(repo.path("BRIEF.md")),
-          "./gate reset back to level 0, BRIEF.md removed", flat(out)[-200:])
+    check(code == 0 and repo.level() == 0 and brief_is(repo, 0),
+          "./gate reset back to level 0 and the Level 0 brief", flat(out)[-200:])
     print("--- ./gate reset output ---\n%s\n---" % out.strip())
     check(repo.records() == [], "reset removed the bench log")
     dirs = repo.record_dirs()
@@ -503,7 +513,7 @@ def finale(repo, passfile):
     check(code == 0 and repo.level() == 1 and os.path.exists(repo.path("BRIEF.md")),
           "./gate skip --master at level 0 opens level 1", flat(out)[-300:])
     code, out = repo.gate("reset", answers=[("level 0?", "y")])
-    check(code == 0 and not os.path.exists(repo.path("BRIEF.md")), "reset removes the brief")
+    check(code == 0 and brief_is(repo, 0), "reset restores the Level 0 brief")
     check(len(repo.record_dirs()) == 2, "a second records folder was written", str(repo.record_dirs()))
     check(repo.level() == 0 and repo.git("status", "--porcelain") == ""
           and repo.records() == [], "repo left clean at level 0")

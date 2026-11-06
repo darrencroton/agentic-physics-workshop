@@ -5,11 +5,11 @@ These exercises are built for Claude Code, which enforces the rules with hooks. 
 Before you start, ask your agent "What may you not do in this repo?" It should list the Never items from `AGENTS.md`. Use a fast, capable mid-tier coding model: the timings were set on Claude Sonnet.
 
 - **Plan (Level 0).** Discuss the plan in your agent's plan or ask mode, if it has one (Codex: `/plan`; Cursor and Copilot: Shift+Tab; OpenCode: the `plan` agent). Once you approve the plan, leave that mode and ask the agent to save and commit `PLAN.md` only, without starting the build.
-- **At the start, and after each unlock.** Ask your agent to run `./gate brief` (after an unlock, tell it the level has changed).
+- **At the start, and after each unlock.** Ask your agent to read `BRIEF.md` (after an unlock, tell it the level has changed).
 - **Skills.** They are in `.claude/skills/`. If your agent doesn't list them, ask it to read `.claude/skills/<name>/SKILL.md` and follow it.
 - **Review (Level 3).** The review needs fresh eyes. If your agent can't run the review skill in a fresh context, open a second, new session in this same folder and paste in:
 
-  > Read `.claude/skills/review-code/SKILL.md` and follow it to review the commits since the start tag against `PLAN.md` and `README.md`: three to five findings, ranked. Don't edit anything.
+  > Read `.claude/skills/review-code/SKILL.md` and follow it to review the commits since the start tag against `PLAN.md` and `INTERFACE.md`: three to five findings, ranked. Don't edit anything.
 
   Then paste its findings back to your main session for `REVIEW.md`.
 - **Commits.** The gates count commits. If your agent can't commit, the Driver commits in the gate terminal.

@@ -1,6 +1,6 @@
 # Scribe's log
 
-Short and honest, written as you go. This feeds the show-and-tell.
+Short and honest, written as you go. This feeds the show-and-tell. The "Talk it over" headings are optional: a line each if it helps.
 
 ## Level 0: Measure before you touch anything
 

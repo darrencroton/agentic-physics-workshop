@@ -28,4 +28,4 @@ The tool works and you've seen it. Now make sure it keeps working. You write you
 
 ## The gate
 
-`./gate check` needs at least 5 passing tests, one of them importing `explorer`; at least 1 commit since Level 1; and nothing uncommitted under `explorer/`, `tests/` or in `TESTS.md`. If "Our list" has fewer than three items, or the agent's plan is missing, the gate still passes with a note. When the tests pass in your own terminal: commit, then `./gate unlock`. A talk prompt follows.
+At least five passing tests, one of them importing `explorer`, with the tests and `TESTS.md` committed. When the tests pass in your own terminal and `./gate check` passes, run `./gate unlock`. A talk prompt follows.

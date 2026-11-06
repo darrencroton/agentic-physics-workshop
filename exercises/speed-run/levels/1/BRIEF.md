@@ -1,6 +1,6 @@
 # Level 1: Vectorise, and survive the memory wall
 
-Target time: 10 minutes. Persona: `coach`.
+**Target time:** 10 minutes. **Persona:** `coach`.
 
 ## Where we are
 

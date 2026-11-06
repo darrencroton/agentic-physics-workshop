@@ -117,7 +117,7 @@ Need the master passphrase, which the facilitator holds, so call them over: `./g
 
 ### Level 0: Just build it (5 min, persona literal)
 
-1. Driver pastes the client's request from `README.md` into Claude exactly as written. Accept what it gives you. If it asks a question, answer "whatever you think best".
+1. Driver leaves plan mode and pastes the client's request from `BRIEF.md` into Claude exactly as written. Accept what it gives you. If it asks a question, answer "whatever you think best".
 2. In Claude: `make plot`. Look at `results/hz_binned.png`; a copy is kept as `results/hz_binned_L0.png`.
 3. Gate terminal: `./tdd score` (about 2 s). Then `./gate unlock`. The unlock saves the Level 0 work on branch `attempt-L1-<timestamp>` and restores the stub and an empty `tests/` automatically, and says so. The unlock screen ends with `Next:` and `Brief:` lines, then a talk prompt.
 

@@ -42,6 +42,10 @@ class BuildAndUnlockTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         return proc.stdout
 
+    def read(self, rel):
+        with open(os.path.join(self.out, rel)) as fh:
+            return fh.read()
+
     def git(self, *args):
         return subprocess.run(["git"] + list(args), cwd=self.out, capture_output=True,
                               text=True).stdout.strip()
@@ -61,6 +65,8 @@ class BuildAndUnlockTests(unittest.TestCase):
                       self.git("ls-files").splitlines())
         self.assertEqual(self.git("tag", "-l", "start"), "start")
         self.assertEqual(self.git("status", "--porcelain"), "")
+        self.assertEqual(self.read("BRIEF.md"), "# Level 0 brief\n")
+        self.assertNotIn("BRIEF.md", self.git("ls-files").splitlines())
         self.assertIn("Workshop start", self.git("log", "--oneline"))
         with open(os.path.join(self.out, ".claude", "settings.json")) as fh:
             settings = json.load(fh)
@@ -158,6 +164,8 @@ class BuildAndUnlockTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("PASS", proc.stdout)
         self.assertIn("Note: the fixture check has a friendly word.", proc.stdout)
+        brief = subprocess.run(gate + ["brief"], cwd=self.out, capture_output=True, text=True)
+        self.assertEqual(brief.stdout, "# Level 0 brief\n")
         code, out = ptyhelper.run_pty(gate + ["unlock"], [("H0 to 1 d.p.?", "68")], cwd=self.out)
         self.assertEqual(code, 1, out)
         self.assertIn("Not quite", out)
@@ -182,7 +190,8 @@ class BuildAndUnlockTests(unittest.TestCase):
         state = st.load_state(self.out)
         self.assertEqual(state["level"], 1)
         self.assertEqual(state["persona"], "collaborator")
-        self.assertTrue(os.path.exists(os.path.join(self.out, "BRIEF.md")))
+        self.assertEqual(self.read("BRIEF.md"), "# Level 1 brief\n")
+        self.assertEqual(self.git("status", "--porcelain", "--", "BRIEF.md"), "")
         self.assertTrue(os.path.exists(os.path.join(self.out, "docs", "EXTRA.md")))
         self.assertTrue(os.path.exists(os.path.join(self.out, ".workshop", "levels", "1", "persona.txt")))
         with open(os.path.join(self.out, "LOG.md")) as fh:
@@ -192,6 +201,9 @@ class BuildAndUnlockTests(unittest.TestCase):
         self.assertIn("Exercise complete. Well done.\r\n" + "-" * 29, out)
         self.assertNotIn("Next:", out)
         self.assertTrue(st.load_state(self.out)["complete"])
+        code, out = ptyhelper.run_pty(gate + ["reset", "--yes"], [], cwd=self.out)
+        self.assertEqual(code, 0, out)
+        self.assertEqual(self.read("BRIEF.md"), "# Level 0 brief\n")
 
 
     def test_last_level_crypto_gate_rejects_graded_questions(self):

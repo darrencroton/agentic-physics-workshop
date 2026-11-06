@@ -614,3 +614,26 @@ The facilitator now recruits 30–40 Explorer leaders per workshop with a delibe
 | Subscriptions | `docs/00` §7: leaders without a paid AI subscription get Claude Pro. | Survey §1. |
 | Scope | The Speed Run and TDD Ladder docs keep the Coach role, macOS and Claude Code only; `docs/00` §4 says so. `gatekit/agents/OTHER-AGENTS.md` is unchanged (shared, participant-facing, and already tool-neutral). | Task limited to Explorer; those exercises' lessons arrive by Claude Code hook. |
 | Feedback form | `docs/00` §9 Q4 now asks "…on your own research code right now?", the same wording as the pre-workshop survey's Q8. | So pre- and post-session confidence can be compared. |
+
+## README is the overview, BRIEF.md the running sheet at every level (2026-11-06; facilitator request)
+
+From an Explorer trial: groups started from `README.md`, then switched to `BRIEF.md` at the first unlock. The README carried both the overview and the Level 0 brief. Now each file has one job, in all three exercises. Deviates from BUILD-SPEC §5.8 (updated) and `docs/00`'s run-sheet (updated).
+
+| Area | Decision | Reason |
+|---|---|---|
+| Level 0 brief | Each exercise has `levels/0/BRIEF.md`, the same shape as the later briefs (target time, Where we are, Do this, Watch for, The gate). `reset_workshop` (build, preflight on a fresh clone, `./gate reset`) copies it to the repo root. `./gate brief` no longer falls back to `README.md`. | One running sheet from the first minute; `./gate brief` and the agent's "the current brief is in `BRIEF.md`" hold at every level. |
+| `/BRIEF.md` gitignored | Added to the template `.gitignore`. | The gate owns the file and rewrites it on every unlock and reset. Previously it showed as untracked after each unlock, where an agent's `git add -A` could commit it. The agent is told its path, so Claude Code's gitignore-aware search does not matter. |
+| README | The overview, read once: premise, a table of levels and target times, roles, windows, a "Your files" table, commands, then "open `BRIEF.md`". Exercise reference that every level uses stays: Explorer's datasets, the TDD scorecard glossary, the Speed Run contract. | The files table replaces cross-references scattered through the docs. The level table lets the Navigator see the clock. |
+| TDD client request | Stays in the README as the premise, and is repeated verbatim in the Level 0 and Level 1 briefs. | The group pastes it at both levels, and Level 1's "exactly as before" pointed at a file the group no longer works from. |
+| Plan mode | TDD and Speed Run: "press `Shift+Tab` until plan mode is off" moved from the windows section to Level 0 step 1. | It is the first action of the level. |
+| Explorer gate sections | Each "The gate" says in one sentence what must pass and be committed. Which paths must be clean and which shortfalls only earn a `Note:` are left to the check's own messages. | The check names the gap when it happens; the old paragraphs repeated it in advance. |
+| Explorer review prompt | "review the code since start" became "review all the code we've written" in the Level 3 brief, its hint and the walkthrough. The persona still passes "since the start tag" to the skill. | `start` is a git tag the group never sees. |
+| Explorer `OTHER-AGENTS.md` | Read `BRIEF.md` at the start and after each unlock; the fallback review is against `PLAN.md` and `INTERFACE.md` (it said `README.md`). | Matches the Level 3 persona. The README no longer holds the interface. |
+| Explorer small fixes | `data/README.md` no longer names the builder's `make_data.py`. `PLAYBOOK.md` is soft-wrapped, its prompts are blockquotes like the briefs', and its Stop-hook JSON is in a code fence (it rendered as prose). `BRIEF.md` is on the agent's never-edit list. | Builder leak; readability; the guard already freezes `BRIEF.md`, but other harnesses rely on the written rule. |
+| `LOG.md` | Each template says the "Talk it over" headings are optional. | The unlock screen says "nothing to type", and the headings read as required. |
+| Speed Run | Level 0 steps are written as asks to the agent ("Ask the agent to run …"). Brief headers use the bold `**Target time:**`/`**Persona:**` form of the other two exercises. The walkthrough's "race rules are in the README" now points at its own Level 3 section (the brief stays encrypted until the unlock, so a leader can't read it in advance). | The steps were ambiguous about who types the command; consistency; a stale pointer. |
+| Not changed | `AGENTS.md`'s repetition of the personas, apart from the brief pointer. | Deliberate (see the skills entry): it is agent-facing and the fallback for harnesses that get no PERSONA. |
+| Calibration watch | TDD Level 0: the agent instructions name `BRIEF.md`, and the literal agent may read a Level 0 brief that says "accept what comes back". The README said the same before, so exposure is similar, but check it in the next Haiku run. | The Level 0 lesson relies on an undisturbed literal agent. |
+
+
+Review: Codex gpt-6.1-sol (high effort, read-only, static). Round 1 was REVISE with one moderate finding: the Speed Run walkthrough pointed leaders at the encrypted Level 3 brief. Fixed. It found no defect in the mechanics, participant docs or tests. Round 2: ACCEPT, with no findings.

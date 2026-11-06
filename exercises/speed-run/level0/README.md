@@ -4,6 +4,17 @@ Your group's pair counter is clear, correct and pure Python. It is fine for 2,00
 
 So the big idea is: **measure first, and decide what "correct" means before you see any results.** For floating-point code that is a decision your group makes and writes down.
 
+## How it runs
+
+| Level | | Target |
+|---|---|---|
+| 0 | Measure before you touch anything | 7 minutes |
+| 1 | Vectorise, and survive the memory wall | 10 minutes |
+| 2 | Reduce the work, defend the answer | 14 minutes |
+| 3 | Open race | 11 minutes |
+
+A gate checks each level before the next one opens. **`BRIEF.md` is your running sheet**: what to do now, what to watch for, and what the gate needs. It changes at every unlock. Read this page once, then open `BRIEF.md` (or run `./gate brief`).
+
 ## The contract
 
 `count_pairs(pos, edges)` returns, for each of 15 bins, the number of **unique pairs** (i < j) whose separation r falls in the half-open bin `[edge_k, edge_k+1)`.
@@ -25,19 +36,19 @@ Hands off the code: humans read, think and type prompts. All code changes go thr
 
 ## Two windows
 
-1. **Agent window (large):** Claude Code. Only the Driver types here. It starts in plan mode; press `Shift+Tab` until plan mode is off before asking for runs or edits.
+1. **Agent window (large):** Claude Code. Only the Driver types here.
 2. **Gate terminal:** a separate terminal for `./gate` and `./race submit`. The agent never types there.
 
-## Level 0: Measure before you touch anything (about 7 minutes)
+## Your files
 
-Find out how slow the reference is, and where the time goes. The agent does the runs; you read the numbers.
-
-1. In the agent window: `make bench N=500 IMPL=reference`, then `N=1000`, then `N=2000`.
-2. `make profile` runs the reference at N = 1000 under a profiler. Which call is made most often?
-3. `make fit` fits time against N and predicts the runtime at N = 200,000. **Write down the exponent and your predicted time.** The real number is the group's to measure.
-4. In the gate terminal: `./gate unlock`. It asks how many unique pairs (so `math.sqrt` calls) the reference evaluates at N = 1000, then gives you a talk prompt about your prediction.
-
-If the agent offers to optimise now, the guard will refuse edits to `fast.py`. Read the refusal aloud: it is on purpose.
+| File | What it's for |
+|---|---|
+| `BRIEF.md` | What to do at this level |
+| `LOG.md` | The Scribe's log, with a table for your submissions |
+| `paircount/fast.py` | Your entry. `paircount/reference.py` is the slow, correct original. |
+| `race.toml` | Your division, declared at Level 2. Humans edit it; the agent never does. |
+| `bench/`, `data/` | The harness and the mock catalogues. Frozen. |
+| `AGENTS.md`, `CLAUDE.md` | The agent's instructions. You don't need to read them. |
 
 ## Commands
 

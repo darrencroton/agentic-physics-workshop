@@ -76,6 +76,10 @@
 - **Lighter Explorer leader role** (to match the leader ask in `docs/pre-workshop-survey.md`): `LEADER-QUICKSTART.md`, the walkthrough from section 3, the participant README and `docs/00` §4 and §7 now describe a leader who uses their own macOS or Linux laptop and any agentic tool (Claude Code preferred), takes a role like everyone else, and comes to a short set-up session instead of a 45-minute briefing. Claude Code checks and version are Claude-specific. `make open` uses `xdg-open` off macOS. Decisions in `docs/DECISIONS.md`.
 - **Pre-workshop email and survey** (`docs/pre-workshop-survey.md`): a reusable invitation email with a direct call for group leaders, a ten-question anonymous survey, and `tools/survey/pre-workshop-survey.gs`, a Google Apps Script that builds the form with its leader branch and a response Sheet. The script passes a JavaScript syntax check but has not yet been run in Google.
 
+## Done (2026-11-06)
+
+- **README is the overview, `BRIEF.md` the running sheet** (from the Explorer trial; all three exercises; decisions in `docs/DECISIONS.md`). Each exercise has a `levels/0/BRIEF.md`, which `reset_workshop` places at the root (build, fresh clone, reset). `/BRIEF.md` is gitignored and `./gate brief` no longer falls back to the README. The READMEs are once-read overviews: premise, level table, roles, windows, a "Your files" table, commands. Explorer gate sections are trimmed, `PLAYBOOK.md` is soft-wrapped, and stale pointers are fixed. Watch in the next TDD Haiku run: does the literal agent read the Level 0 brief and change its behaviour?
+
 ## How to re-run everything
 
 ```zsh

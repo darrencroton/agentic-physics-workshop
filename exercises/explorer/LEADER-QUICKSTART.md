@@ -30,6 +30,8 @@ You need your own laptop running macOS or Linux, with a terminal, git, `make`, P
 
 **Two windows and a browser:** the agent window (Driver only); a separate gate terminal for the humans (`./gate`, `make open`, `make test`), not the agent's own terminal; the browser (`make open`).
 
+**Start:** everyone reads `README.md` once (two minutes: what, roles, windows, commands). From then on the group works from `BRIEF.md`, which the gate replaces at every unlock.
+
 **Checkpoints** (minutes from Go): 8 plan committed; 26 Level 1 passed; 34 tests running; 42 review triaged (3 spare). Behind? Narrow to what `./gate check` names.
 
 ## Level by level

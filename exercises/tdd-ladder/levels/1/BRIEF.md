@@ -8,8 +8,10 @@ You now ask for **test-driven development**: write a test first, watch it fail, 
 
 ## Do this
 
-1. In the agent window, paste the client's request again, exactly as before, and add:
+1. In the agent window, paste the client's request again, with one line added:
 
+   > Can you add a function to bin our measurements and give us the weighted mean and error in each bin? We need it for the H(z) plot.
+   >
    > Use test-driven development.
 
 2. Accept what the agent gives you. Watch closely; do not coach it.

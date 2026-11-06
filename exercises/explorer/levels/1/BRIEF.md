@@ -25,4 +25,4 @@
 
 ## The gate
 
-`./gate check` runs your tool four times and checks `data.json` and the page's controls against `INTERFACE.md`. It needs at least 2 commits since Level 0 and nothing uncommitted under `explorer/` or in `PLAN.md`. Once it passes and you've all looked at the page: commit, then `./gate unlock`. It asks one question that sends you to the page; a wrong answer gives a hint, so discuss it and try again. A talk prompt follows.
+The tool runs on your dataset, its `data.json` and page match `INTERFACE.md`, and each step is committed. Once `./gate check` passes and you've all looked at the page, run `./gate unlock`. It asks one question that sends you to the page; a wrong answer gives a hint, so discuss it and try again. A talk prompt follows.

@@ -1,6 +1,6 @@
 # Data
 
-Two frozen datasets for the Explorer exercise. Both are plain CSV (UTF-8, comma separated, empty field = missing value), each with a `.columns.json` sidecar. Regenerate them with `exercises/explorer/make_data.py` (needs network).
+Two frozen datasets for the Explorer exercise. Both are plain CSV (UTF-8, comma separated, empty field = missing value), each with a `.columns.json` sidecar.
 
 - `pulsars.csv`: every pulsar in the ATNF Pulsar Catalogue v2.9.0 (4,503 rows). `JNAME` is a text label; the other columns are numeric. Many pulsars lack a distance, a period derivative or the derived quantities, so missing values are common. Pulsars with no distance have empty `XX`, `YY`, `ZZ` (psrcat would place them at the Sun).
   - Source: https://www.atnf.csiro.au/research/pulsar/psrcat/

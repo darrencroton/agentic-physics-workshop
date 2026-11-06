@@ -30,6 +30,8 @@ Before the day (details in section 3 of `FACILITATOR-WALKTHROUGH.md`):
 
 **Two windows:** a large Claude Code window (only the Driver types) and a separate gate terminal for `./gate` and `./race submit`. Open the gate terminal from Terminal itself, not from inside Claude Code. The session starts in plan mode: `Shift+Tab` leaves it.
 
+**Start:** everyone reads `README.md` once (two minutes: what, roles, windows, commands). From then on the group works from `BRIEF.md`, which the gate replaces at every unlock.
+
 **Checkpoints from Go:** 8 min Level 0 done; 18 min Level 1 done; 32 min Level 2 done; 40 min first Level 3 submission.
 
 ## 3. Level by level

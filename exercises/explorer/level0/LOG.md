@@ -1,6 +1,6 @@
 # Scribe's log
 
-Keep this short and honest. Write as you go. This feeds the show-and-tell.
+Keep this short and honest. Write as you go. This feeds the show-and-tell. The "Talk it over" headings are optional: a line each if it helps.
 
 ## Level 0: Plan
 

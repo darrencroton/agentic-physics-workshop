@@ -11,7 +11,7 @@ The tool works and has tests. The `review-code` skill runs in a fresh context (a
 1. **Before you ask**, write two things in `REVIEW.md` that you think a reviewer will find. One minute. (Type them yourselves, or dictate.)
 2. Then:
 
-   > "Use the review-code skill to review the code since start against PLAN.md. Rank the findings by severity and paste them into the table in REVIEW.md, most severe first. Don't fix anything."
+   > "Use the review-code skill to review all the code we've written against PLAN.md. Rank the findings by severity and paste them into the table in REVIEW.md, most severe first. Don't fix anything."
 
 3. Compare the findings with your guesses.
 4. Triage the top three to five as a group: **FIX**, **ACCEPT** (true, but not worth fixing in a prototype) or **REJECT** (wrong), each with a one-line reason.
@@ -27,7 +27,7 @@ The tool works and has tests. The `review-code` skill runs in a fresh context (a
 
 ## The gate
 
-`./gate check` needs the tests passing, the Level 1 runs passing again on your dataset, at least 1 commit since Level 2, and nothing uncommitted under `explorer/`, `tests/` or in `REVIEW.md`. Fewer than two guesses, or fewer than three triaged findings (each FIX, ACCEPT or REJECT with a reason), still passes with a note. When `REVIEW.md` is triaged and the tests pass: commit, then `./gate unlock`. A talk prompt follows. Scribe: finish `LOG.md`.
+The tests pass, the tool still passes the Level 1 checks, and `REVIEW.md` and any fix are committed. When `./gate check` passes, run `./gate unlock`. A talk prompt follows. Scribe: finish `LOG.md`.
 
 ## Finished early
 

@@ -4,9 +4,30 @@ A collaborator sends your group one line:
 
 > Can you add a function to bin our measurements and give us the weighted mean and error in each bin? We need it for the H(z) plot.
 
-It sounds trivial. Over the next hour you will build this one feature several times, starting badly on purpose, while an objective scorecard shows how good your tests really are at each step. By the end you will have caught an agent marking its own homework, and have a test habit you can reuse on real analysis code.
+It sounds trivial. In about 45 minutes you will build this one feature several times, starting badly on purpose, while an objective scorecard shows how good your tests really are at each step. By the end you will have caught an agent marking its own homework, and have a test habit you can reuse on real analysis code.
 
 The big idea: **you define "correct"; the agent cannot.**
+
+## How it runs
+
+| Level | | Target |
+|---|---|---|
+| 0 | Just build it | 5 minutes |
+| 1 | "Use TDD, please" | 6 minutes |
+| 2 | Decide before you test | 10 minutes |
+| 3 | Red, green, refactor, for real | 15 minutes |
+| 4 | Think like a physicist | 8 minutes |
+| 5 | Stretch: test the tests | 5 minutes |
+
+A gate checks each level before the next one opens. **`BRIEF.md` is your running sheet**: what to do now, what to watch for, and what the gate needs. It changes at every unlock. Read this page once, then open `BRIEF.md` (or run `./gate brief`).
+
+## The scorecard
+
+`./tdd score` measures your code and your tests against:
+
+- **Acceptance tests:** 12 hidden checks of what the client really wanted.
+- **Mutants:** 16 copies of a correct solution, each with one deliberate bug. A test that fails on one "kills" it.
+- **False alarms:** your tests that fail on a correct solution, so the test is wrong.
 
 ## Roles
 
@@ -20,26 +41,18 @@ Humans read, think and type prompts. All code changes go through the agent.
 
 ## Two windows
 
-1. **Agent window (large):** Claude Code. Only the Driver types here. It starts in plan mode: press `Shift+Tab` until plan mode is off before asking for edits.
+1. **Agent window (large):** Claude Code. Only the Driver types here.
 2. **Gate terminal:** a separate terminal. Every `./gate` and `./tdd` command goes here. The agent never types there.
 
-## Level 0: just build it (about 5 minutes)
+## Your files
 
-You will do what most of us do with an AI assistant: ask for the feature in one sentence and accept what comes back. The scorecard then shows how much the agent decided without asking:
-
-- **Acceptance tests:** 12 hidden checks of what the client really wanted.
-- **Mutants:** 16 copies of a correct solution, each with one deliberate bug. A test that fails on one "kills" it.
-- **False alarms:** your tests that fail on a correct solution, so the test is wrong.
-
-With no tests yet, expect a poor score. That is the baseline.
-
-1. In the agent window, paste the client's request exactly as written above. Add nothing.
-2. Accept what the agent gives you. Do not correct it or ask for tests.
-3. Run `make plot` and look at `results/hz_binned.png`.
-4. In the gate terminal, run `./tdd score` and read the scorecard.
-5. In the gate terminal, run `./gate unlock`. It asks how many acceptance tests passed, saves your work on a branch and starts Level 1 from a fresh stub. A talk prompt follows.
-
-Do not polish. Score it and move on.
+| File | What it's for |
+|---|---|
+| `BRIEF.md` | What to do at this level |
+| `LOG.md` | The Scribe's log |
+| `src/hzbin/binning.py`, `tests/` | The function and its tests |
+| `results/` | The plot, `hz_binned.png`, with a copy per level |
+| `AGENTS.md`, `CLAUDE.md` | The agent's instructions. You don't need to read them. |
 
 ## Commands
 

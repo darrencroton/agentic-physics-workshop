@@ -196,8 +196,9 @@ def guard_probe(repo, denied, allowed):
 
 
 def brief_ok(repo):
-    text = repo.text("BRIEF.md")
-    check("commit, then `./gate unlock`" in text, "BRIEF.md ends with 'commit, then ./gate unlock'")
+    level = repo.level()
+    check(repo.text("BRIEF.md").startswith("# Level %d:" % level),
+          "BRIEF.md is the Level %d brief" % level)
 
 
 def passes_with_note(repo, expected, label):
@@ -266,10 +267,12 @@ def preflight(repo):
                 ".claude/skills/test-code/SKILL.md",
                 ".gatekit/exploretool/checks/level3.py"):
         check(os.path.isfile(repo.path(rel)), "%s shipped" % rel)
-    for rel in ("BRIEF.md", "TESTS.md", "REVIEW.md", "explorer/__main__.py", "answers.json"):
+    for rel in ("TESTS.md", "REVIEW.md", "explorer/__main__.py", "answers.json"):
         check(not os.path.exists(repo.path(rel)), "%s not shipped at level 0" % rel)
     check(repo.git("status", "--porcelain") == "" and repo.level() == 0,
           "fresh build: clean tree at level 0")
+    brief_ok(repo)
+    check("BRIEF.md" not in repo.git("ls-files").split(), "BRIEF.md is not tracked by git")
 
 
 def level0(repo, plan_name):
@@ -516,8 +519,9 @@ def level3(repo):
 def reset(repo):
     code, out = repo.gate("reset", answers=[("level 0?", "y")])
     check(code == 0 and repo.level() == 0, "./gate reset back to level 0", flat(out)[-200:])
-    for rel in ("BRIEF.md", "TESTS.md", "REVIEW.md", "out"):
+    for rel in ("TESTS.md", "REVIEW.md", "out"):
         check(not os.path.exists(repo.path(rel)), "reset removed %s" % rel)
+    brief_ok(repo)
     check(repo.git("status", "--porcelain") == "" and repo.heads() == {},
           "git reset --hard start: clean tree, no commit records")
 
@@ -567,7 +571,7 @@ def finale(repo, passfile):
           "the skip also records HEAD for the commit count")
     code, out = repo.gate("reset", answers=[("level 0?", "y")])
     check(code == 0 and "Back to level 0 at the start commit" in out
-          and not os.path.exists(repo.path("BRIEF.md")), "reset removes the brief")
+          and repo.text("BRIEF.md").startswith("# Level 0:"), "reset restores the Level 0 brief")
     records = os.path.join(repo.root, ".records")
     check(os.path.isdir(records) and os.listdir(records), "reset wrote a records folder")
     for rel in ("out", ".coverage", ".pytest_cache"):
@@ -617,8 +621,7 @@ def commands(repo, passfile):
     print("--- gate install-solution --master (level 1) ---\n%s\n---" % out.strip())
     check(code == 0 and "Installed the reference solution and committed it" in out,
           "install-solution --master at level 1", flat(out)[-300:])
-    check(repo.git("status", "--porcelain") == "?? BRIEF.md",
-          "the install left nothing uncommitted (BRIEF.md is the unlock's own file)")
+    check(repo.git("status", "--porcelain") == "", "the install left nothing uncommitted")
     check(not os.path.exists(repo.path("tests", "test_explorer.py")),
           "no tests installed at level 1")
     check(filecmp.cmp(repo.path("explorer", "page.py"),

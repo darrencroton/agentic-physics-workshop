@@ -1,6 +1,6 @@
 # Level 2: Reduce the work, defend the answer
 
-Target time: 14 minutes. Persona: `coach`.
+**Target time:** 14 minutes. **Persona:** `coach`.
 
 ## Where we are
 

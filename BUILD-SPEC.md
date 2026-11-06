@@ -42,6 +42,7 @@ ai-project-session/                 # top-level git repo (dist/ and **/.venv/ gi
 │   └── tdd-ladder/
 │       ├── manifest.json           # levels, personas, guards, gates, hints (Section 4.3)
 │       ├── level0/                 # participant-visible starting content (README, src stub, data…)
+│       ├── levels/0/               # Level 0 BRIEF.md, persona.txt, hints.json, guard.json (not packed)
 │       ├── levels/1..5/            # per-level content to pack: BRIEF.md, persona.txt, hints.json, guard.json, extra files
 │       ├── workshop/               # AGENTS.workshop.md, exercise-specific tools (tdd), pytest plugin
 │       ├── hidden/                 # reference impl, mutants, acceptance tests (packed into .vault)
@@ -333,8 +334,8 @@ Write `persona.txt` for every level, using doc Section 9 as the basis. Persona t
 
 ### 5.8 Participant Text
 
-- `README.md` = the Level 0 brief: the story, roles summary, the two-window setup, and the client's request verbatim.
-- Each `BRIEF.md` follows the doc's level brief.
+- `README.md` = the overview, read once: the story, a table of the levels and target times, roles, the two-window setup, what each file is for, and the commands. It ends by sending the group to `BRIEF.md`.
+- `BRIEF.md` = the running sheet for every level, Level 0 included (`levels/0/BRIEF.md`), following the doc's level brief in one shape: target time, Where we are, Do this, Watch for, The gate. Anything a group must paste (such as the client's request) is in the brief that asks for it.
 - Hints: three tiers per level, unlocking at 0, 5 and 10 minutes. Write them from the doc's lessons.
 
 ---

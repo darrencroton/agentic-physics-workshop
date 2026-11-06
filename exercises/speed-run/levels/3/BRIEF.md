@@ -1,6 +1,6 @@
 # Level 3: Open race
 
-Target time: 11 minutes. Persona: `collaborator`.
+**Target time:** 11 minutes. **Persona:** `collaborator`.
 
 ## Where we are
 

@@ -95,7 +95,7 @@ The session starts in plan mode on Haiku. `Shift+Tab` leaves plan mode once the 
 
 > "This is a race, but a wrong answer scores zero, and we must *declare* what correct means before we see results. Today's rhythm: measure, hypothesise, change one thing, run the check, commit. Claude is on a modest model. It won't know where the time goes unless we make it measure. Roles: [assign]. The keyboard rotates at each gate."
 
-The race rules are in the repo's `README.md`; read them so you can answer questions quickly. You are the Coach: you ask questions and fix tooling, and you do not drive. Allocate the roles (described in the repo's `README.md`) by group size, as below. The Driver rotates at each gate through everyone except you, so every other member types; you drive only with two people or to fix a technical problem.
+The race rules are in "Level 3: Open race" below; read them so you can answer questions quickly. You are the Coach: you ask questions and fix tooling, and you do not drive. Allocate the roles (described in the repo's `README.md`) by group size, as below. The Driver rotates at each gate through everyone except you, so every other member types; you drive only with two people or to fix a technical problem.
 
 | Group size | Roles |
 |---|---|

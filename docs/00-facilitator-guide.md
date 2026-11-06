@@ -300,7 +300,7 @@ Leaders have already set up from the emailed bundle and instructions. The sessio
 |---|---|
 | 0 | Lecture starts |
 | 15 | Groups form; leaders allocate roles (card on table); gate terminal opened |
-| 18 | **Go.** Everyone reads the Level 0 brief (`README.md`) together |
+| 18 | **Go.** Everyone reads `README.md` (the overview), then the Level 0 brief (`BRIEF.md`) together |
 | 33 | Time call (Go + 15): each leader checks the group against the time checkpoints in their walkthrough. "If you're behind, take a hint." |
 | 50 | Time call (Go + 32): "Scribes, start capturing your 'caught it' moment." |
 | 63 | Stop (Go + 45). Scribes finalise `LOG.md` |

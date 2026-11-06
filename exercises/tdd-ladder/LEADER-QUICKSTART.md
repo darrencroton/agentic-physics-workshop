@@ -21,6 +21,8 @@ Before the day, on your laptop:
 
 **Two windows.** Agent window (large, Claude Code, Driver types, starts in plan mode: `Shift+Tab` to leave it). Gate terminal (a fresh Terminal window, not Claude's shell) for every `./gate` and `./tdd` command.
 
+**Start:** everyone reads `README.md` once (two minutes: what, roles, windows, commands). From then on the group works from `BRIEF.md`, which the gate replaces at every unlock.
+
 | From Go | Expected |
 |---|---|
 | 5 min | Level 0 scored |

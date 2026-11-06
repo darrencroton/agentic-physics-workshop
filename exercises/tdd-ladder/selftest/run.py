@@ -42,6 +42,15 @@ def check(ok, label, detail=""):
         raise Fail(label)
 
 
+def brief_is(repo, level):
+    """True when the root BRIEF.md is the given level's brief."""
+    try:
+        with open(os.path.join(repo.root, "BRIEF.md"), encoding="utf-8") as fh:
+            return fh.read().startswith("# Level %d" % level)
+    except OSError:
+        return False
+
+
 def section(title):
     print("\n=== %s" % title)
 
@@ -156,6 +165,7 @@ def level0(repo):
     check(repo.level() == 0, "starts at level 0")
     check(repo.git("tag", "-l", "start") == "start", "tag start exists")
     check(repo.git("status", "--porcelain") == "", "clean working tree")
+    check(brief_is(repo, 0), "BRIEF.md is the Level 0 brief")
     code, out = repo.gate("unlock")
     check(code == 1 and "no score recorded" in out, "unlock refused before a score")
     repo.install_sample("l0_naive")
@@ -174,7 +184,7 @@ def level0(repo):
           "unlock says it started a fresh attempt (automatic new-attempt)")
     talked(out, "Which two decisions did the agent make that nobody asked you about?",
            "L0 unlock shows the talk prompt")
-    check(os.path.exists(os.path.join(repo.root, "BRIEF.md")), "BRIEF.md written")
+    check(brief_is(repo, 1), "BRIEF.md is now the Level 1 brief")
 
 
 def level1(repo):
@@ -450,7 +460,7 @@ def master_skip(repo, passfile):
     check(code == 0 and "sonnet" in repo.state()["allowed_models"], "allow-model power-up")
     # Leave the repo at the start for the facilitator.
     code, out = repo.gate("reset", answers=[("level 0?", "y")])
-    check(code == 0 and not os.path.exists(os.path.join(repo.root, "BRIEF.md")), "reset removes unlocked briefs")
+    check(code == 0 and brief_is(repo, 0), "reset restores the Level 0 brief")
     check(len(repo.record_dirs()) == 2, "a second records folder was written", str(repo.record_dirs()))
     check(repo.git("branch", "--list", "attempt-*") == "", "reset removed the attempt branches")
     check(repo.level() == 0 and repo.git("status", "--porcelain") == "", "repo left clean at level 0")

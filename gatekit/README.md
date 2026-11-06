@@ -23,7 +23,7 @@ dist/<exercise>/
   .gatekit/                # frozen tool sources (never edited by hand)
     gatekit/               # this package
     manifest.json          # the manifest, with gate.verify written in by the build
-    levels/0/              # level 0 private files (persona, hints, guard) used by gate reset
+    levels/0/              # level 0 private files (persona, hints, guard, BRIEF.md) used by gate reset
     <tool>/                # exercise tool package, plus _pepper.py when verified gates exist
     preflight_extra.py     # optional exercise-specific preflight checks
   .vault/                  # encrypted material, readable only through the gate
@@ -52,13 +52,13 @@ All commands run as `./gate <command>`. A TTY means both stdin and stdout are te
 | Command | TTY required | Behaviour |
 |---|---|---|
 | `status` | No | Prints title, level and title (marks "complete"), persona, minutes on level against `target_minutes`, hints used of total, failed gate attempts, allowed models, then any `status_lines` from the exercise tool. |
-| `brief` | No | Prints `.workshop/levels/N/BRIEF.md`; at level 0 with no such file, prints `README.md`. |
+| `brief` | No | Prints `.workshop/levels/N/BRIEF.md` (the same text as the root `BRIEF.md`). |
 | `check` | No | Runs the level's check and prints `PASS: <reason>` or `FAIL: <reason>`; exit 0 or 1. Never prints the expected answer. |
 | `unlock` | Yes | Runs the check (failure is logged as a failed attempt and stops). Asks each gate question, unlocks the next level by installing its pack, runs `post_unlock`, and prints the unlock screen (below). Nothing is asked after the gate: the `talk` prompts are shown, not answered, and nothing is logged for them. On the last level it sets `complete` instead of unpacking. A wrong answer prints "Not quite. Discuss and try again." and logs the failure (timestamp and kind only, never the answer). |
 | `hint` | Yes | Shows the first unused tier in `hints.json`, provided `unlock_after_minutes` has passed on this level; otherwise says when it unlocks. Records the tier in `hints_used` and appends the text shown to `LOG.md`. A tier may carry `"text_from": "tool.name"`, naming a `hints` function that returns the text to show (for example an answer tailored to the group's data); an exception or an empty return falls back silently to the tier's static `text`, which is still required. |
 | `skip --master` | Yes | Prompts for the master passphrase without echo, checks it against `.vault/master.check`, asks for a reason, records a skip, and unlocks the next level using the master slot (or marks the last level complete). Logs to `LOG.md`. A wrong passphrase is logged as a failed attempt of kind `master`. Without `--master` it errors. |
 | `allow-model <name>` | Yes, plus master passphrase | Verifies the master passphrase, lower-cases the name, appends it to `allowed_models` and logs the power-up. |
-| `reset` | Yes | Fails closed, before changing anything, unless the folder is the top of its own git repo with a `start` tag and a `main` branch. Prints what will happen and asks for confirmation (skipped with `--yes`). Then: saves the group's records (below); `git checkout -q -f main`; `git reset -q --hard start`; `git clean -q -fdx -e .venv -e .workshop -e /.records`; removes the stash and every tag except `start`; deletes every local branch except `main`; and runs `reset_workshop` (rebuilds `.workshop/` at level 0 and calls the tool's `on_reset(root)`). Prints "Back to level 0 at the start commit (.venv kept)." |
+| `reset` | Yes | Fails closed, before changing anything, unless the folder is the top of its own git repo with a `start` tag and a `main` branch. Prints what will happen and asks for confirmation (skipped with `--yes`). Then: saves the group's records (below); `git checkout -q -f main`; `git reset -q --hard start`; `git clean -q -fdx -e .venv -e .workshop -e /.records`; removes the stash and every tag except `start`; deletes every local branch except `main`; and runs `reset_workshop` (rebuilds `.workshop/` at level 0, writes the Level 0 `BRIEF.md` to the root and calls the tool's `on_reset(root)`). Prints "Back to level 0 at the start commit (.venv kept)." |
 | exercise commands | Their own | Any `gate_commands` the tool defines (section 9) are dispatched when the name is not built in, and are listed with their docstring's first line by `gate help`. |
 
 ### Records saved by `reset`
@@ -166,7 +166,7 @@ A level with no `gate` is treated as `{"type": "none"}`. For `verified` gates th
 
 ### Per-level directories and answers
 
-Each level `N >= 1` has a private source directory `exercises/<name>/levels/N/`. The build requires `persona.txt` and `guard.json` in it, tars the whole directory deterministically and encrypts it as `.vault/levelN.pack`. Level 0 is not packed: `levels/0/` is copied to `.gatekit/levels/0/` and placed in `.workshop/levels/0/` by `gate reset`.
+Each level `N >= 1` has a private source directory `exercises/<name>/levels/N/`. The build requires `persona.txt` and `guard.json` in it, tars the whole directory deterministically and encrypts it as `.vault/levelN.pack`. Level 0 is not packed: `levels/0/` is copied to `.gatekit/levels/0/` and placed in `.workshop/levels/0/` by `reset_workshop` (build, preflight on a fresh clone, `gate reset`), which also copies its `BRIEF.md`, if any, to the repo root. Each level's brief is then always `BRIEF.md` at the root; it is gitignored (`/BRIEF.md`), because the gate owns it and rewrites it on every unlock and reset.
 
 On unlock the pack is extracted to a temporary directory and then:
 

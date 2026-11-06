@@ -107,8 +107,6 @@ def cmd_brief(root, args):
     manifest, state = _load(root)
     level = state["level"]
     path = os.path.join(_level_dir(root, level), "BRIEF.md")
-    if level == 0 and not os.path.exists(path):
-        path = os.path.join(root, "README.md")
     try:
         with open(path, "r", encoding="utf-8") as fh:
             sys.stdout.write(fh.read())
@@ -494,6 +492,7 @@ def cmd_allow_model(root, args):
 def reset_workshop(root, manifest=None):
     """Rebuild .workshop/ at level 0 from .gatekit/levels/0.
 
+    Places the Level 0 BRIEF.md at the repo root, if the exercise has one.
     Touches neither git nor .records/; `cmd_reset` does those.
     """
     manifest = manifest or mf.load_root_manifest(root)
@@ -513,6 +512,9 @@ def reset_workshop(root, manifest=None):
     src = os.path.join(root, ".gatekit", "levels", "0")
     if os.path.isdir(src):
         shutil.copytree(src, _level_dir(root, 0))
+    brief = os.path.join(_level_dir(root, 0), "BRIEF.md")
+    if os.path.isfile(brief):
+        shutil.copy2(brief, os.path.join(root, "BRIEF.md"))
     st.save_state(root, st.initial_state(manifest))
     tool = _tool(manifest)
     on_reset = getattr(tool, "on_reset", None)
