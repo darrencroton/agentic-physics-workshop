@@ -185,6 +185,7 @@ A built participant repo holds the Level 0 files, the `gate` and `preflight` lau
 
 - **Plan mode by default.** Every session starts in read-only exploration, which reinforces *Understand* first. The Driver switches out with `Shift+Tab` once a plan is agreed.
 - **A guard hook** (`PreToolUse`) blocks Claude from the vault, the workshop state, the human-only gate commands, package installs and the files a level has frozen. Each refusal carries a teaching message. If the guard crashes, the tool call is blocked (it fails closed), which needs Claude Code 2.1.295 or newer.
+- **A sandbox**, on by default, runs Claude's commands, and everything they start, in Claude Code's operating-system sandbox. Writes stay in the repo and the temp folder, credential files can't be read, and the network needs a person's approval. It protects the laptop, not the gates. `./preflight --no-sandbox` turns it off for one repo.
 - **A model lock** (`PreModelSwitch`) refuses `/model` to anything but the allowed model, until a facilitator grants a power-up.
 - **Workspace trust.** Project hooks load only after someone opens `claude` in the repo once and accepts the trust dialog; the walkthrough's setup checks confirm it.
 

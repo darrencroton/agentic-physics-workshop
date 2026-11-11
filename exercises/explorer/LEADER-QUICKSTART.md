@@ -12,6 +12,7 @@ You need your own laptop running macOS or Linux, with a terminal, git, `make`, P
 - [ ] Your agent tool signed in. If you don't already pay for an AI subscription, the facilitator gives you Claude Pro.
 - [ ] Cloned the bundle; `./preflight` (first run sets up `.venv`: needs the network, about a minute) ends with "Preflight passed". It also checks the skill and agent files.
 - [ ] Claude Code only: in `claude`, accept the trust dialog; `/hooks` lists four events, and `/model` to another model is refused. Any other tool: read `OTHER-AGENTS.md`, and ask your agent "What may you not do in this repo?"
+- [ ] Claude Code: preflight shows "sandbox on". Claude Code runs the agent's commands in an operating-system sandbox, to protect your laptop (walkthrough section 3).
 - [ ] Rehearsed Level 0, then `./gate reset`.
 - [ ] Came to the facilitator's short set-up session.
 
@@ -58,6 +59,7 @@ Every gate ends with a "Talk it over" prompt: nothing to type. Ask it aloud and 
 - Claude Code: the agent names the wrong model: trust `/status`, not what it says. The session is locked to Sonnet.
 - Claude Code: a skill or `reviewer` not listed: `/reload-skills`; else `/exit`, run `claude` again, accept trust.
 - Another tool: every command refused with a hook error, or a skill missing: see `OTHER-AGENTS.md`.
+- "Operation not permitted": the sandbox, expected outside the repo, so ask the agent to work inside it. If Claude Code asks to allow a website, say no.
 
 ## After
 

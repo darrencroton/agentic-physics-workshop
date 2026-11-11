@@ -12,5 +12,6 @@ Before you start, ask your agent "What may you not do in this repo?" It should l
   > Read `.claude/skills/review-code/SKILL.md` and follow it to review the commits since the start tag against `PLAN.md` and `INTERFACE.md`: three to five findings, ranked. Don't edit anything.
 
   Then paste its findings back to your main session for `REVIEW.md`.
+- **Sandbox.** Claude Code runs the agent's commands in a sandbox by default; other tools ignore that setting. If yours has its own sandbox, keep it on: in Codex, `--sandbox workspace-write`, never `--dangerously-bypass-approvals-and-sandbox`.
 - **Commits.** The gates count commits. If your agent can't commit, the Driver commits in the gate terminal.
 - **Every command refused with a hook error?** Your agent is running Claude Code's hooks. Turn that off: in Copilot CLI set `"disableAllHooks": true` in `~/.copilot/config.json`; in Cursor turn off "Include Third-Party Plugins, Skills, and Other Configs". If the skills disappear too, use the Skills tip above.

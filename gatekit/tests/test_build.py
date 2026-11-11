@@ -77,6 +77,12 @@ class BuildAndUnlockTests(unittest.TestCase):
         self.assertIn("Bash(./race install-solution *)", deny)
         self.assertNotIn("Bash(./tdd red *)", deny)
         self.assertIn("Bash(./gate unlock *)", deny)
+        self.assertTrue(settings["sandbox"]["enabled"])
+        self.assertFalse(settings["sandbox"]["allowUnsandboxedCommands"])
+        self.assertIn("Read(~/.ssh/**)", deny)
+        for folder in (".git", ".workshop", ".tdd"):
+            self.assertFalse([rule for rule in deny if "/%s/" % folder in rule],
+                             "a %s rule would break the sandbox" % folder)
         with open(os.path.join(self.out, ".claude", "settings.json")) as fh:
             self.assertNotIn("__HUMAN_ONLY_DENY__", fh.read())
         with open(os.path.join(self.out, ".vault", "level1.pack"), "rb") as fh:

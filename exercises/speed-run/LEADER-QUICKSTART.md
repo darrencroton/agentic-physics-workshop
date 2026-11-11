@@ -9,10 +9,11 @@ Your group makes a slow, correct pair counter fast on 200,000 galaxies, while a 
 Before the day (details in section 3 of `FACILITATOR-WALKTHROUGH.md`):
 
 - [ ] Apple-silicon Mac with Xcode Command Line Tools (`git`, `clang`) and Python 3.11 or newer.
-- [ ] Claude Code 2.1.295 or newer, signed in (Haiku, plus Sonnet for power-ups).
+- [ ] Claude Code 2.1.321 or newer, signed in (Haiku, plus Sonnet for power-ups).
 - [ ] A git identity (`git config --global user.name` and `user.email`).
 - [ ] Cloned the bundle; `./preflight` (first run sets up `.venv`: needs the network, about a minute) ends with "Preflight passed". It also checks the skill and agent files.
 - [ ] In `claude`, accept the trust dialog; `/hooks` lists four events, and `/model` to another model is refused.
+- [ ] Preflight shows "sandbox on": Claude Code runs the agent's commands in an operating-system sandbox, to protect your laptop (walkthrough section 3).
 - [ ] You have played Level 0 once, then `./gate reset`.
 
 ## 2. On the day

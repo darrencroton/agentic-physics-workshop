@@ -15,3 +15,4 @@ mutants/
 *.dSYM/
 out/
 .coverage
+/.claude/settings.local.json

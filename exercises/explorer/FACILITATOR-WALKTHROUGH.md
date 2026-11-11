@@ -68,12 +68,22 @@ Install nothing else for the exercise. If preflight asks for something, check wi
 
 2. `./preflight` creates `.venv` and installs the pinned numpy, plotly, pytest and pytest-cov, then checks the machine. The first run needs the network and takes about a minute (the only step that needs the network apart from your agent). If it says your Python is too old, it prints the command to run with a newer one. It must end with "Preflight passed"; the first run also sets the workshop up at level 0. It also checks the skill and agent files.
 3. Check your agent (about a minute).
-   - **Claude Code** (version 2.1.295 or newer, `claude --version`, on an account that can use Sonnet): run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Then:
+   - **Claude Code** (version 2.1.321 or newer, `claude --version`, on an account that can use Sonnet): run `claude` in the repo and accept the workspace trust dialog; the guard rails do not load until you do. Then:
      1. `/hooks`: four events must be listed (SessionStart, UserPromptSubmit, PreToolUse, PreModelSwitch). If the list is empty, the trust dialog was not accepted: `/exit` and run `claude` again.
      2. `/model` and pick another model: it must be refused. The session stays on Sonnet.
      3. `/exit`.
    - **Any other tool:** read `OTHER-AGENTS.md`, open the repo in your agent and ask it "What may you not do in this repo?" It should list the Never items from `AGENTS.md`. Pick a fast, capable mid-tier model.
 4. Rehearse: play Level 0 yourself following section 5, and reset (section 7) so the group's log starts empty. Level 0 needs nothing built, so it is a quick way to see the gate, the guard and the plan-mode start.
+
+### The sandbox (on by default)
+
+To protect your laptop, Claude Code runs every command the agent starts, and everything those commands start (tests, scripts), in an operating-system sandbox:
+
+- they can write only inside this folder and the temp folder;
+- they can't read your SSH keys or your cloud and Git credential files;
+- they can't reach the internet unless you approve a site when Claude Code asks (nothing in the exercise needs it).
+
+Nothing else changes: the prompts, the gates and the commands are the same. `./preflight` checks that it can run. It needs Claude Code 2.1.321 or newer; preflight checks the `claude` command, so if you use the desktop app or an IDE extension, keep that up to date. On Linux it also needs `bubblewrap` and `socat` (for example `sudo apt install bubblewrap socat`), and preflight checks that `bwrap` can run; Ubuntu 23.10 or newer can block it, and then `./preflight --no-sandbox` is the way out. To check in a session, ask the agent to run `echo $SANDBOX_RUNTIME`: it prints `1`. If it gets in your way, `./preflight --no-sandbox` turns it off for this folder, and `./preflight --sandbox` turns it back on. The agent's own file tools are not inside the sandbox; the guard keeps their edits in this folder, and the credential rules apply to them too. Other tools ignore it: see `OTHER-AGENTS.md`.
 
 ### Groups on other agents
 
@@ -245,6 +255,11 @@ Honest limit: the check scripts print a fixed line, so each crypto gate's only s
 | A skill is not listed, or the agent says "unknown skill" | Other tools: see `OTHER-AGENTS.md`. Claude Code: `/reload-skills`; if it is still missing, `/exit`, run `claude` again, accept trust. At Level 3 the `reviewer` agent in `.claude/agents/` is the fallback (check `/agents`): "Use the reviewer agent to review the code since start against PLAN.md. Rank the findings by severity and paste them into the table in REVIEW.md, most severe first. Don't fix anything." Record whether the guard fires on the subagent's own tool calls. |
 | Another tool: every command refused with a hook error | The tool is running Claude Code's hooks: `OTHER-AGENTS.md` says how to turn that off. |
 | Page opens very slowly | The dimuon file has 60,000 rows, sampled to 20,000 by default. `make explore ARGS='--max-points 5000'` is quicker. |
+| A command fails with "Operation not permitted" | The sandbox: expected for anything outside this folder: writes to your home folder or `/tmp`, `mktemp` without a path, `<(…)`. Ask the agent to work inside the repo (Python's `tempfile` is fine). Don't turn the sandbox off to get past it. |
+| The agent can't open the page for you | Expected: the sandbox stops it opening apps. Run `make open` in the gate terminal. |
+| The agent's `git commit` fails to sign ("gpg failed", "Couldn't load public key") | The sandbox hides your signing key; preflight warns about it. Run `git config commit.gpgsign false` in the repo (this repo only), or `./preflight --no-sandbox`. |
+| Claude Code asks to allow a website | The sandbox: nothing in the exercise needs the network: say no unless you know why. |
+| Claude Code won't start, or says the sandbox is required | Run `./preflight` and do what it says (on Linux, install `bubblewrap` and `socat`; otherwise `claude update`), or `./preflight --no-sandbox`. |
 
 ## 7. Reset between runs
 

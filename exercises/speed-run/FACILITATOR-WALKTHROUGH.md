@@ -54,7 +54,7 @@ Do this a few days before the session, with a network connection. You need an Ap
 
 - The Xcode Command Line Tools: `xcode-select --install`. They provide `git` and `clang`; preflight fails without `clang`, which the race's C route needs.
 - Python 3.11 or newer, for example `brew install python@3.13`.
-- Claude Code 2.1.295 or newer (`claude --version`), signed in to a Claude account that can use Haiku, and Sonnet for power-ups.
+- Claude Code 2.1.321 or newer (`claude --version`), signed in to a Claude account that can use Haiku, and Sonnet for power-ups.
 - A git identity, because the exercise commits: `git config --global user.name "Your Name"` and `git config --global user.email you@example.org`.
 
 Do not install anything else. If preflight asks for something, check with the facilitator first.
@@ -73,6 +73,16 @@ This exercise needs Claude Code: its lessons depend on Claude Code hooks (the pe
    2. `/model` and pick another model: it must be refused. The session stays on Haiku.
    3. `/exit`.
 4. Rehearse: in a normal terminal, `make bench N=500 IMPL=reference` should print the counts check, the time and a "recorded as ... (level 0)" line. Then play Level 0 yourself following section 5, and reset (section 7) so the group's log and board start empty.
+
+### The sandbox (on by default)
+
+To protect your laptop, Claude Code runs every command the agent starts, and everything those commands start (tests, scripts), in an operating-system sandbox:
+
+- they can write only inside this folder and the temp folder;
+- they can't read your SSH keys or your cloud and Git credential files;
+- they can't reach the internet unless you approve a site when Claude Code asks (nothing in the exercise needs it).
+
+Nothing else changes: the prompts, the gates and the commands are the same. `./preflight` checks that it can run. It needs Claude Code 2.1.321 or newer; preflight checks the `claude` command, so if you use the desktop app or an IDE extension, keep that up to date. To check in a session, ask the agent to run `echo $SANDBOX_RUNTIME`: it prints `1`. If it gets in your way, `./preflight --no-sandbox` turns it off for this folder, and `./preflight --sandbox` turns it back on. The agent's own file tools are not inside the sandbox; the guard keeps their edits in this folder, and the credential rules apply to them too.
 
 ## 4. Running the session
 
@@ -201,6 +211,11 @@ Honest limit: the Speed Run's crypto gates reduce to the human answer, because t
 | Bench record "bad signature" | Someone edited `.workshop/race/bench.jsonl`. `./race log` flags it; those records are ignored. |
 | Laptop freezing at Level 1 | Close other apps and kill the Python process in Activity Monitor. The harness kills it at 2.5 GB but polls every 0.1 s, so one very large allocation can outrun it on a small-memory laptop. That is the lesson, but do not let it cost the group the hour. |
 | Different speeds on different laptops | The score is normalised by the calibration run on the same machine. Say so. |
+| A command fails with "Operation not permitted" | The sandbox: expected for anything outside this folder: writes to your home folder or `/tmp`, `mktemp` without a path, `<(…)`. Ask the agent to work inside the repo (Python's `tempfile` is fine). Don't turn the sandbox off to get past it. |
+| Compiling prints `couldn't create cache file` | Harmless: the sandbox keeps the compiler's cache, outside the folder, read-only. The build still works. |
+| The agent's `git commit` fails to sign ("gpg failed", "Couldn't load public key") | The sandbox hides your signing key; preflight warns about it. Run `git config commit.gpgsign false` in the repo (this repo only), or `./preflight --no-sandbox`. |
+| Claude Code asks to allow a website | The sandbox: nothing in the exercise needs the network: say no unless you know why. |
+| Claude Code won't start, or says the sandbox is required | Run `./preflight` and do what it says (usually `claude update`), or `./preflight --no-sandbox`. |
 
 ## 7. Reset between runs
 

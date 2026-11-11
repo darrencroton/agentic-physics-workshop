@@ -1,28 +1,37 @@
 {
   "model": "__MODEL__",
+  "env": {
+    "MPLCONFIGDIR": ".venv/.cache/matplotlib"
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "autoAllowBashIfSandboxed": false,
+    "filesystem": {
+      "allowRead": [
+        "./.vault",
+        "./.gatekit",
+        "./.claude"
+      ]
+    }
+  },
   "permissions": {
     "defaultMode": "plan",
     "deny": [
       "Read(./.vault/**)",
       "Read(**/.vault/**)",
-      "Read(./.workshop/**)",
-      "Read(**/.workshop/**)",
       "Read(./.gatekit/**)",
       "Read(**/.gatekit/**)",
       "Read(./.records/**)",
-      "Read(./.tdd/**)",
       "Read(./.claude/**)",
       "Edit(./.vault/**)",
       "Edit(**/.vault/**)",
-      "Edit(./.workshop/**)",
       "Edit(./.gatekit/**)",
       "Edit(./.records/**)",
-      "Edit(./.tdd/**)",
       "Edit(./.claude/**)",
       "Edit(./.tdd-tools/**)",
-      "Read(./.git/**)",
       "Edit(**/.claude/**)",
-      "Edit(**/.workshop/**)",
       "Bash(./gate unlock *)",
       "Bash(./gate hint *)",
       "Bash(./gate skip *)",
@@ -36,7 +45,20 @@
       "Bash(uv *)",
       "Bash(brew *)",
       "Bash(npm *)",
-      "Bash(conda *)"
+      "Bash(conda *)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.config/gh/**)",
+      "Read(~/.config/gcloud/**)",
+      "Read(~/.azure/**)",
+      "Read(~/.kube/**)",
+      "Read(~/.docker/**)",
+      "Read(~/.netrc)",
+      "Read(~/.git-credentials)",
+      "Read(~/.pypirc)",
+      "Read(~/.claude.json)",
+      "Read(~/.claude/.credentials.json)"
     ]
   },
   "hooks": {

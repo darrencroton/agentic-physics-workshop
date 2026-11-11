@@ -651,7 +651,8 @@ def save_records(root, manifest):
 
 
 def _git_reset_to_start(root):
-    """Return the repo to the start tag, keeping .venv, .workshop, .records.
+    """Return the repo to the start tag, keeping .venv, .workshop, .records
+    and Claude Code's local settings (approvals and a --no-sandbox choice).
 
     Also removes the stash, any leftover saved-stash refs and every tag
     except start; the work is already in work.bundle.
@@ -659,7 +660,7 @@ def _git_reset_to_start(root):
     _git(root, "checkout", "-q", "-f", "main")
     _git(root, "reset", "-q", "--hard", "start")
     _git(root, "clean", "-q", "-fdx", "-e", ".venv", "-e", ".workshop",
-         "-e", "/" + RECORDS_DIR)
+         "-e", "/" + RECORDS_DIR, "-e", "/.claude/settings.local.json")
     for line in _git(root, "for-each-ref", "--format=%(refname:short)",
                      "refs/heads").split():
         if line != "main":

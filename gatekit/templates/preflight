@@ -6,6 +6,9 @@
                      machine is ready
 ./preflight --setup  also reinstall requirements.txt even if .venv looks
                      current (a repair), then check
+./preflight --no-sandbox  turn off Claude Code's sandbox for this folder
+                          (it is on by default; see the walkthrough)
+./preflight --sandbox     turn it back on
 """
 
 import json
@@ -208,6 +211,45 @@ def check_exercise():
         report(proc.returncode == 0, "exercise-specific checks")
 
 
+def check_sandbox(mode):
+    """Report Claude Code's sandbox; "off" or "on" first sets this folder."""
+    try:
+        from gatekit import sandbox as sb
+        if os.path.exists(VENV_PY):
+            sb.warm_matplotlib(ROOT, VENV_PY)
+        if mode is not None:
+            sb.set_enabled(ROOT, mode == "on")
+        if not sb.enabled(ROOT):
+            print("[warn] sandbox off for this folder: the agent's commands "
+                  "run unprotected (./preflight --sandbox turns it back on)")
+            return
+        version = sb.claude_version()
+        need = ".".join(str(part) for part in sb.MIN_CLAUDE)
+        problem = sb.platform_problem()
+        if version is None:
+            print("[warn] claude CLI not found, so Claude Code's sandbox was "
+                  "not checked: it needs Claude Code %s or newer (keep your "
+                  "app or IDE extension up to date)%s"
+                  % (need, "; " + problem if problem else ""))
+            return
+        if problem:
+            report(False, "sandbox", "%s, or run ./preflight --no-sandbox"
+                   % problem)
+            return
+        if version < sb.MIN_CLAUDE:
+            report(False, "Claude Code %s for the sandbox"
+                   % ".".join(str(part) for part in version),
+                   "need %s or newer: run `claude update`, or "
+                   "./preflight --no-sandbox" % need)
+            return
+        for line in sb.warnings(ROOT):
+            print("[warn] sandbox: %s" % line)
+        report(True, "sandbox on: the agent's commands run in Claude Code's "
+               "sandbox (./preflight --no-sandbox turns it off)")
+    except Exception as exc:
+        report(False, "sandbox", str(exc))
+
+
 def setup(force=False):
     """Create/repair .venv. Return None on success or a failure message."""
     if not os.path.isfile(os.path.join(ROOT, "requirements.txt")):
@@ -248,6 +290,9 @@ def setup(force=False):
 
 
 def main(argv):
+    if "--sandbox" in argv and "--no-sandbox" in argv:
+        print("Use one of --sandbox and --no-sandbox, not both.")
+        return 2
     failure = setup(force="--setup" in argv)
     if failure:
         report(False, ".venv set-up", failure)
@@ -260,6 +305,8 @@ def main(argv):
     check_state()
     check_tty()
     check_exercise()
+    check_sandbox("on" if "--sandbox" in argv else
+                  "off" if "--no-sandbox" in argv else None)
     print()
     if all(results):
         print("Preflight passed. Open your agent in this folder. In Claude "

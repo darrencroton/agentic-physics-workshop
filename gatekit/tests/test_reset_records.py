@@ -51,6 +51,7 @@ class GitFixture(unittest.TestCase):
         git(self.root, "branch", "attempt-1")
         write(self.root, "scratch.txt", "untracked")
         write(self.root, ".venv/marker", "keep")
+        write(self.root, ".claude/settings.local.json", "{}")
         state = st.load_state(self.root)
         st.advance_level(state, "coach")
         st.save_state(self.root, state)
@@ -67,6 +68,8 @@ class ResetTests(GitFixture):
                          "main")
         self.assertFalse(os.path.exists(os.path.join(self.root, "scratch.txt")))
         self.assertTrue(os.path.exists(os.path.join(self.root, ".venv", "marker")))
+        self.assertTrue(os.path.exists(os.path.join(
+            self.root, ".claude", "settings.local.json")))
         self.assertEqual(st.load_state(self.root)["level"], 0)
         base = os.path.join(self.root, ".records")
         (stamp,) = os.listdir(base)

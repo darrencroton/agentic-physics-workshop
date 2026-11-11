@@ -80,6 +80,17 @@
 
 - **README is the overview, `BRIEF.md` the running sheet** (from the Explorer trial; all three exercises; decisions in `docs/DECISIONS.md`). Each exercise has a `levels/0/BRIEF.md`, which `reset_workshop` places at the root (build, fresh clone, reset). `/BRIEF.md` is gitignored and `./gate brief` no longer falls back to the README. The READMEs are once-read overviews: premise, level table, roles, windows, a "Your files" table, commands. Explorer gate sections are trimmed, `PLAYBOOK.md` is soft-wrapped, and stale pointers are fixed. Watch in the next TDD Haiku run: does the literal agent read the Level 0 brief and change its behaviour?
 
+## Done (2026-11-11)
+
+- **Sandbox for the agent's commands, on by default** (all three exercises; decisions, docs checks and test evidence in `docs/DECISIONS.md`). The shipped `.claude/settings.json` turns on Claude Code's own sandbox: the agent's commands, and everything they start, write only in the repo and the temp folder, can't read credential files, and reach the network only through a site a person approves. Prompts, gates and commands are unchanged (`autoAllowBashIfSandboxed: false`). It fails closed (`failIfUnavailable`, no unsandboxed retry).
+  - `./preflight` reports it, and fails on Linux without `bubblewrap` and `socat` or with Claude Code older than 2.1.321. `./preflight --no-sandbox` and `--sandbox` turn it off and back on for one repo (`gatekit/sandbox.py`, through `.claude/settings.local.json`, now git-ignored and kept by `gate reset`).
+  - Deny rules for `.git`, `.workshop` and `.tdd` were removed, because as sandbox rules they broke git, the bench log and state saves; the guard covers those folders. Credential `Read` rules and a matplotlib cache path were added.
+  - Docs: walkthroughs section 3 and troubleshooting, the quickstarts, `OTHER-AGENTS.md`, `docs/00` §5.5 and `gatekit/README.md` §8. The documented minimum Claude Code version is now 2.1.321.
+  - Preflight also warns about settings that exempt commands from the sandbox, commit signing and `core.hooksPath`, and on Linux test-runs `bwrap`.
+  - Tested live: Explorer Levels 0–3 in an interactive Claude Code session in tmux under the sandbox; headless checks of every agent-run command in TDD Ladder and Speed Run.
+  - Review: an external panel (Codex gpt-6.1-sol high, Claude Opus 5.5 high, via the orchestrator) ran three rounds, ending ACCEPT from both with no serious findings.
+  - Receipts: gatekit 107 tests on Python 3.14 and 3.9.6; ruff clean; self-tests Explorer 175, TDD Ladder 121, Speed Run 88.
+
 ## How to re-run everything
 
 ```zsh
@@ -101,7 +112,9 @@ Each self-test rebuilds its `dist/<name>` (keeping `.venv`) and leaves it clean 
    - Copilot CLI first: do the imported `.claude/settings.json` hooks work, block every call, or do nothing? Does the Claude Code section of `CLAUDE.md` (which Copilot also reads) confuse it about reading skills?
    - Then one full Codex path.
    - Record the results in `docs/DECISIONS.md`, and adjust the opt-out line in `OTHER-AGENTS.md` if needed.
-6. Linux and WSL2 rehearsal for Explorer: clone the bundle, preflight, `make open`, one gate, on Ubuntu 24.04 (Docker or a VM) and under WSL2. Linux is supported in the docs on static review only; WSL2 is undocumented.
+6. Linux and WSL2 rehearsal for Explorer (now also: the sandbox with `bubblewrap` and `socat`, preflight's `bwrap` probe against Ubuntu 24.04's AppArmor limit, and whether bubblewrap leaves mount-point files for missing deny paths such as `.records`, which would dirty the tree): clone the bundle, preflight, `make open`, one gate, on Ubuntu 24.04 (Docker or a VM) and under WSL2. Linux is supported in the docs on static review only; WSL2 is undocumented.
+
+7. Sandbox on other surfaces: confirm in the Claude desktop app's Code tab and an IDE extension that `echo $SANDBOX_RUNTIME` prints `1` in a built repo. Only the desktop app's bundled engine was tested, headless.
 
 ## Open questions
 

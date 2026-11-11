@@ -43,7 +43,7 @@ Do this a few days before the session, with a network connection. You need a Mac
 
 - The Xcode Command Line Tools: `xcode-select --install` (they provide `git`).
 - Python 3.11 or newer, for example `brew install python@3.13`.
-- Claude Code 2.1.295 or newer (`claude --version`), signed in to a Claude account that can use Haiku, and Sonnet for power-ups.
+- Claude Code 2.1.321 or newer (`claude --version`), signed in to a Claude account that can use Haiku, and Sonnet for power-ups.
 - A git identity, because the exercise commits: `git config --global user.name "Your Name"` and `git config --global user.email you@example.org`.
 
 Do not install anything else. If preflight asks for something, check with the facilitator first.
@@ -62,6 +62,16 @@ This exercise needs Claude Code: its lessons depend on Claude Code hooks (the pe
    2. `/model` and pick another model: it must be refused. The session stays on Haiku.
    3. `/exit`.
 4. Rehearse: play Levels 0 and 1 yourself following section 5, then reset (section 7) so the group starts at level 0.
+
+### The sandbox (on by default)
+
+To protect your laptop, Claude Code runs every command the agent starts, and everything those commands start (tests, scripts), in an operating-system sandbox:
+
+- they can write only inside this folder and the temp folder;
+- they can't read your SSH keys or your cloud and Git credential files;
+- they can't reach the internet unless you approve a site when Claude Code asks (nothing in the exercise needs it).
+
+Nothing else changes: the prompts, the gates and the commands are the same. `./preflight` checks that it can run. It needs Claude Code 2.1.321 or newer; preflight checks the `claude` command, so if you use the desktop app or an IDE extension, keep that up to date. To check in a session, ask the agent to run `echo $SANDBOX_RUNTIME`: it prints `1`. If it gets in your way, `./preflight --no-sandbox` turns it off for this folder, and `./preflight --sandbox` turns it back on. The agent's own file tools are not inside the sandbox; the guard keeps their edits in this folder, and the credential rules apply to them too.
 
 ## 4. Running the session
 
@@ -202,6 +212,10 @@ Claude (via a subagent) writes mutants of the group's own `binning.py`; the grou
 | `./tdd red` refuses because the suite is red or skipped | The agent cannot edit with no cycle open. In the gate terminal, restore the last good commit of `src tests` (or `git rm` the bad test file) and commit. |
 | `./tdd score` slow or fails | It runs the scoring jobs in parallel, normally 1 to 2 s; a hung group test is killed after 120 s. Large statistical tests are the usual cause: reduce N and recompute the bound. |
 | Someone launched `claude --model opus` | The start-up hook warns only when Claude Code reports the model. Restart with plain `claude`, then check `/status`. |
+| A command fails with "Operation not permitted" | The sandbox: expected for anything outside this folder: writes to your home folder or `/tmp`, `mktemp` without a path, `<(…)`. Ask the agent to work inside the repo (Python's `tempfile` is fine). Don't turn the sandbox off to get past it. |
+| The agent's `git commit` fails to sign ("gpg failed", "Couldn't load public key") | The sandbox hides your signing key; preflight warns about it. Run `git config commit.gpgsign false` in the repo (this repo only), or `./preflight --no-sandbox`. |
+| Claude Code asks to allow a website | The sandbox: nothing in the exercise needs the network: say no unless you know why. |
+| Claude Code won't start, or says the sandbox is required | Run `./preflight` and do what it says (usually `claude update`), or `./preflight --no-sandbox`. |
 
 ## 7. Reset between runs
 

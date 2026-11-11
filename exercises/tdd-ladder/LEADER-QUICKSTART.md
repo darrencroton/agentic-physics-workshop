@@ -8,9 +8,10 @@ Your group builds one small function, `binned_weighted_mean`, several times, sta
 
 Before the day, on your laptop:
 
-- [ ] Python 3.11+, git, a git identity, and Claude Code 2.1.295 or newer signed in.
+- [ ] Python 3.11+, git, a git identity, and Claude Code 2.1.321 or newer signed in.
 - [ ] Cloned the bundle; `./preflight` (first run sets up `.venv`: needs the network, about a minute) ends with "Preflight passed". It also checks the skill and agent files.
 - [ ] In `claude`, accept the trust dialog; `/hooks` lists four events, and `/model` to another model is refused.
+- [ ] Preflight shows "sandbox on": Claude Code runs the agent's commands in an operating-system sandbox, to protect your laptop (walkthrough section 3).
 - [ ] Played Levels 0 and 1, then `./gate reset`.
 
 ## On the day
